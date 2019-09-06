@@ -1,0 +1,7 @@
+{
+  "metadata": {
+    "url": "https://errata.devel.redhat.com/advisory/38252"
+  },
+  "payload": "quay.io/openshift-release-dev/ocp-release@sha256:6f4cf2db7e63c4dba54496a72b83fec22c49293b520ff0cdb78f1e38b23f1ccb",
+  "version": "4.1.0-rc.4"
+}
