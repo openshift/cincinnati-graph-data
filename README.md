@@ -27,6 +27,21 @@ For an example, see [`nodes/4.1/4.1.0.json`](nodes/4.1/4.1.0.json).
 Add a symlink to the `nodes` entry from the `channels/<channel>` directory.
 For example, [`channels/stable-4.1/4.1.0.json`](channels/stable-4.1/4.1.0.json) is a symlink to [`nodes/4.1/4.1.0.json`](nodes/4.1/4.1.0.json), which promotes the 4.1.0 release to the `stable-4.1` channel.
 
+### Add an upgrade edge between releases
+
+Add JSON for an edge under the `edges` directory.
+The filename and subdirectory structure doesn't have a tooling impact, but the convention is to use `<to-major>.<to-minor>/<to-version>/<from-version>.json` to make it easy to get the history for separate z streams (e.g. `git log edges/4.1`).
+
+Schema:
+
+* `channels` (required array of strings): Channel names in which the edge exists.
+    This can be a single single channel to allow for per-channel metadata such as phased rollout start times.
+    It can also be multiple channels if you do not need channel-specific metadata.
+* `from` (required string): The release `version` from which the edge originates.
+* `to` (required string): The release `version` where the edge terminates.
+
+For an example, see [`edges/4.1/4.1.2/4.1.0.json`](edges/4.1/4.1.2/4.1.0.json).
+
 [Cincinnati]: https://github.com/openshift/cincinnati/
 [image]: https://kubernetes.io/docs/concepts/containers/images/
 [SemVer]: https://semver.org/spec/v2.0.0.html
