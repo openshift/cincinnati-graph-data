@@ -42,6 +42,13 @@ Schema:
 
 For an example, see [`edges/4.1/4.1.2/4.1.0.json`](edges/4.1/4.1.2/4.1.0.json).
 
+To create entries for edges baked into a release image's `release-metadata`, use `extract-edges`.
+For example, create edges to 4.1.15 with:
+
+```console
+$ hack/graph-util.py extract-edges 4.1.15
+```
+
 ### Publish to Quay labels
 
 The Quay labels currently supported by Cincinnati aren't rich enough for per-channel edge information and similar.
@@ -49,7 +56,7 @@ But pushing to Quay labels allows us to start using this repository for managing
 Push to Quay labels with:
 
 ```console
-$ hack/push-to-quay.py --token="${YOUR_TOKEN}"
+$ hack/graph-util.py push-to-quay --token="${YOUR_TOKEN}"
 ```
 
 You can leave `--token` unset for a dry run (the actions the script would take are printed either way, but are only executed if you passed a token).

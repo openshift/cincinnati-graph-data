@@ -6,13 +6,22 @@ import collections
 import io
 import json
 import os
+import re
 import tarfile
+
+
+try:
+    from builtins import FileExistsError  # Python 3
+except ImportError:
+    FileExistsError = OSError  # sloppy hack for Python 2
 
 try:
     from urllib.request import Request, urlopen  # Python 3
 except ImportError:
     from urllib2 import Request, urlopen  # Python 2
 
+
+_VERSION_REGEXP = re.compile('^(?P<major>[0-9]*)\.(?P<minor>[0-9]*)(?P<suffix>[^0-9].*)$')
 
 def load_edges(directory, nodes):
     edges = {}
@@ -59,6 +68,7 @@ def load_nodes(directory):
             if previous_node:
                previous_node['channels'].add(channel)
                continue
+            node = normalize_node(node=node)
             node['channels'] = {channel}
             nodes[node['version']] = node
     for node in nodes.values():
@@ -66,6 +76,13 @@ def load_nodes(directory):
             node['metadata'] = {}
         node['metadata']['io.openshift.upgrades.graph.release.channels'] = ','.join(sorted(node['channels']))
     return nodes
+
+
+def normalize_node(node):
+    match = _VERSION_REGEXP.match(node['version'])
+    if not match:
+        raise ValueError('invalid node version: {!r}'.format(node['version']))
+    return node
 
 
 def push(directory, token):
@@ -217,10 +234,60 @@ def get_release_metadata(node):
     raise ValueError('no release-metadata in {} layers'.format(node['version']))
 
 
+def extract_edges(node, directory):
+    meta = get_release_metadata(node=node)
+    if not meta.get('previous'):
+        return
+    try:
+        os.mkdir(directory)  # os.makedirs' exist_ok is new in Python 3.2
+    except FileExistsError:
+        pass
+    for previous in meta['previous']:
+        with open(os.path.join(directory, '{}.json'.format(previous)), 'w+') as f:
+            json.dump({
+                'channels': sorted(node['channels']),
+                'from': previous,
+                'to': node['version'],
+            }, f, indent=2, sort_keys=True,
+                separators=(',', ': '),  # only needs to be explicit in Python 2 and <3.4
+            )
+            f.write('\n')
+
+
+def extract_edges_for_versions(directory, versions):
+    nodes = load_nodes(directory=os.path.join(directory, 'channels'))
+    for version in versions:
+        node = nodes[version]
+        match = _VERSION_REGEXP.match(node['version'])
+        extract_edges(node=node, directory=os.path.join(directory, 'edges', '{major}.{minor}'.format(**match.groupdict()), version))
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Push graph metadata to Quay.io labels.')
-    parser.add_argument(
+    parser = argparse.ArgumentParser(description='Utilities for managing graph data.')
+    subparsers = parser.add_subparsers()
+
+    extract_edges_parser = subparsers.add_parser(
+        'extract-edges',
+        help='Extract the default edges baked into the given release(s).'
+    )
+    extract_edges_parser.add_argument(
+        'version', nargs='+',
+        help='Versions from which edges should be extracted.',
+    )
+    extract_edges_parser.set_defaults(action='extract-edges')
+
+    push_to_quay_parser = subparsers.add_parser(
+        'push-to-quay',
+        help='Push graph metadata to Quay.io labels.',
+    )
+    push_to_quay_parser.add_argument(
         '-t', '--token',
         help='Quay token ( https://docs.quay.io/api/#applications-and-tokens )')
+    push_to_quay_parser.set_defaults(action='push-to-quay')
+
     args = parser.parse_args()
-    push(directory='.', token=args.token)
+
+    if args.action == 'extract-edges':
+        extract_edges_for_versions(directory='.', versions=args.version)
+    elif args.action == 'push-to-quay':
+        push(directory='.', token=args.token)
