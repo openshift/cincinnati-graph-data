@@ -22,10 +22,20 @@ Schema:
 
 For an example, see [`nodes/4.1/4.1.0.json`](nodes/4.1/4.1.0.json).
 
+If you'd rather create the node entry from tooling, you can use:
+
+```console
+$ hack/graph-util.py update-node quay.io/openshift-release-dev/ocp-release:4.1.0
+```
+
 ### Add a release to a channel
 
 Add a symlink to the `nodes` entry from the `channels/<channel>` directory.
 For example, [`channels/stable-4.1/4.1.0.json`](channels/stable-4.1/4.1.0.json) is a symlink to [`nodes/4.1/4.1.0.json`](nodes/4.1/4.1.0.json), which promotes the 4.1.0 release to the `stable-4.1` channel.
+
+```console
+$ ln -rs nodes/4.1/4.1.0.json channels/stable-4.1/
+```
 
 ### Add an upgrade edge between releases
 
@@ -43,10 +53,10 @@ Schema:
 For an example, see [`edges/4.1/4.1.2/4.1.0.json`](edges/4.1/4.1.2/4.1.0.json).
 
 To create entries for edges baked into a release image's `release-metadata`, use `extract-edges`.
-For example, create edges to 4.1.15 with:
+For example, create edges to 4.1.0 with:
 
 ```console
-$ hack/graph-util.py extract-edges 4.1.15
+$ hack/graph-util.py extract-edges 4.1.0
 ```
 
 ### Publish to Quay labels

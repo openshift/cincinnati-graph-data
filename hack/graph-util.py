@@ -172,14 +172,20 @@ def sync_node(node, token):
                     token=token)
 
 
-def manifest_uri(node):
-    pullspec = node['payload']
-    name, digest = pullspec.split('@', 1)
+def repository_uri(name, pullspec=None):
+    if not pullspec:
+        pullspec = name
     prefix = 'quay.io/'
     if not name.startswith(prefix):
         raise ValueError('non-Quay pullspec: {}'.format(pullspec))
     name = name[len(prefix):]
-    return 'https://quay.io/api/v1/repository/{}/manifest/{}'.format(name, digest)
+    return 'https://quay.io/api/v1/repository/{}'.format(name)
+
+
+def manifest_uri(node):
+    pullspec = node['payload']
+    name, digest = pullspec.split('@', 1)
+    return '{}/manifest/{}'.format(repository_uri(name=name, pullspec=pullspec), digest)
 
 
 def get_labels(node):
@@ -211,6 +217,28 @@ def post_label(node, label, token):
     return urlopen(request)
 
 
+def get_by_digest_pullspec(pullspec):
+    if '@' in pullspec:
+        return pullspec, None
+    name, tag = pullspec.split(':', 1)
+    repo_uri = repository_uri(name=name, pullspec=pullspec)
+    page = 0
+    while True:
+        f = urlopen('{}/tag/?page={}'.format(repo_uri, page))
+        data = json.load(codecs.getreader('utf-8')(f))
+        f.close()  # no context manager with-statement because in Python 2: AttributeError: addinfourl instance has no attribute '__exit__'
+
+        for entry in data['tags']:
+            if entry['name'] == tag:
+                return '{}@{}'.format(name, entry['manifest_digest']), tag
+
+        if data['has_additional']:
+            page += 1
+            continue
+
+        raise ValueError('tag {} not found in {}'.format(tag, name))
+
+
 def get_release_metadata(node):
     f = urlopen(manifest_uri(node=node))
     data = json.load(codecs.getreader('utf-8')(f))
@@ -232,6 +260,30 @@ def get_release_metadata(node):
             f = tar.extractfile('release-manifests/release-metadata')
             return json.load(codecs.getreader('utf-8')(f))
     raise ValueError('no release-metadata in {} layers'.format(node['version']))
+
+
+def update_nodes(directory, pullspecs):
+    for pullspec in pullspecs:
+        by_digest_pullspec, tag = get_by_digest_pullspec(pullspec=pullspec)
+        meta = get_release_metadata(node={'payload': by_digest_pullspec})
+        match = _VERSION_REGEXP.match(meta['version'])
+        if not match:
+            raise ValueError('invalid node version in {}: {!r}'.format(pullspec, meta['version']))
+        if tag and meta['version'] != tag:
+            raise ValueError('unexpected version {!r} not equal to tag {!r}'.format(meta['version']))
+        node = {
+            'payload': by_digest_pullspec,
+            'version': meta['version'],
+        }
+        uri = meta.get('metadata', {}).get('url', '').strip()
+        if uri:
+              node['metadata'] = {'url': uri}
+        with open(os.path.join(directory, 'nodes', '{major}.{minor}'.format(**match.groupdict()), '{}.json'.format(meta['version'])), 'w+') as f:
+            json.dump(
+                node, f, indent=2, sort_keys=True,
+                separators=(',', ': '),  # only needs to be explicit in Python 2 and <3.4
+            )
+            f.write('\n')
 
 
 def extract_edges(node, directory):
@@ -266,6 +318,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Utilities for managing graph data.')
     subparsers = parser.add_subparsers()
 
+    update_node_parser = subparsers.add_parser(
+        'update-node',
+        help='Create or update a node entry from embeded release-metadata.'
+    )
+    update_node_parser.add_argument(
+        'pullspec', nargs='+',
+        help='Pull-specs for releases for which nodes should be created or updated.',
+    )
+    update_node_parser.set_defaults(action='update-node')
+
     extract_edges_parser = subparsers.add_parser(
         'extract-edges',
         help='Extract the default edges baked into the given release(s).'
@@ -287,6 +349,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    if args.action == 'update-node':
+        update_nodes(directory='.', pullspecs=args.pullspec)
     if args.action == 'extract-edges':
         extract_edges_for_versions(directory='.', versions=args.version)
     elif args.action == 'push-to-quay':
