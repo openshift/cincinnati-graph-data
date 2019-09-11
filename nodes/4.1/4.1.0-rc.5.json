@@ -1,6 +1,5 @@
 {
   "metadata": {
-    "io.openshift.upgrades.graph.next.add": "4.1.0-rc.6",
     "url": "https://errata.devel.redhat.com/advisory/38252"
   },
   "payload": "quay.io/openshift-release-dev/ocp-release@sha256:dc67ad5edd91ca48402309fe0629593e5ae3333435ef8d0bc52c2b62ca725021",

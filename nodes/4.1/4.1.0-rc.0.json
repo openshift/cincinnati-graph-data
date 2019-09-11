@@ -1,5 +1,4 @@
 {
-  "metadata": {},
   "payload": "quay.io/openshift-release-dev/ocp-release@sha256:345ec9351ecc1d78c16cf0853fe0ef2d9f48dd493da5fdffc18fa18f45707867",
   "version": "4.1.0-rc.0"
 }
