@@ -7,6 +7,13 @@ This repository manages the Cincinnati graph for OpenShift.
 
 The [contributing documentation](CONTRIBUTING.md) covers licencing and the usual Git flow.
 
-FIXME: Document the data flow for this project.
+### Pull metadata
+
+Update the local metadata file to match the currently-live metadata with:
+
+```console
+$ hack/pull
+```
+
 
 [Cincinnati]: https://github.com/openshift/cincinnati/

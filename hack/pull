@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+import codecs
+import io
+import json
+import tarfile
+
+try:
+    from urllib.request import Request, urlopen  # Python 3
+    from urllib.error import HTTPError
+except ImportError:
+    from urllib2 import HTTPError, Request, urlopen  # Python 2
+
+
+repo = 'openshift-release-dev/ocp-release'
+repo_uri = 'https://quay.io/api/v1/repository/{}'.format(repo)
+meta = {}
+page = 1
+while True:
+    f = urlopen('{}/tag/?page={}'.format(repo_uri, page))
+    tags = json.load(codecs.getreader('utf-8')(f))
+    f.close()  # no context manager with-statement because in Python 2: AttributeError: addinfourl instance has no attribute '__exit__'
+
+    for tag in tags['tags']:
+        if 'expiration' in tag:
+            continue
+
+        version = tag['name']  # FIXME: pull release-meta
+        digest = tag['manifest_digest']
+
+        uri = '{}/manifest/{}/labels'.format(repo_uri, digest)
+        try:
+            f = urlopen(uri)
+        except HTTPError as error:
+            print('failed to pull labels for {} {}: {}'.format(version, uri, error))
+            continue
+        labels = json.load(codecs.getreader('utf-8')(f))
+        f.close()  # no context manager with-statement because in Python 2: AttributeError: addinfourl instance has no attribute '__exit__'
+
+        for label in labels['labels']:
+            if label['source_type'] != 'api':
+                continue
+            if version not in meta:
+                meta[version] = {}
+            meta[version][label['key']] = label['value']
+
+    if tags['has_additional']:
+        page += 1
+        continue
+    break
+
+with open('metadata.json', 'w+') as f:
+    json.dump(
+        meta, f, indent=2, sort_keys=True,
+        separators=(',', ': '),  # only needs to be explicit in Python 2 and <3.4
+    )
+    f.write('\n')
