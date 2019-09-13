@@ -65,6 +65,9 @@
   "4.1.15": {
     "io.openshift.upgrades.graph.release.channels": "prerelease-4.1,stable-4.1"
   },
+  "4.1.16": {
+    "io.openshift.upgrades.graph.release.channels": "prerelease-4.1"
+  },
   "4.1.2": {
     "io.openshift.upgrades.graph.release.channels": "prerelease-4.1,stable-4.1"
   },
