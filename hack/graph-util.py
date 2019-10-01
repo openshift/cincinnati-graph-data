@@ -278,7 +278,12 @@ def update_nodes(directory, pullspecs):
         uri = meta.get('metadata', {}).get('url', '').strip()
         if uri:
               node['metadata'] = {'url': uri}
-        with open(os.path.join(directory, 'nodes', '{major}.{minor}'.format(**match.groupdict()), '{}.json'.format(meta['version'])), 'w+') as f:
+        major_minor_dir = os.path.join(directory, 'nodes', '{major}.{minor}'.format(**match.groupdict()))
+        try:
+            os.mkdir(major_minor_dir)  # os.makedirs' exist_ok is new in Python 3.2
+        except FileExistsError:
+            pass
+        with open(os.path.join(major_minor_dir, '{}.json'.format(meta['version'])), 'w+') as f:
             json.dump(
                 node, f, indent=2, sort_keys=True,
                 separators=(',', ': '),  # only needs to be explicit in Python 2 and <3.4
