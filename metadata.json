@@ -97,5 +97,8 @@
   },
   "4.2.0-rc.0": {
     "io.openshift.upgrades.graph.release.channels": "prerelease-4.2"
+  },
+  "4.2.0-rc.1": {
+    "io.openshift.upgrades.graph.release.channels": "prerelease-4.2"
   }
 }
