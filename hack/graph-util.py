@@ -316,7 +316,12 @@ def extract_edges_for_versions(directory, versions):
     for version in versions:
         node = nodes[version]
         match = _VERSION_REGEXP.match(node['version'])
-        extract_edges(node=node, directory=os.path.join(directory, 'edges', '{major}.{minor}'.format(**match.groupdict()), version))
+        major_minor_dir = os.path.join(directory, 'edges', '{major}.{minor}'.format(**match.groupdict()))
+        try:
+            os.mkdir(major_minor_dir)  # os.makedirs' exist_ok is new in Python 3.2
+        except FileExistsError:
+            pass
+        extract_edges(node=node, directory=os.path.join(major_minor_dir, version))
 
 
 if __name__ == '__main__':
