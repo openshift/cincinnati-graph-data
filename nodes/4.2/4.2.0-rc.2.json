@@ -1,0 +1,7 @@
+{
+  "metadata": {
+    "url": "https://access.redhat.com/errata/RHBA-2019:2922"
+  },
+  "payload": "quay.io/openshift-release-dev/ocp-release@sha256:9a1a38ce4d5fa79c785801eca3679a759bede9f40081b9e1b9f0cca2baa673a2",
+  "version": "4.2.0-rc.2"
+}
