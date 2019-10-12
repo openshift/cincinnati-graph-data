@@ -291,7 +291,7 @@ def update_nodes(directory, pullspecs):
             f.write('\n')
 
 
-def extract_edges(node, directory):
+def extract_edges(node, nodes, directory):
     meta = get_release_metadata(node=node)
     if not meta.get('previous'):
         return
@@ -299,16 +299,28 @@ def extract_edges(node, directory):
         os.mkdir(directory)  # os.makedirs' exist_ok is new in Python 3.2
     except FileExistsError:
         pass
-    for previous in meta['previous']:
-        with open(os.path.join(directory, '{}.json'.format(previous)), 'w+') as f:
-            json.dump({
-                'channels': sorted(node['channels']),
-                'from': previous,
-                'to': node['version'],
-            }, f, indent=2, sort_keys=True,
-                separators=(',', ': '),  # only needs to be explicit in Python 2 and <3.4
-            )
-            f.write('\n')
+    for previous_version in meta['previous']:
+        path = os.path.join(directory, '{}.json'.format(previous_version))
+        try:
+            previous = nodes[previous_version]
+        except KeyError:
+            continue
+        channels = node['channels'].intersection(previous['channels'])
+        if channels:
+            with open(path, 'w+') as f:
+                json.dump({
+                    'channels': sorted(node['channels'].intersection(previous['channels'])),
+                    'from': previous_version,
+                    'to': node['version'],
+                }, f, indent=2, sort_keys=True,
+                    separators=(',', ': '),  # only needs to be explicit in Python 2 and <3.4
+                )
+                f.write('\n')
+        else:
+            try:
+                os.remove(path)
+            except FileExistsError:
+                pass
 
 
 def extract_edges_for_versions(directory, versions):
@@ -321,7 +333,7 @@ def extract_edges_for_versions(directory, versions):
             os.mkdir(major_minor_dir)  # os.makedirs' exist_ok is new in Python 3.2
         except FileExistsError:
             pass
-        extract_edges(node=node, directory=os.path.join(major_minor_dir, version))
+        extract_edges(node=node, nodes=nodes, directory=os.path.join(major_minor_dir, version))
 
 
 if __name__ == '__main__':
