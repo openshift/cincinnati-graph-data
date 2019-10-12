@@ -43,7 +43,7 @@ def load_edges(directory, nodes):
             to_node = nodes[edge['to']]
             node_channels = set(from_node['channels']).intersection(to_node['channels'])
             if set(edge['channels']) != node_channels:
-                raise ValueError('edge channels {} differ from node channels {} (Quay labels do not support channel granularity)'.format(sorted(edge['channels']), sorted(node_channels)))
+                raise ValueError('edge channels {} for {}->{} differ from node channels {} (Quay labels do not support channel granularity)'.format(sorted(edge['channels']), from_node['version'], to_node['version'], sorted(node_channels)))
             if 'previous' in to_node:
                 to_node['previous'].add(edge['from'])
             else:
