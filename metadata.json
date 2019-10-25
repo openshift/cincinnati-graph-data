@@ -80,6 +80,9 @@
   "4.1.20": {
     "io.openshift.upgrades.graph.release.channels": "prerelease-4.1,stable-4.1"
   },
+  "4.1.21": {
+    "io.openshift.upgrades.graph.release.channels": "prerelease-4.1"
+  },
   "4.1.3": {
     "io.openshift.upgrades.graph.release.channels": "prerelease-4.1,stable-4.1"
   },
@@ -109,5 +112,11 @@
   },
   "4.2.0-rc.5": {
     "io.openshift.upgrades.graph.release.channels": "prerelease-4.2,candidate-4.2"
+  },
+  "4.2.1": {
+    "io.openshift.upgrades.graph.release.channels": "candidate-4.2"
+  },
+  "4.2.2": {
+    "io.openshift.upgrades.graph.release.channels": "candidate-4.2"
   }
 }
