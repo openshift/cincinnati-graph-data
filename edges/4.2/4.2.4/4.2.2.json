@@ -1,0 +1,9 @@
+{
+  "channels": [
+    "candidate-4.2",
+    "fast-4.2",
+    "stable-4.2"
+  ],
+  "from": "4.2.2",
+  "to": "4.2.4"
+}

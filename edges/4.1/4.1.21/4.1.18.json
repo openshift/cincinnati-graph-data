@@ -1,6 +1,8 @@
 {
   "channels": [
-    "prerelease-4.1"
+    "candidate-4.2",
+    "prerelease-4.1",
+    "stable-4.1"
   ],
   "from": "4.1.18",
   "to": "4.1.21"

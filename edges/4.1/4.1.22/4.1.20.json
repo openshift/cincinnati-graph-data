@@ -1,0 +1,9 @@
+{
+  "channels": [
+    "candidate-4.2",
+    "prerelease-4.1",
+    "stable-4.1"
+  ],
+  "from": "4.1.20",
+  "to": "4.1.22"
+}
