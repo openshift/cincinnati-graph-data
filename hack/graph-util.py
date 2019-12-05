@@ -99,6 +99,30 @@ def load_channels(directory, nodes):
     return nodes
 
 
+def block_edges(directory, nodes):
+    for root, _, files in os.walk(directory):
+        for filename in files:
+            if not filename.endswith('.yaml'):
+                continue
+            path = os.path.join(root, filename)
+            with open(path) as f:
+                try:
+                    data = yaml.load(f)
+                except ValueError as e:
+                    raise ValueError('failed to load YAML from {}: {}'.format(path, e))
+                try:
+                    to_node = nodes[data['to']]
+                except KeyError:
+                    raise ValueError('{} claims version {}, but no nodes found with that version'.format(path, data['to']))
+                try:
+                    from_regexp = re.compile(data['from'])
+                except ValueError as error:
+                    raise ValueError('{} invalid from regexp: {}'.format(path, data['from']))
+                if to_node.get('previous'):
+                    to_node['previous'] = {version for version in to_node['previous'] if not from_regexp.match(version)}
+    return nodes
+
+
 def normalize_node(node):
     match = _VERSION_REGEXP.match(node['version'])
     if not match:
@@ -110,6 +134,7 @@ def push(directory, token):
     nodes = load_nodes(directory=os.path.join(directory, 'nodes'))
     nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
     nodes = load_edges(directory=os.path.join(directory, 'edges'), nodes=nodes)
+    nodes = block_edges(directory=os.path.join(directory, 'blocked-edges'), nodes=nodes)
     for node in nodes.values():
         sync_node(node=node, token=token)
 
