@@ -9,6 +9,8 @@ import os
 import re
 import tarfile
 
+import yaml
+
 
 try:
     from builtins import FileExistsError  # Python 3
@@ -54,7 +56,6 @@ def load_edges(directory, nodes):
 def load_nodes(directory):
     nodes = {}
     for root, _, files in os.walk(directory):
-        channel = os.path.basename(root)
         for filename in files:
             if not filename.endswith('.json'):
                 continue
@@ -64,13 +65,33 @@ def load_nodes(directory):
                     node = json.load(f)
                 except ValueError as e:
                     raise ValueError('failed to load JSON from {}: {}'.format(path, e))
-            previous_node = nodes.get(node['version'])
-            if previous_node:
-               previous_node['channels'].add(channel)
-               continue
             node = normalize_node(node=node)
-            node['channels'] = {channel}
             nodes[node['version']] = node
+    return nodes
+
+
+def load_channels(directory, nodes):
+    for node in nodes.values():
+        node['channels'] = set()
+
+    for root, _, files in os.walk(directory):
+        for filename in files:
+            if not filename.endswith('.yaml'):
+                continue
+            path = os.path.join(root, filename)
+            with open(path) as f:
+                try:
+                    data = yaml.load(f)
+                except ValueError as e:
+                    raise ValueError('failed to load YAML from {}: {}'.format(path, e))
+                channel = data['name']
+                for version in data['versions']:
+                    try:
+                        node = nodes[version]
+                    except KeyError:
+                        raise ValueError('{} claims version {}, but no nodes found with that version'.format(path, version))
+                    node['channels'].add(channel)
+
     for node in nodes.values():
         if 'metadata' not in node:
             node['metadata'] = {}
@@ -86,7 +107,8 @@ def normalize_node(node):
 
 
 def push(directory, token):
-    nodes = load_nodes(directory=os.path.join(directory, 'channels'))
+    nodes = load_nodes(directory=os.path.join(directory, 'nodes'))
+    nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
     nodes = load_edges(directory=os.path.join(directory, 'edges'), nodes=nodes)
     for node in nodes.values():
         sync_node(node=node, token=token)
@@ -324,7 +346,8 @@ def extract_edges(node, nodes, directory):
 
 
 def extract_edges_for_versions(directory, versions):
-    nodes = load_nodes(directory=os.path.join(directory, 'channels'))
+    nodes = load_nodes(directory=os.path.join(directory, 'nodes'))
+    nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
     for version in versions:
         node = nodes[version]
         match = _VERSION_REGEXP.match(node['version'])
