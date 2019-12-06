@@ -5,6 +5,7 @@ import codecs
 import collections
 import io
 import json
+import logging
 import os
 import re
 import tarfile
@@ -24,49 +25,77 @@ except ImportError:
 
 
 _VERSION_REGEXP = re.compile('^(?P<major>[0-9]*)\.(?P<minor>[0-9]*)(?P<suffix>[^0-9].*)$')
-
-def load_edges(directory, nodes):
-    edges = {}
-    for root, _, files in os.walk(directory):
-        for filename in files:
-            if not filename.endswith('.json'):
-                continue
-            path = os.path.join(root, filename)
-            with open(path) as f:
-                try:
-                    edge = json.load(f)
-                except ValueError as e:
-                    raise ValueError('failed to load JSON from {}: {}'.format(path, e))
-            edge_key = (edge['from'], edge['to'])
-            if edge_key in edges:
-                raise ValueError('duplicate edges for {} (Quay labels do not support channel granularity)')
-            edges[edge_key] = edge
-            from_node = nodes[edge['from']]
-            to_node = nodes[edge['to']]
-            node_channels = set(from_node['channels']).intersection(to_node['channels'])
-            if set(edge['channels']) != node_channels:
-                raise ValueError('edge channels {} for {}->{} differ from node channels {} (Quay labels do not support channel granularity)'.format(sorted(edge['channels']), from_node['version'], to_node['version'], sorted(node_channels)))
-            if 'previous' in to_node:
-                to_node['previous'].add(edge['from'])
-            else:
-                to_node['previous'] = {edge['from']}
-    return nodes
+logging.basicConfig(format='%(levelname)s: %(message)s')
+_LOGGER = logging.getLogger(__name__)
+_LOGGER.setLevel(logging.DEBUG)
 
 
-def load_nodes(directory):
+def load_nodes(directory, registry, repository):
+    try:
+        os.mkdir(directory)  # os.makedirs' exist_ok is new in Python 3.2
+    except FileExistsError:
+        pass
+
     nodes = {}
-    for root, _, files in os.walk(directory):
-        for filename in files:
-            if not filename.endswith('.json'):
+
+    repository_uri = 'https://{}/api/v1/repository/{}'.format(registry, repository)
+    page = 1
+    while True:
+        f = urlopen('{}/tag/?page={}'.format(repository_uri, page))
+        data = json.load(codecs.getreader('utf-8')(f))
+        f.close()  # no context manager with-statement because in Python 2: AttributeError: addinfourl instance has no attribute '__exit__'
+
+        for entry in data['tags']:
+            if 'expiration' in entry:
                 continue
-            path = os.path.join(root, filename)
-            with open(path) as f:
+
+            algo, hash = entry['manifest_digest'].split(':', 1)
+            pullspec = 'quay.io/{}@{}:{}'.format(repository, algo, hash)
+            node = {'payload': pullspec}
+            path = os.path.join(directory, algo, hash)
+            try:
+                with open(path) as f:
+                    try:
+                        meta = yaml.load(f)
+                    except ValueError as error:
+                        raise ValueError('failed to load YAML from {}: {}'.format(path, error))
+                    if not meta:
+                        continue
+                _LOGGER.debug('loaded from cache: {} {}'.format(meta['version'], node['payload']))
+            except IOError:
                 try:
-                    node = json.load(f)
-                except ValueError as e:
-                    raise ValueError('failed to load JSON from {}: {}'.format(path, e))
+                    meta = get_release_metadata(node=node)
+                except KeyError as error:
+                    _LOGGER.warning('unable to get release metadata for {} {} : {}'.format(pullspec, entry, error))
+                    meta = {}
+                try:
+                    os.mkdir(os.path.join(directory, algo))  # os.makedirs' exist_ok is new in Python 3.2
+                except FileExistsError:
+                    pass
+                try:
+                    with open(path, 'w') as f:
+                        yaml.safe_dump(meta, f, default_flow_style=False)
+                except:
+                    os.remove(path)
+                    raise
+                if not meta:
+                    _LOGGER.debug('caching empty metadata for {} {}'.format(entry['name'], node['payload']))
+                    continue
+                _LOGGER.debug('caching metadata for {} {}'.format(meta['version'], node['payload']))
+            node['version'] = meta['version']
+            if meta.get('previous'):
+                node['previous'] = set(meta['previous'])
+            if meta.get('next'):
+                node['next'] = set(meta['next'])
             node = normalize_node(node=node)
             nodes[node['version']] = node
+
+        if data['has_additional']:
+            page += 1
+            continue
+
+        break
+
     return nodes
 
 
@@ -82,8 +111,8 @@ def load_channels(directory, nodes):
             with open(path) as f:
                 try:
                     data = yaml.load(f)
-                except ValueError as e:
-                    raise ValueError('failed to load YAML from {}: {}'.format(path, e))
+                except ValueError as error:
+                    raise ValueError('failed to load YAML from {}: {}'.format(path, error))
                 channel = data['name']
                 for version in data['versions']:
                     try:
@@ -108,8 +137,8 @@ def block_edges(directory, nodes):
             with open(path) as f:
                 try:
                     data = yaml.load(f)
-                except ValueError as e:
-                    raise ValueError('failed to load YAML from {}: {}'.format(path, e))
+                except ValueError as error:
+                    raise ValueError('failed to load YAML from {}: {}'.format(path, error))
                 try:
                     to_node = nodes[data['to']]
                 except KeyError:
@@ -131,11 +160,10 @@ def normalize_node(node):
 
 
 def push(directory, token):
-    nodes = load_nodes(directory=os.path.join(directory, 'nodes'))
+    nodes = load_nodes(directory=os.path.join(directory, '.nodes'), registry='quay.io', repository='openshift-release-dev/ocp-release')
     nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
-    nodes = load_edges(directory=os.path.join(directory, 'edges'), nodes=nodes)
     nodes = block_edges(directory=os.path.join(directory, 'blocked-edges'), nodes=nodes)
-    for node in nodes.values():
+    for version, node in sorted(nodes.items()):
         sync_node(node=node, token=token)
 
 
@@ -144,13 +172,17 @@ def sync_node(node, token):
 
     channels = labels.get('io.openshift.upgrades.graph.release.channels', {}).get('value', '')
     if channels and channels != node['metadata']['io.openshift.upgrades.graph.release.channels']:
-        print('label mismatch for {}: {} != {}'.format(node['version'], channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
+        if set(channels.split(',')) == node['channels']:
+            _LOGGER.info('label sort for {}: {} -> {}'.format(node['version'], channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
+        else:
+            _LOGGER.info('label mismatch for {}: {} != {}'.format(node['version'], channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
         delete_label(
             node=node,
             label='io.openshift.upgrades.graph.release.channels',
             token=token)
-        channels = None
-    if not channels:
+    if node['metadata']['io.openshift.upgrades.graph.release.channels'] and channels != node['metadata']['io.openshift.upgrades.graph.release.channels']:
+        if not channels:
+            _LOGGER.info('adding {} to channels: {}'.format(node['version'], node['metadata']['io.openshift.upgrades.graph.release.channels']))
         post_label(
             node=node,
             label={
@@ -171,7 +203,7 @@ def sync_node(node, token):
         want_removed = previous - node['previous']
         current_removed = set(version for version in labels.get('io.openshift.upgrades.graph.previous.remove', {}).get('value', '').split(',') if version)
         if current_removed != want_removed:
-            print('changing {} previous.remove from {} to {}'.format(node['version'], sorted(current_removed), sorted(want_removed)))
+            _LOGGER.info('changing {} previous.remove from {} to {}'.format(node['version'], sorted(current_removed), sorted(want_removed)))
             if 'io.openshift.upgrades.graph.previous.remove' in labels:
                 delete_label(node=node, label='io.openshift.upgrades.graph.previous.remove', token=token)
             if want_removed:
@@ -186,7 +218,7 @@ def sync_node(node, token):
         want_added = node['previous'] - previous
         current_added = set(version for version in labels.get('io.openshift.upgrades.graph.previous.add', {}).get('value', '').split(',') if version)
         if current_added != want_added:
-            print('changing {} previous.add from {} to {}'.format(node['version'], sorted(current_added), sorted(want_added)))
+            _LOGGER.info('changing {} previous.add from {} to {}'.format(node['version'], sorted(current_added), sorted(want_added)))
             if 'io.openshift.upgrades.graph.previous.add' in labels:
                 delete_label(node=node, label='io.openshift.upgrades.graph.previous.add', token=token)
             if want_added:
@@ -200,13 +232,13 @@ def sync_node(node, token):
                     token=token)
     else:
         if 'io.openshift.upgrades.graph.previous.add' in labels:
-            print('{} had previous additions, but we want no incoming edges'.format(node['version']))
+            _LOGGER.info('{} had previous additions, but we want no incoming edges ({})'.format(node['version'], labels['io.openshift.upgrades.graph.previous.add'].get('value', '')))
             delete_label(node=node, label='io.openshift.upgrades.graph.previous.add', token=token)
         previous_remove = labels.get('io.openshift.upgrades.graph.previous.remove', {}).get('value', '')
         if previous_remove != '*':
             meta = get_release_metadata(node=node)
             if meta.get('previous', set()):
-                print('replacing {} previous remove {!r} with *'.format(node['version'], previous_remove))
+                _LOGGER.info('replacing {} previous remove {!r} with *'.format(node['version'], previous_remove))
                 if 'io.openshift.upgrades.graph.previous.remove' in labels:
                     delete_label(node=node, label='io.openshift.upgrades.graph.previous.remove', token=token)
                 post_label(
@@ -244,7 +276,7 @@ def get_labels(node):
 
 def delete_label(node, label, token):
     uri = '{}/labels/{}'.format(manifest_uri(node=node), label)
-    print('{} {} {}'.format(node['version'], 'delete', uri))
+    _LOGGER.info('{} {} {}'.format(node['version'], 'delete', uri))
     if not token:
         return  # dry run
     request = Request(uri)
@@ -255,35 +287,13 @@ def delete_label(node, label, token):
 
 def post_label(node, label, token):
     uri = '{}/labels'.format(manifest_uri(node=node))
-    print('{} {} {}'.format(node['version'], 'post', uri))
+    _LOGGER.info('{} {} {}'.format(node['version'], 'post', uri))
     if not token:
         return  # dry run
     request = Request(uri, json.dumps(label).encode('utf-8'))
     request.add_header('Authorization', 'Bearer {}'.format(token))
     request.add_header('Content-Type', 'application/json')
     return urlopen(request)
-
-
-def get_by_digest_pullspec(pullspec):
-    if '@' in pullspec:
-        return pullspec, None
-    name, tag = pullspec.split(':', 1)
-    repo_uri = repository_uri(name=name, pullspec=pullspec)
-    page = 0
-    while True:
-        f = urlopen('{}/tag/?page={}'.format(repo_uri, page))
-        data = json.load(codecs.getreader('utf-8')(f))
-        f.close()  # no context manager with-statement because in Python 2: AttributeError: addinfourl instance has no attribute '__exit__'
-
-        for entry in data['tags']:
-            if entry['name'] == tag:
-                return '{}@{}'.format(name, entry['manifest_digest']), tag
-
-        if data['has_additional']:
-            page += 1
-            continue
-
-        raise ValueError('tag {} not found in {}'.format(tag, name))
 
 
 def get_release_metadata(node):
@@ -306,107 +316,13 @@ def get_release_metadata(node):
         with tarfile.open(fileobj=io.BytesIO(layer_bytes), mode='r:gz') as tar:
             f = tar.extractfile('release-manifests/release-metadata')
             return json.load(codecs.getreader('utf-8')(f))
+            # TODO: assert meta.get('kind') == 'cincinnati-metadata-v0'
     raise ValueError('no release-metadata in {} layers'.format(node['version']))
-
-
-def update_nodes(directory, pullspecs):
-    for pullspec in pullspecs:
-        by_digest_pullspec, tag = get_by_digest_pullspec(pullspec=pullspec)
-        meta = get_release_metadata(node={'payload': by_digest_pullspec})
-        match = _VERSION_REGEXP.match(meta['version'])
-        if not match:
-            raise ValueError('invalid node version in {}: {!r}'.format(pullspec, meta['version']))
-        if tag and meta['version'] != tag:
-            raise ValueError('unexpected version {!r} not equal to tag {!r}'.format(meta['version']))
-        node = {
-            'payload': by_digest_pullspec,
-            'version': meta['version'],
-        }
-        uri = meta.get('metadata', {}).get('url', '').strip()
-        if uri:
-              node['metadata'] = {'url': uri}
-        major_minor_dir = os.path.join(directory, 'nodes', '{major}.{minor}'.format(**match.groupdict()))
-        try:
-            os.mkdir(major_minor_dir)  # os.makedirs' exist_ok is new in Python 3.2
-        except FileExistsError:
-            pass
-        with open(os.path.join(major_minor_dir, '{}.json'.format(meta['version'])), 'w+') as f:
-            json.dump(
-                node, f, indent=2, sort_keys=True,
-                separators=(',', ': '),  # only needs to be explicit in Python 2 and <3.4
-            )
-            f.write('\n')
-
-
-def extract_edges(node, nodes, directory):
-    meta = get_release_metadata(node=node)
-    if not meta.get('previous'):
-        return
-    try:
-        os.mkdir(directory)  # os.makedirs' exist_ok is new in Python 3.2
-    except FileExistsError:
-        pass
-    for previous_version in meta['previous']:
-        path = os.path.join(directory, '{}.json'.format(previous_version))
-        try:
-            previous = nodes[previous_version]
-        except KeyError:
-            continue
-        channels = node['channels'].intersection(previous['channels'])
-        if channels:
-            with open(path, 'w+') as f:
-                json.dump({
-                    'channels': sorted(node['channels'].intersection(previous['channels'])),
-                    'from': previous_version,
-                    'to': node['version'],
-                }, f, indent=2, sort_keys=True,
-                    separators=(',', ': '),  # only needs to be explicit in Python 2 and <3.4
-                )
-                f.write('\n')
-        else:
-            try:
-                os.remove(path)
-            except FileExistsError:
-                pass
-
-
-def extract_edges_for_versions(directory, versions):
-    nodes = load_nodes(directory=os.path.join(directory, 'nodes'))
-    nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
-    for version in versions:
-        node = nodes[version]
-        match = _VERSION_REGEXP.match(node['version'])
-        major_minor_dir = os.path.join(directory, 'edges', '{major}.{minor}'.format(**match.groupdict()))
-        try:
-            os.mkdir(major_minor_dir)  # os.makedirs' exist_ok is new in Python 3.2
-        except FileExistsError:
-            pass
-        extract_edges(node=node, nodes=nodes, directory=os.path.join(major_minor_dir, version))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Utilities for managing graph data.')
     subparsers = parser.add_subparsers()
-
-    update_node_parser = subparsers.add_parser(
-        'update-node',
-        help='Create or update a node entry from embeded release-metadata.'
-    )
-    update_node_parser.add_argument(
-        'pullspec', nargs='+',
-        help='Pull-specs for releases for which nodes should be created or updated.',
-    )
-    update_node_parser.set_defaults(action='update-node')
-
-    extract_edges_parser = subparsers.add_parser(
-        'extract-edges',
-        help='Extract the default edges baked into the given release(s).'
-    )
-    extract_edges_parser.add_argument(
-        'version', nargs='+',
-        help='Versions from which edges should be extracted.',
-    )
-    extract_edges_parser.set_defaults(action='extract-edges')
 
     push_to_quay_parser = subparsers.add_parser(
         'push-to-quay',
@@ -419,9 +335,5 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    if args.action == 'update-node':
-        update_nodes(directory='.', pullspecs=args.pullspec)
-    if args.action == 'extract-edges':
-        extract_edges_for_versions(directory='.', versions=args.version)
-    elif args.action == 'push-to-quay':
+    if args.action == 'push-to-quay':
         push(directory='.', token=args.token)

@@ -1,7 +1,0 @@
-{
-  "channels": [
-    "prerelease-4.2"
-  ],
-  "from": "4.2.0-rc.0",
-  "to": "4.2.0-rc.1"
-}
