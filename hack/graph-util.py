@@ -215,25 +215,7 @@ def sync_node(node, token):
                         'value': ','.join(sorted(want_removed)),
                     },
                     token=token)
-        want_added = node['previous'] - previous
-        current_added = set(version for version in labels.get('io.openshift.upgrades.graph.previous.add', {}).get('value', '').split(',') if version)
-        if current_added != want_added:
-            _LOGGER.info('changing {} previous.add from {} to {}'.format(node['version'], sorted(current_added), sorted(want_added)))
-            if 'io.openshift.upgrades.graph.previous.add' in labels:
-                delete_label(node=node, label='io.openshift.upgrades.graph.previous.add', token=token)
-            if want_added:
-                post_label(
-                    node=node,
-                    label={
-                        'media_type': 'text/plain',
-                        'key': 'io.openshift.upgrades.graph.previous.add',
-                        'value': ','.join(sorted(want_added)),
-                    },
-                    token=token)
     else:
-        if 'io.openshift.upgrades.graph.previous.add' in labels:
-            _LOGGER.info('{} had previous additions, but we want no incoming edges ({})'.format(node['version'], labels['io.openshift.upgrades.graph.previous.add'].get('value', '')))
-            delete_label(node=node, label='io.openshift.upgrades.graph.previous.add', token=token)
         previous_remove = labels.get('io.openshift.upgrades.graph.previous.remove', {}).get('value', '')
         if previous_remove != '*':
             meta = get_release_metadata(node=node)
