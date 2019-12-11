@@ -170,7 +170,8 @@ def push(directory, token):
 def sync_node(node, token):
     labels = get_labels(node=node)
 
-    channels = labels.get('io.openshift.upgrades.graph.release.channels', {}).get('value', '')
+    channel_label = labels.get('io.openshift.upgrades.graph.release.channels', {})
+    channels = channel_label.get('value', '')
     if channels and channels != node['metadata']['io.openshift.upgrades.graph.release.channels']:
         if set(channels.split(',')) == node['channels']:
             _LOGGER.info('label sort for {}: {} -> {}'.format(node['version'], channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
@@ -178,7 +179,7 @@ def sync_node(node, token):
             _LOGGER.info('label mismatch for {}: {} != {}'.format(node['version'], channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
         delete_label(
             node=node,
-            label='io.openshift.upgrades.graph.release.channels',
+            label=channel_label['id'],
             token=token)
     if node['metadata']['io.openshift.upgrades.graph.release.channels'] and channels != node['metadata']['io.openshift.upgrades.graph.release.channels']:
         if not channels:
@@ -196,17 +197,18 @@ def sync_node(node, token):
         label = 'io.openshift.upgrades.graph.{}'.format(key)
         if label in labels:
             _LOGGER.warning('the {} label is deprecated.  Use the previous label on the other release(s) instead (was: {})'.format(label, labels[label].get('value', '')))
-            delete_label(node=node, label=label, token=token)
+            delete_label(node=node, label=labels[label]['id'], token=token)
 
     if node.get('previous', set()):
         meta = get_release_metadata(node=node)
         previous = set(meta.get('previous', set()))
         want_removed = previous - node['previous']
-        current_removed = set(version for version in labels.get('io.openshift.upgrades.graph.previous.remove', {}).get('value', '').split(',') if version)
+        removed_label = labels.get('io.openshift.upgrades.graph.previous.remove', {})
+        current_removed = set(version for version in removed_label.get('value', '').split(',') if version)
         if current_removed != want_removed:
             _LOGGER.info('changing {} previous.remove from {} to {}'.format(node['version'], sorted(current_removed), sorted(want_removed)))
             if 'io.openshift.upgrades.graph.previous.remove' in labels:
-                delete_label(node=node, label='io.openshift.upgrades.graph.previous.remove', token=token)
+                delete_label(node=node, label=removed_label['id'], token=token)
             if want_removed:
                 post_label(
                     node=node,
@@ -217,13 +219,14 @@ def sync_node(node, token):
                     },
                     token=token)
     else:
-        previous_remove = labels.get('io.openshift.upgrades.graph.previous.remove', {}).get('value', '')
+        removed_label = labels.get('io.openshift.upgrades.graph.previous.remove', {})
+        previous_remove = removed_label.get('value', '')
         if previous_remove != '*':
             meta = get_release_metadata(node=node)
             if meta.get('previous', set()):
                 _LOGGER.info('replacing {} previous remove {!r} with *'.format(node['version'], previous_remove))
-                if 'io.openshift.upgrades.graph.previous.remove' in labels:
-                    delete_label(node=node, label='io.openshift.upgrades.graph.previous.remove', token=token)
+                if 'id' in removed_label:
+                    delete_label(node=node, label=removed_label['id'], token=token)
                 post_label(
                     node=node,
                     label={
