@@ -180,6 +180,7 @@ def sync_node(node, token):
         delete_label(
             node=node,
             label=channel_label['id'],
+            key=channel_label['key'],
             token=token)
     if node['metadata']['io.openshift.upgrades.graph.release.channels'] and channels != node['metadata']['io.openshift.upgrades.graph.release.channels']:
         if not channels:
@@ -197,7 +198,7 @@ def sync_node(node, token):
         label = 'io.openshift.upgrades.graph.{}'.format(key)
         if label in labels:
             _LOGGER.warning('the {} label is deprecated.  Use the previous label on the other release(s) instead (was: {})'.format(label, labels[label].get('value', '')))
-            delete_label(node=node, label=labels[label]['id'], token=token)
+            delete_label(node=node, label=labels[label]['id'], key=label, token=token)
 
     if node.get('previous', set()):
         meta = get_release_metadata(node=node)
@@ -208,7 +209,7 @@ def sync_node(node, token):
         if current_removed != want_removed:
             _LOGGER.info('changing {} previous.remove from {} to {}'.format(node['version'], sorted(current_removed), sorted(want_removed)))
             if 'io.openshift.upgrades.graph.previous.remove' in labels:
-                delete_label(node=node, label=removed_label['id'], token=token)
+                delete_label(node=node, label=removed_label['id'], key=removed_label['key'], token=token)
             if want_removed:
                 post_label(
                     node=node,
@@ -226,7 +227,7 @@ def sync_node(node, token):
             if meta.get('previous', set()):
                 _LOGGER.info('replacing {} previous remove {!r} with *'.format(node['version'], previous_remove))
                 if 'id' in removed_label:
-                    delete_label(node=node, label=removed_label['id'], token=token)
+                    delete_label(node=node, label=removed_label['id'], key=removed_label['key'], token=token)
                 post_label(
                     node=node,
                     label={
@@ -260,9 +261,12 @@ def get_labels(node):
     return {label['key']: label for label in data['labels']}
 
 
-def delete_label(node, label, token):
+def delete_label(node, label, token, key=None):
     uri = '{}/labels/{}'.format(manifest_uri(node=node), label)
-    _LOGGER.info('{} {} {}'.format(node['version'], 'delete', uri))
+    suffix = ''
+    if key:
+        suffix = ' (key: {})'.format(key)
+    _LOGGER.info('{} {} {}{}'.format(node['version'], 'delete', uri, suffix))
     if not token:
         return  # dry run
     request = Request(uri)
