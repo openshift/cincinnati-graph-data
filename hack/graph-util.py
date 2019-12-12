@@ -206,7 +206,7 @@ def sync_node(node, token):
         label = 'io.openshift.upgrades.graph.{}'.format(key)
         if label in labels:
             _LOGGER.warning('the {} label is deprecated.  Use the previous label on the other release(s) instead (was: {})'.format(label, labels[label].get('value', '')))
-            delete_label(node=node, label=labels[label]['id'], key=label, token=token)
+            #delete_label(node=node, label=labels[label]['id'], key=label, token=token)
 
     if node.get('previous', set()):
         meta = get_release_metadata(node=node)
