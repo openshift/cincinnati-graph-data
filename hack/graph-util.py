@@ -123,7 +123,11 @@ def load_channels(directory, nodes):
     for node in nodes.values():
         if 'metadata' not in node:
             node['metadata'] = {}
-        node['metadata']['io.openshift.upgrades.graph.release.channels'] = ','.join(sorted(node['channels']))
+        # sort first by prerelease/stable/fast/candidate
+        channels = sorted(node['channels'])
+        # then sort by version, 4.1, 4.2, etc
+        channels = sorted(channels, key=lambda x: x.split('-', 1)[-1])
+        node['metadata']['io.openshift.upgrades.graph.release.channels'] = ','.join(channels)
     return nodes
 
 
