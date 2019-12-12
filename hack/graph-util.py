@@ -2,7 +2,6 @@
 
 import argparse
 import codecs
-import collections
 import io
 import json
 import logging
@@ -56,7 +55,7 @@ def load_nodes(directory, registry, repository):
             try:
                 with open(path) as f:
                     try:
-                        meta = yaml.load(f)
+                        meta = yaml.load(f, Loader=yaml.SafeLoader)
                     except ValueError as error:
                         raise ValueError('failed to load YAML from {}: {}'.format(path, error))
                     if not meta:
@@ -110,7 +109,7 @@ def load_channels(directory, nodes):
             path = os.path.join(root, filename)
             with open(path) as f:
                 try:
-                    data = yaml.load(f)
+                    data = yaml.load(f, Loader=yaml.SafeLoader)
                 except ValueError as error:
                     raise ValueError('failed to load YAML from {}: {}'.format(path, error))
                 channel = data['name']
@@ -136,7 +135,7 @@ def block_edges(directory, nodes):
             path = os.path.join(root, filename)
             with open(path) as f:
                 try:
-                    data = yaml.load(f)
+                    data = yaml.load(f, Loader=yaml.SafeLoader)
                 except ValueError as error:
                     raise ValueError('failed to load YAML from {}: {}'.format(path, error))
                 try:
@@ -172,6 +171,9 @@ def sync_node(node, token):
 
     channel_label = labels.get('io.openshift.upgrades.graph.release.channels', {})
     channels = channel_label.get('value', '')
+
+    _LOGGER.debug('syncing node={} channels={}'.format(node['version'], channels))
+
     if channels and channels != node['metadata']['io.openshift.upgrades.graph.release.channels']:
         if set(channels.split(',')) == node['channels']:
             _LOGGER.info('label sort for {}: {} -> {}'.format(node['version'], channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
