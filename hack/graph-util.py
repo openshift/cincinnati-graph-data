@@ -183,6 +183,7 @@ def update_channels(node, token):
     if channels and channels != node['metadata']['io.openshift.upgrades.graph.release.channels']:
         if set(channels.split(',')) == node['channels']:
             _LOGGER.info('label sort for {}: {} -> {}'.format(node['version'], channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
+            return
         else:
             _LOGGER.info('label mismatch for {}: {} != {}'.format(node['version'], channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
         delete_label(
