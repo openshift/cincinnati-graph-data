@@ -173,10 +173,8 @@ def push(directory, token, push_versions):
         node = nodes[version]
         sync_node(node=node, token=token)
 
-
-def sync_node(node, token):
+def update_channels(node, token):
     labels = get_labels(node=node)
-
     channel_label = labels.get('io.openshift.upgrades.graph.release.channels', {})
     channels = channel_label.get('value', '')
 
@@ -204,12 +202,8 @@ def sync_node(node, token):
             },
             token=token)
 
-    for key in ['next.add', 'next.remove']:
-        label = 'io.openshift.upgrades.graph.{}'.format(key)
-        if label in labels:
-            _LOGGER.warning('the {} label is deprecated.  Use the previous label on the other release(s) instead (was: {})'.format(label, labels[label].get('value', '')))
-            #delete_label(node=node, label=labels[label]['id'], key=label, token=token)
-
+def update_previous(node, token):
+    labels = get_labels(node=node)
     if node.get('previous', set()):
         meta = get_release_metadata(node=node)
         previous = set(meta.get('previous', set()))
@@ -246,6 +240,18 @@ def sync_node(node, token):
                         'value': '*',
                     },
                     token=token)
+
+def sync_node(node, token):
+    update_channels(node, token)
+    update_previous(node, token)
+
+    labels = get_labels(node=node)
+    for key in ['next.add', 'next.remove']:
+        label = 'io.openshift.upgrades.graph.{}'.format(key)
+        if label in labels:
+            _LOGGER.warning('the {} label is deprecated.  Use the previous label on the other release(s) instead (was: {})'.format(label, labels[label].get('value', '')))
+            #delete_label(node=node, label=labels[label]['id'], key=label, token=token)
+
 
 
 def repository_uri(name, pullspec=None):
