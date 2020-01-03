@@ -166,7 +166,7 @@ def push(directory, token, push_versions):
     nodes = load_nodes(directory=os.path.join(directory, '.nodes'), registry='quay.io', repository='openshift-release-dev/ocp-release')
     nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
     nodes = block_edges(directory=os.path.join(directory, 'blocked-edges'), nodes=nodes)
-    for version, node in sorted(nodes.items())
+    for version, node in sorted(nodes.items()):
         if push_versions and version not in push_versions.split(','):
             continue
         sync_node(node=node, token=token)
