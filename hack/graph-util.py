@@ -8,7 +8,6 @@ import logging
 import os
 import re
 import tarfile
-import semantic_version
 
 import yaml
 
@@ -98,6 +97,7 @@ def load_nodes(directory, registry, repository):
 
     return nodes
 
+
 def load_channels(directory, nodes):
     for node in nodes.values():
         node['channels'] = set()
@@ -166,11 +166,9 @@ def push(directory, token, push_versions):
     nodes = load_nodes(directory=os.path.join(directory, '.nodes'), registry='quay.io', repository='openshift-release-dev/ocp-release')
     nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
     nodes = block_edges(directory=os.path.join(directory, 'blocked-edges'), nodes=nodes)
-    versions = sorted(nodes.keys(), key=semantic_version.Version)
-    for version in versions:
+    for version, node in sorted(nodes.items())
         if push_versions and version not in push_versions.split(','):
             continue
-        node = nodes[version]
         sync_node(node=node, token=token)
 
 def update_channels(node, token):
