@@ -10,7 +10,7 @@ The [contributing documentation](CONTRIBUTING.md) covers licencing and the usual
 1. Create a PR.
 1. Merge the PR to master.
 1. Update your local master branch.
-1. Update the labels in quay based on master.
+1. [Publish Quay labels](#publish-quay-labels) based on master.
 
 **Do Not Ever Update Quay Labels Based On Your Local Development Branch. Only from master!**
 
@@ -41,7 +41,7 @@ to: 4.2.0-rc.5
 from: 4\.1\.(18|20)
 ```
 
-### Publish Quay labels
+### Publish Quay Labels
 
 **DO NOT EVER PUSH YOUR LOCAL BRANCH TO QUAY! Only push AFTER changes have merged to master.**
 
