@@ -6,7 +6,7 @@ import functools
 import io
 import json
 import logging
-import multiprocessing
+import multiprocessing.dummy
 import os
 import re
 import tarfile
@@ -174,7 +174,7 @@ def push(directory, token, push_versions):
     ]
 
     sync = functools.partial(sync_node, token=token)
-    pool = multiprocessing.Pool(processes=16)
+    pool = multiprocessing.dummy.Pool(processes=16)
     pool.map(sync, sync_nodes)
     pool.close()  # no context manager with-statement because in Python 2: AttributeError: '__exit__'
 
