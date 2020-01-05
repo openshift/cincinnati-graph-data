@@ -2,15 +2,16 @@
 
 import argparse
 import codecs
+import functools
 import io
 import json
 import logging
+import multiprocessing.dummy
 import os
 import re
 import tarfile
 
 import yaml
-
 
 try:
     from builtins import FileExistsError  # Python 3
@@ -166,10 +167,17 @@ def push(directory, token, push_versions):
     nodes = load_nodes(directory=os.path.join(directory, '.nodes'), registry='quay.io', repository='openshift-release-dev/ocp-release')
     nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
     nodes = block_edges(directory=os.path.join(directory, 'blocked-edges'), nodes=nodes)
-    for version, node in sorted(nodes.items()):
-        if push_versions and version not in push_versions.split(','):
-            continue
-        sync_node(node=node, token=token)
+
+    sync_nodes = [
+        node for version, node in sorted(nodes.items())
+        if not push_versions or version in push_versions.split(',')
+    ]
+
+    sync = functools.partial(sync_node, token=token)
+    pool = multiprocessing.dummy.Pool(processes=16)
+    pool.map(sync, sync_nodes)
+    pool.close()  # no context manager with-statement because in Python 2: AttributeError: '__exit__'
+
 
 def update_channels(node, token):
     labels = get_labels(node=node)
@@ -248,10 +256,8 @@ def sync_node(node, token):
     for key in ['next.add', 'next.remove']:
         label = 'io.openshift.upgrades.graph.{}'.format(key)
         if label in labels:
-            _LOGGER.warning('the {} label is deprecated.  Use the previous label on the other release(s) instead (was: {})'.format(label, labels[label].get('value', '')))
+            _LOGGER.warning('the {} label is deprecated for {}.  Use the previous label on the other release(s) instead (was: {})'.format(label, node['version'], labels[label].get('value', '')))
             #delete_label(node=node, label=labels[label]['id'], key=label, token=token)
-
-
 
 def repository_uri(name, pullspec=None):
     if not pullspec:
