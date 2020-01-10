@@ -112,6 +112,7 @@ def load_nodes(directory, registry, repository):
             node['version'] = meta['version']
             if meta.get('previous'):
                 node['previous'] = set(meta['previous'])
+                node['internal-previous'] = set(meta['previous'])
             if meta.get('next'):
                 node['next'] = set(meta['next'])
             try:
@@ -264,8 +265,7 @@ def update_channels(node, token):
 def update_previous(node, token):
     labels = get_labels(node=node)
     if node.get('previous', set()):
-        meta = get_release_metadata(node=node)
-        previous = set(meta.get('previous', set()))
+        previous = node.get('internal-previous', set())
         want_removed = previous - node['previous']
         removed_label = labels.get('io.openshift.upgrades.graph.previous.remove', {})
         current_removed = set(version for version in removed_label.get('value', '').split(',') if version)
@@ -286,8 +286,7 @@ def update_previous(node, token):
         removed_label = labels.get('io.openshift.upgrades.graph.previous.remove', {})
         previous_remove = removed_label.get('value', '')
         if previous_remove != '*':
-            meta = get_release_metadata(node=node)
-            if meta.get('previous', set()):
+            if node.get('internal-previous', set()):
                 _LOGGER.info('replacing {} previous remove {!r} with *'.format(node['version'], previous_remove))
                 if 'id' in removed_label:
                     delete_label(node=node, label=removed_label['id'], key=removed_label['key'], token=token)
