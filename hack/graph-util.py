@@ -424,8 +424,19 @@ def get_release_metadata(node):
             try:
                 f = tar.extractfile('release-manifests/release-metadata')
             except KeyError:
-                continue
-            meta = json.load(codecs.getreader('utf-8')(f))
+                try:
+                    f = tar.extractfile('release-manifests/image-references')
+                except KeyError:
+                    continue
+                else:
+                    image_references = json.load(codecs.getreader('utf-8')(f))
+                    meta = {
+                        'version': image_references['metadata']['name']
+                    }
+                    if image_references['metadata'].get('annotations'):
+                        meta['metadata'] = image_references['metadata']['annotations']
+            else:
+                meta = json.load(codecs.getreader('utf-8')(f))
             meta['image-config-data'] = image_config_data
             return meta
             # TODO: assert meta.get('kind') == 'cincinnati-metadata-v0'
