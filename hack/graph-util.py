@@ -421,13 +421,16 @@ def get_release_metadata(node):
         f.close()
 
         with tarfile.open(fileobj=io.BytesIO(layer_bytes), mode='r:gz') as tar:
-            f = tar.extractfile('release-manifests/release-metadata')
+            try:
+                f = tar.extractfile('release-manifests/release-metadata')
+            except KeyError:
+                continue
             meta = json.load(codecs.getreader('utf-8')(f))
             meta['image-config-data'] = image_config_data
             return meta
             # TODO: assert meta.get('kind') == 'cincinnati-metadata-v0'
 
-    raise ValueError('no release-metadata in {} layers ( {} )'.format(node['version'], json.dumps(manifest)))
+    raise ValueError('no release-metadata in {} layers ( {} )'.format(node['payload'], json.dumps(manifest)))
 
 
 if __name__ == '__main__':
