@@ -114,7 +114,11 @@ def load_nodes(directory, registry, repository):
                 node['previous'] = set(meta['previous'])
             if meta.get('next'):
                 node['next'] = set(meta['next'])
-            node = normalize_node(node=node)
+            try:
+                node = normalize_node(node=node)
+            except ValueError as error:
+                _LOGGER.debug(error)
+                continue
             if node['version'] not in nodes:
                nodes[node['version']] = {}
             nodes[node['version']][meta['image-config-data']['architecture']] = node
