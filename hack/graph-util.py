@@ -9,6 +9,7 @@ import logging
 import multiprocessing.dummy
 import os
 import re
+import shutil
 import tarfile
 
 import yaml
@@ -24,17 +25,43 @@ except ImportError:
     from urllib2 import Request, urlopen  # Python 2
 
 
-_VERSION_REGEXP = re.compile('^(?P<major>[0-9]*)\.(?P<minor>[0-9]*)(?P<suffix>[^0-9].*)$')
+_VERSION_REGEXP = re.compile('^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
 logging.basicConfig(format='%(levelname)s: %(message)s')
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
 
 
+def remove_build(semver_match):
+    data = semver_match.groupdict()
+    version = '{major}.{minor}.{patch}'.format(**data)
+    if data.get('prerelease'):
+        version += '-{prerelease}'.format(**data)
+    return version
+
+
 def load_nodes(directory, registry, repository):
+    cache_version = 1
+    write_version = True
     try:
         os.mkdir(directory)  # os.makedirs' exist_ok is new in Python 3.2
     except FileExistsError:
-        pass
+        try:
+            with open(os.path.join(directory, 'version')) as f:
+                version = int(f.read())
+        except IOError:
+            _LOGGER.debug('no cache version found; clearing the old cache...')
+            shutil.rmtree(directory)
+            os.mkdir(directory)
+        else:
+            write_version = version != cache_version
+            if write_version:
+                _LOGGER.debug('existing cache had version {}; clearing the old cache...'.format(version))
+                shutil.rmtree(directory)
+                os.mkdir(directory)
+    if write_version:
+        _LOGGER.debug('creating new node cache with version {}'.format(cache_version))
+        with open(os.path.join(directory, 'version'), 'w') as f:
+            f.write('{}\n'.format(cache_version))
 
     nodes = {}
 
@@ -65,7 +92,7 @@ def load_nodes(directory, registry, repository):
             except IOError:
                 try:
                     meta = get_release_metadata(node=node)
-                except KeyError as error:
+                except (KeyError, ValueError) as error:
                     _LOGGER.warning('unable to get release metadata for {} {} : {}'.format(pullspec, entry, error))
                     meta = {}
                 try:
@@ -85,10 +112,17 @@ def load_nodes(directory, registry, repository):
             node['version'] = meta['version']
             if meta.get('previous'):
                 node['previous'] = set(meta['previous'])
+                node['internal-previous'] = set(meta['previous'])
             if meta.get('next'):
                 node['next'] = set(meta['next'])
-            node = normalize_node(node=node)
-            nodes[node['version']] = node
+            try:
+                node = normalize_node(node=node)
+            except ValueError as error:
+                _LOGGER.debug(error)
+                continue
+            if node['version'] not in nodes:
+               nodes[node['version']] = {}
+            nodes[node['version']][meta['image-config-data']['architecture']] = node
 
         if data['has_additional']:
             page += 1
@@ -100,8 +134,9 @@ def load_nodes(directory, registry, repository):
 
 
 def load_channels(directory, nodes):
-    for node in nodes.values():
-        node['channels'] = set()
+    for arch_nodes in nodes.values():
+        for node in arch_nodes.values():
+            node['channels'] = set()
 
     for root, _, files in os.walk(directory):
         for filename in files:
@@ -115,20 +150,27 @@ def load_channels(directory, nodes):
                     raise ValueError('failed to load YAML from {}: {}'.format(path, error))
                 channel = data['name']
                 for version in data['versions']:
+                    semver_match = _VERSION_REGEXP.match(version)
+                    if not semver_match:
+                        raise ValueError('{} claims version {}, but that is not a valid Semantic Version'.format(path, version))
                     try:
-                        node = nodes[version]
+                        arch_nodes = nodes[remove_build(semver_match=semver_match)]
                     except KeyError:
                         raise ValueError('{} claims version {}, but no nodes found with that version'.format(path, version))
-                    node['channels'].add(channel)
+                    arch = semver_match.group('buildmetadata')
+                    for node_arch, node in arch_nodes.items():
+                        if node_arch == arch or not arch:
+                            node['channels'].add(channel)
 
-    for node in nodes.values():
-        if 'metadata' not in node:
-            node['metadata'] = {}
-        # sort first by prerelease/stable/fast/candidate
-        channels = sorted(node['channels'])
-        # then sort by version, 4.1, 4.2, etc
-        channels = sorted(channels, key=lambda x: x.split('-', 1)[-1])
-        node['metadata']['io.openshift.upgrades.graph.release.channels'] = ','.join(channels)
+    for arch_nodes in nodes.values():
+        for node in arch_nodes.values():
+            if 'metadata' not in node:
+                node['metadata'] = {}
+            # sort first by prerelease/stable/fast/candidate
+            channels = sorted(node['channels'])
+            # then sort by version, 4.1, 4.2, etc
+            channels = sorted(channels, key=lambda x: x.split('-', 1)[-1])
+            node['metadata']['io.openshift.upgrades.graph.release.channels'] = ','.join(channels)
     return nodes
 
 
@@ -143,16 +185,27 @@ def block_edges(directory, nodes):
                     data = yaml.load(f, Loader=yaml.SafeLoader)
                 except ValueError as error:
                     raise ValueError('failed to load YAML from {}: {}'.format(path, error))
+                to_version = _VERSION_REGEXP.match(data['to'])
+                if not to_version:
+                    raise ValueError('{} claims version {}, but that is not a valid Semantic Version'.format(path, data['to']))
                 try:
-                    to_node = nodes[data['to']]
+                    to_nodes = nodes[remove_build(semver_match=to_version)]
                 except KeyError:
                     raise ValueError('{} claims version {}, but no nodes found with that version'.format(path, data['to']))
+                to_arch = to_version.group('buildmetadata')
+                arch_matching_to_nodes = [
+                    node for arch, node in to_nodes.items()
+                    if arch == to_arch or not to_arch
+                ]
+                if not arch_matching_to_nodes:
+                    raise ValueError('{} claims version {}, but the only nodes with version {} are for {}'.format(path, data['to'], remove_build(semver_match=to_version), sorted(to_nodes.keys())))
                 try:
                     from_regexp = re.compile(data['from'])
                 except ValueError as error:
                     raise ValueError('{} invalid from regexp: {}'.format(path, data['from']))
-                if to_node.get('previous'):
-                    to_node['previous'] = {version for version in to_node['previous'] if not from_regexp.match(version)}
+                for to_node in arch_matching_to_nodes:
+                    if to_node.get('previous'):
+                        to_node['previous'] = {version for version in to_node['previous'] if not from_regexp.match(version)}
     return nodes
 
 
@@ -168,10 +221,10 @@ def push(directory, token, push_versions):
     nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
     nodes = block_edges(directory=os.path.join(directory, 'blocked-edges'), nodes=nodes)
 
-    sync_nodes = [
-        node for version, node in sorted(nodes.items())
-        if not push_versions or version in push_versions.split(',')
-    ]
+    sync_nodes = []
+    for version, arch_nodes in sorted(nodes.items()):
+        if not push_versions or version in push_versions.split(','):
+            sync_nodes.extend(arch_nodes.values())
 
     sync = functools.partial(sync_node, token=token)
     pool = multiprocessing.dummy.Pool(processes=16)
@@ -212,8 +265,7 @@ def update_channels(node, token):
 def update_previous(node, token):
     labels = get_labels(node=node)
     if node.get('previous', set()):
-        meta = get_release_metadata(node=node)
-        previous = set(meta.get('previous', set()))
+        previous = node.get('internal-previous', set())
         want_removed = previous - node['previous']
         removed_label = labels.get('io.openshift.upgrades.graph.previous.remove', {})
         current_removed = set(version for version in removed_label.get('value', '').split(',') if version)
@@ -234,8 +286,7 @@ def update_previous(node, token):
         removed_label = labels.get('io.openshift.upgrades.graph.previous.remove', {})
         previous_remove = removed_label.get('value', '')
         if previous_remove != '*':
-            meta = get_release_metadata(node=node)
-            if meta.get('previous', set()):
+            if node.get('internal-previous', set()):
                 _LOGGER.info('replacing {} previous remove {!r} with *'.format(node['version'], previous_remove))
                 if 'id' in removed_label:
                     delete_label(node=node, label=removed_label['id'], key=removed_label['key'], token=token)
@@ -308,27 +359,92 @@ def post_label(node, label, token):
 
 
 def get_release_metadata(node):
+    pullspec = node['payload']
+    name = pullspec.split('@', 1)[0]
+    prefix = 'quay.io/'
+    if not name.startswith(prefix):
+        raise ValueError('non-Quay pullspec: {}'.format(pullspec))
+    name = name[len(prefix):]
+
     f = urlopen(manifest_uri(node=node))
     data = json.load(codecs.getreader('utf-8')(f))
     f.close()  # no with-statement because in Python 2: AttributeError: addinfourl instance has no attribute '__exit__'
-    for layer in reversed(data['layers']):
-        digest = layer['blob_digest']
-        pullspec = node['payload']
-        name = pullspec.split('@', 1)[0]
-        prefix = 'quay.io/'
-        if not name.startswith(prefix):
-            raise ValueError('non-Quay pullspec: {}'.format(pullspec))
-        name = name[len(prefix):]
-        uri = 'https://quay.io/v2/{}/blobs/{}'.format(name, digest)
+
+    manifest = json.loads(data['manifest_data'])
+    if 'mediaType' in manifest:
+        if manifest['mediaType'] != 'application/vnd.docker.distribution.manifest.v2+json':
+            raise ValueError('unsupported media type for {} manifest: {}'.format(node['payload'], manifest['mediaType']))
+
+        if manifest['config']['mediaType'] != 'application/vnd.docker.container.image.v1+json':
+            raise ValueError('unsupported media type for {} config: {}'.format(node['payload'], manifest['config']['mediaType']))
+        uri = 'https://quay.io/v2/{}/blobs/{}'.format(name, manifest['config']['digest'])
+        f = urlopen(uri)
+        config = json.load(codecs.getreader('utf-8')(f))
+        f.close()  # no with-statement because in Python 2: AttributeError: addinfourl instance has no attribute '__exit__'
+        image_config_data = {}
+        for prop in ['architecture', 'os']:
+            try:
+                image_config_data[prop] = config[prop]
+            except KeyError:
+                raise ValueError('{} config {} has no {!r} property'.format(node['payload'], manifest['config']['digest'], prop))
+    elif manifest.get('schemaVersion') == 1:
+        image_config_data = {}
+        if 'architecture' in manifest:
+            image_config_data['architecture'] = manifest['architecture']
+        for history in manifest.get('history', []):
+            if 'v1Compatibility' in history:
+                hist = json.loads(history['v1Compatibility'])
+                for prop in ['architecture', 'os']:
+                    if prop in hist:
+                        image_config_data[prop] = hist[prop]
+        for prop in ['architecture', 'os']:
+            if prop not in image_config_data:
+                raise ValueError('unrecognized {} manifest format without {!r}: {}'.format(node['payload'], prop, json.dumps(manifest)))
+        if 'layers' not in manifest:
+            if 'fsLayers' not in manifest:
+                raise ValueError('unrecognized {} manifest format without layers: {}'.format(node['payload'], json.dumps(manifest)))
+            manifest['layers'] = [
+                {
+                    'mediaType': 'application/vnd.docker.image.rootfs.diff.tar.gzip',
+                    'digest': layer['blobSum'],
+                }
+                for layer in manifest['fsLayers']
+            ]
+    else:
+        raise ValueError('unrecognized {} manifest format: {}'.format(node['payload'], json.dumps(manifest)))
+
+
+    for layer in reversed(manifest['layers']):
+        if layer['mediaType'] != 'application/vnd.docker.image.rootfs.diff.tar.gzip':
+            raise ValueError('unsupported media type for {} layer {}: {}'.format(node['payload'], layer['digest'], layer['mediaType']))
+
+        uri = 'https://quay.io/v2/{}/blobs/{}'.format(name, layer['digest'])
         f = urlopen(uri)
         layer_bytes = f.read()
         f.close()
 
         with tarfile.open(fileobj=io.BytesIO(layer_bytes), mode='r:gz') as tar:
-            f = tar.extractfile('release-manifests/release-metadata')
-            return json.load(codecs.getreader('utf-8')(f))
+            try:
+                f = tar.extractfile('release-manifests/release-metadata')
+            except KeyError:
+                try:
+                    f = tar.extractfile('release-manifests/image-references')
+                except KeyError:
+                    continue
+                else:
+                    image_references = json.load(codecs.getreader('utf-8')(f))
+                    meta = {
+                        'version': image_references['metadata']['name']
+                    }
+                    if image_references['metadata'].get('annotations'):
+                        meta['metadata'] = image_references['metadata']['annotations']
+            else:
+                meta = json.load(codecs.getreader('utf-8')(f))
+            meta['image-config-data'] = image_config_data
+            return meta
             # TODO: assert meta.get('kind') == 'cincinnati-metadata-v0'
-    raise ValueError('no release-metadata in {} layers'.format(node['version']))
+
+    raise ValueError('no release-metadata in {} layers ( {} )'.format(node['payload'], json.dumps(manifest)))
 
 
 if __name__ == '__main__':

@@ -14,6 +14,14 @@ The [contributing documentation](CONTRIBUTING.md) covers licencing and the usual
 
 **Do Not Ever Update Quay Labels Based On Your Local Development Branch. Only from master!**
 
+### Release names
+
+Release names are used for [adding releases to channels](#add-releases-to-channels) and [blocking edges](#block-edges).
+Architecture-agnostic names will apply to all images with that exact name in the `version` property of the `release-metadata` file included in the release image.
+Names with [SemVer build metadata][semver-build] will apply only to releases whose exact name in the `version` property matches the release with the build metadata removed and whose referenced [image architecture][image-arch] matches the given build metadata.
+For example, 4.2.14 will apply to both the amd64 and s390x release images, since those both have `4.2.14` in `version`.
+And 4.2.14+amd64 would only apply to the amd64 release image.
+
 ### Add Releases To Channels
 
 Edit the appropriate file in `channels/`.
@@ -54,3 +62,5 @@ $ hack/graph-util.py push-to-quay --token="${YOUR_TOKEN}"
 You can leave `--token` unset for a dry run (the actions the script would take are printed either way, but are only executed if you passed a token).
 
 [Cincinnati]: https://github.com/openshift/cincinnati/
+[image-arch]: https://github.com/opencontainers/image-spec/blame/v1.0.1/config.md#L103
+[semver-build]: https://semver.org/spec/v2.0.0.html#spec-item-10
