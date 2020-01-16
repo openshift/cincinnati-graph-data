@@ -446,6 +446,13 @@ def get_release_metadata(node):
 
     raise ValueError('no release-metadata in {} layers ( {} )'.format(node['payload'], json.dumps(manifest)))
 
+def get_token(args):
+    if args.token:
+        return args.token
+    if args.token_file:
+        with open(args.token_file) as f:
+            return f.read().strip()
+    return None
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Utilities for managing graph data.')
@@ -460,6 +467,10 @@ if __name__ == '__main__':
         help='Quay token ( https://docs.quay.io/api/#applications-and-tokens )',
     )
     push_to_quay_parser.add_argument(
+        '--token-file',
+        help='Path to file with Quay token',
+    )
+    push_to_quay_parser.add_argument(
         '--versions',
         help='Comma Seperated Versions to sync',
     )
@@ -467,5 +478,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    token = get_token(args=args)
     if args.action == 'push-to-quay':
-        push(directory='.', token=args.token, push_versions=args.versions)
+        push(directory='.', token=token, push_versions=args.versions)
