@@ -1,3 +1,6 @@
 name: candidate-4.3
 versions:
 - 4.3.0-rc.0
+# I'm not sure what happened to rc1 and rc2. rc2 was, I think, fine
+# but it never got upgrade tests https://github.com/openshift/cincinnati-graph-data/pull/26
+- 4.3.0-rc.3
