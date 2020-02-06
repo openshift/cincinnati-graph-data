@@ -5,3 +5,4 @@ versions:
 # but it never got upgrade tests https://github.com/openshift/cincinnati-graph-data/pull/26
 - 4.3.0-rc.3
 - 4.3.0
+- 4.3.1
