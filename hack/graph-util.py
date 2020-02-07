@@ -10,6 +10,7 @@ import multiprocessing.dummy
 import os
 import re
 import shutil
+import sys
 import tarfile
 
 import yaml
@@ -214,6 +215,23 @@ def normalize_node(node):
     if not match:
         raise ValueError('invalid node version: {!r}'.format(node['version']))
     return node
+
+
+def print_json(directory):
+    nodes = load_nodes(directory=os.path.join(directory, '.nodes'), registry='quay.io', repository='openshift-release-dev/ocp-release')
+    nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
+    nodes = block_edges(directory=os.path.join(directory, 'blocked-edges'), nodes=nodes)
+
+    for arch_nodes in nodes.values():
+        for node in arch_nodes.values():
+            for key in ['channels', 'previous', 'next']:
+                if key in node:
+                    node[key] = sorted(node[key])
+            for key in ['internal-previous']:
+                if key in node:
+                    del node[key]
+    json.dump({'version': 1, 'nodes': nodes}, sys.stdout, sort_keys=True, indent=2)
+    sys.stdout.write('\n')
 
 
 def push(directory, token, push_versions):
@@ -446,6 +464,7 @@ def get_release_metadata(node):
 
     raise ValueError('no release-metadata in {} layers ( {} )'.format(node['payload'], json.dumps(manifest)))
 
+
 def get_token(args):
     if args.token:
         return args.token
@@ -453,6 +472,7 @@ def get_token(args):
         with open(args.token_file) as f:
             return f.read().strip()
     return None
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Utilities for managing graph data.')
@@ -476,8 +496,15 @@ if __name__ == '__main__':
     )
     push_to_quay_parser.set_defaults(action='push-to-quay')
 
+    print_parser = subparsers.add_parser(
+        'print',
+        help='Write graph metadata to stdout.',
+    )
+    print_parser.set_defaults(action='print-json')
+
     args = parser.parse_args()
 
-    token = get_token(args=args)
     if args.action == 'push-to-quay':
-        push(directory='.', token=token, push_versions=args.versions)
+        push(directory='.', token=get_token(args=args), push_versions=args.versions)
+    if args.action == 'print-json':
+        print_json(directory='.')
