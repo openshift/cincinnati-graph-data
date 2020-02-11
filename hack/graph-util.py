@@ -30,6 +30,16 @@ logging.basicConfig(format='%(levelname)s: %(message)s')
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
 
+def get_architecture(meta):
+    return meta['image-config-data']['architecture']
+
+def get_log_version(node):
+    meta = node['meta']
+    arch = get_architecture(meta)
+    semver_match = _VERSION_REGEXP.match(node['version'])
+    if not semver_match:
+        raise ValueError('version {} is not a valid Semantic Version'.format(node['version']))
+    return '{}+{}'.format(remove_build(semver_match=semver_match), arch)
 
 def remove_build(semver_match):
     data = semver_match.groupdict()
@@ -88,7 +98,8 @@ def load_nodes(directory, registry, repository):
                         raise ValueError('failed to load YAML from {}: {}'.format(path, error))
                     if not meta:
                         continue
-                _LOGGER.debug('loaded from cache: {} {}'.format(meta['version'], node['payload']))
+                arch = get_architecture(meta)
+                _LOGGER.debug('loaded from cache: {}+{} {}'.format(meta['version'], arch, node['payload']))
             except IOError:
                 try:
                     meta = get_release_metadata(node=node)
@@ -108,8 +119,10 @@ def load_nodes(directory, registry, repository):
                 if not meta:
                     _LOGGER.debug('caching empty metadata for {} {}'.format(entry['name'], node['payload']))
                     continue
-                _LOGGER.debug('caching metadata for {} {}'.format(meta['version'], node['payload']))
+                arch = get_architecture(meta)
+                _LOGGER.debug('caching metadata for {}+{} {}'.format(meta['version'], arch, node['payload']))
             node['version'] = meta['version']
+            node["meta"] = meta
             if meta.get('previous'):
                 node['previous'] = set(meta['previous'])
                 node['internal-previous'] = set(meta['previous'])
@@ -120,9 +133,11 @@ def load_nodes(directory, registry, repository):
             except ValueError as error:
                 _LOGGER.debug(error)
                 continue
-            if node['version'] not in nodes:
-               nodes[node['version']] = {}
-            nodes[node['version']][meta['image-config-data']['architecture']] = node
+            version = node['version']
+            arch = get_architecture(meta)
+            if version not in nodes:
+               nodes[version] = {}
+            nodes[version][arch] = node
 
         if data['has_additional']:
             page += 1
@@ -237,14 +252,14 @@ def update_channels(node, token):
     channel_label = labels.get('io.openshift.upgrades.graph.release.channels', {})
     channels = channel_label.get('value', '')
 
-    _LOGGER.debug('syncing node={} channels={}'.format(node['version'], channels))
+    _LOGGER.debug('syncing node={} channels={}'.format(get_log_version(node), channels))
 
     if channels and channels != node['metadata']['io.openshift.upgrades.graph.release.channels']:
         if set(channels.split(',')) == node['channels']:
-            _LOGGER.info('label sort for {}: {} -> {}'.format(node['version'], channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
+            _LOGGER.info('label sort for {}: {} -> {}'.format(get_log_version(node), channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
             return
         else:
-            _LOGGER.info('label mismatch for {}: {} != {}'.format(node['version'], channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
+            _LOGGER.info('label mismatch for {}: {} != {}'.format(get_log_version(node), channels, node['metadata']['io.openshift.upgrades.graph.release.channels']))
         delete_label(
             node=node,
             label=channel_label['id'],
@@ -252,7 +267,7 @@ def update_channels(node, token):
             token=token)
     if node['metadata']['io.openshift.upgrades.graph.release.channels'] and channels != node['metadata']['io.openshift.upgrades.graph.release.channels']:
         if not channels:
-            _LOGGER.info('adding {} to channels: {}'.format(node['version'], node['metadata']['io.openshift.upgrades.graph.release.channels']))
+            _LOGGER.info('adding {} to channels: {}'.format(get_log_version(node), node['metadata']['io.openshift.upgrades.graph.release.channels']))
         post_label(
             node=node,
             label={
@@ -270,7 +285,7 @@ def update_previous(node, token):
         removed_label = labels.get('io.openshift.upgrades.graph.previous.remove', {})
         current_removed = set(version for version in removed_label.get('value', '').split(',') if version)
         if current_removed != want_removed:
-            _LOGGER.info('changing {} previous.remove from {} to {}'.format(node['version'], sorted(current_removed), sorted(want_removed)))
+            _LOGGER.info('changing {} previous.remove from {} to {}'.format(get_log_version(node), sorted(current_removed), sorted(want_removed)))
             if 'io.openshift.upgrades.graph.previous.remove' in labels:
                 delete_label(node=node, label=removed_label['id'], key=removed_label['key'], token=token)
             if want_removed:
@@ -287,7 +302,7 @@ def update_previous(node, token):
         previous_remove = removed_label.get('value', '')
         if previous_remove != '*':
             if node.get('internal-previous', set()):
-                _LOGGER.info('replacing {} previous remove {!r} with *'.format(node['version'], previous_remove))
+                _LOGGER.info('replacing {} previous remove {!r} with *'.format(get_log_version(node), previous_remove))
                 if 'id' in removed_label:
                     delete_label(node=node, label=removed_label['id'], key=removed_label['key'], token=token)
                 post_label(
@@ -307,7 +322,7 @@ def sync_node(node, token):
     for key in ['next.add', 'next.remove']:
         label = 'io.openshift.upgrades.graph.{}'.format(key)
         if label in labels:
-            _LOGGER.warning('the {} label is deprecated for {}.  Use the previous label on the other release(s) instead (was: {})'.format(label, node['version'], labels[label].get('value', '')))
+            _LOGGER.warning('the {} label is deprecated for {}.  Use the previous label on the other release(s) instead (was: {})'.format(label, get_log_version(node), labels[label].get('value', '')))
             #delete_label(node=node, label=labels[label]['id'], key=label, token=token)
 
 def repository_uri(name, pullspec=None):
@@ -338,7 +353,7 @@ def delete_label(node, label, token, key=None):
     suffix = ''
     if key:
         suffix = ' (key: {})'.format(key)
-    _LOGGER.info('{} {} {}{}'.format(node['version'], 'delete', uri, suffix))
+    _LOGGER.info('{} {} {}{}'.format(get_log_version(node), 'delete', uri, suffix))
     if not token:
         return  # dry run
     request = Request(uri)
@@ -349,7 +364,7 @@ def delete_label(node, label, token, key=None):
 
 def post_label(node, label, token):
     uri = '{}/labels'.format(manifest_uri(node=node))
-    _LOGGER.info('{} {} {}'.format(node['version'], 'post', uri))
+    _LOGGER.info('{} {} {}'.format(get_log_version(node), 'post', uri))
     if not token:
         return  # dry run
     request = Request(uri, json.dumps(label).encode('utf-8'))
