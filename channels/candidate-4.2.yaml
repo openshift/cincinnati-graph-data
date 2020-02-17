@@ -35,3 +35,4 @@ versions:
 - 4.2.14
 # not 4.2.15 because 4.2.16 was built with the same errata URI
 - 4.2.16
+- 4.2.18
