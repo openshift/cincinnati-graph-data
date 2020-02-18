@@ -471,7 +471,7 @@ def get_token(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Utilities for managing graph data.')
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(dest='command')
 
     push_to_quay_parser = subparsers.add_parser(
         'push-to-quay',
@@ -489,10 +489,11 @@ if __name__ == '__main__':
         '--versions',
         help='Comma Seperated Versions to sync',
     )
-    push_to_quay_parser.set_defaults(action='push-to-quay')
 
     args = parser.parse_args()
 
-    token = get_token(args=args)
-    if args.action == 'push-to-quay':
+    if args.command == 'push-to-quay':
+        token = get_token(args=args)
         push(directory='.', token=token, push_versions=args.versions)
+    else:
+        parser.print_usage()
