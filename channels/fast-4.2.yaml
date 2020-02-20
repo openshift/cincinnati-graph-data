@@ -18,7 +18,7 @@ versions:
 - 4.2.9
 - 4.2.10
 - 4.2.10-s390x
-  # - 4.2.11 failed to run tests, we never officially released it, but we accidentally
+# - 4.2.11 failed to run tests, we never officially released it, but we accidentally
 # put it in a channel! (same for s390x)   Now we shouldn't pull it, just in case
 # someone is on it
 - 4.2.11
@@ -31,3 +31,4 @@ versions:
 # not 4.2.14-s390x because of https://bugzilla.redhat.com/show_bug.cgi?id=1789260
 # not 4.2.15 because 4.2.16 was built with the same errata URI
 - 4.2.16
+# not 4.2.17 because we had a long quiet time after 4.2.16 with no releases
