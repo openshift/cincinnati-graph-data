@@ -26,6 +26,7 @@ And 4.2.14+amd64 would only apply to the amd64 release image.
 
 Edit the appropriate file in `channels/`.
 For example, to add a release to stable-4.2 you would edit `channels/stable-4.2.yaml`.
+Channel semantics are documented [here][channel-semantics].
 
 The file contains a list of versions.
 Please keep the versions in order.
@@ -61,6 +62,7 @@ $ hack/graph-util.py push-to-quay --token="${YOUR_TOKEN}"
 
 You can leave `--token` unset for a dry run (the actions the script would take are printed either way, but are only executed if you passed a token).
 
+[channel-semantics]: https://docs.openshift.com/container-platform/4.3/updating/updating-cluster-between-minor.html#understanding-upgrade-channels_updating-cluster-between-minor
 [Cincinnati]: https://github.com/openshift/cincinnati/
 [image-arch]: https://github.com/opencontainers/image-spec/blame/v1.0.1/config.md#L103
 [semver-build]: https://semver.org/spec/v2.0.0.html#spec-item-10
