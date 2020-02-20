@@ -37,4 +37,6 @@ versions:
 - 4.1.29
 - 4.1.30
 - 4.1.31
+# no 4.1.32 because we didn't cut a release in the week after 4.1.31
+# no 4.1.33 because we didn't cut a release in the week after 4.1.32
 - 4.1.34
