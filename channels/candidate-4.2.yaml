@@ -20,7 +20,10 @@ versions:
 - 4.2.0-rc.5
 - 4.2.1
 - 4.2.2
+# no 4.2.3 because it was rolled into 4.2.4
 - 4.2.4
+# no 4.2.5 because it was cut missing some intended update sources
+# no 4.2.6 because it pulled in CI-built images due to due to release job modification for multi-arch
 - 4.2.7
 - 4.2.8
 - 4.2.9
