@@ -1,4 +1,7 @@
 name: stable-4.7
+feeder:
+  name: fast-4.7
+  delay: PT24H
 versions:
 - 4.6.23
 - 4.6.22

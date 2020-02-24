@@ -1,4 +1,8 @@
 name: eus-4.6
+feeder:
+  name: stable-4.6
+  delay: PT0H
+  filter: 4\.6\.[0-9]+(.*hotfix.*)?
 versions:
 - 4.6.1
 - 4.6.3

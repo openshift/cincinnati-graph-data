@@ -1,4 +1,8 @@
 name: stable-4.1
+feeder:
+  name: prerelease-4.1
+  delay: PT24H
+  filter: 4\.[0-9]+\.[0-9]+(.*hotfix.*)?
 versions:
 - 4.1.0
 - 4.1.1

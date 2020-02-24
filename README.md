@@ -31,12 +31,35 @@ And 4.2.14+amd64 would only apply to the amd64 release image.
 ### Add Releases To Channels
 
 Edit the appropriate file in `channels/`.
-For example, to add a release to stable-4.2 you would edit `channels/stable-4.2.yaml`.
-Channel semantics are documented [here][channel-semantics].
+For example, to add a release to candidate-4.2 you would edit [`channels/candidate-4.2.yaml`](channels/candidate-4.2.yaml).
 
 The file contains a list of versions.
 Please keep the versions in order.
 And LEAVE COMMENTS if you skip a version.
+
+#### Feeder Channels
+
+Channel semantics, as documented [here][channel-semantics], show nodes and edges being promoted to successive channels as they prove their stability.
+For example, a 4.2.z release will appear in `candidate-4.2` first.
+Upon proving itself sufficiently stable in the candidate channel, it will be promoted into `fast-4.2`.
+Some time after landing in `fast-4.2`, it will appear in `stable-4.2`.
+
+In this repository, the intended promotion flow is reflected by a `feeder` property in the channel declaration.
+For example, for [`channels/fast-4.2.yaml`](channels/fast-4.2.yaml):
+
+```yaml
+feeder:
+  name: candidate-4.2
+  delay: PT24H
+  filter: 4\.[0-9]+\.[0-9]+(.*hotfix.*|\+amd64|-s390x)?
+```
+
+which declares the intention that nodes and edges will be considered for promotion into `fast-4.2` after cooking for 24 hours in `candidate-4.2`.
+The `delay` value is an [ISO 8601][rfc-3339-p13] [duration][iso-8601-durations].
+The `filter` value excludes `4.2.0-rc.5` and other releases, while allowing for `4.2.0-0.hotfix-2020-09-19-234758` and `4.2.10-s390x` and `4.2.14+amd64`.
+
+This is the expected delay, but it does not mean that promotion will happen at that moment.
+For example, it is possible that release architects decide that there is insufficient data for a `fast-4.2` promotion, in which case the promotion can be delated until sufficient data accumulates.
 
 ### Block Edges
 
@@ -59,5 +82,7 @@ from: 4\.1\.(18|20)
 [channel-semantics]: https://docs.openshift.com/container-platform/4.3/updating/updating-cluster-between-minor.html#understanding-upgrade-channels_updating-cluster-between-minor
 [Cincinnati]: https://github.com/openshift/cincinnati/
 [image-arch]: https://github.com/opencontainers/image-spec/blame/v1.0.1/config.md#L103
+[iso-8601-durations]: https://en.wikipedia.org/wiki/ISO_8601#Durations
+[rfc-3339-p13]: https://tools.ietf.org/html/rfc3339#page-13
 [semver]: https://semver.org/spec/v2.0.0.html
 [semver-build]: https://semver.org/spec/v2.0.0.html#spec-item-10
