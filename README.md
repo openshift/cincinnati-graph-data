@@ -61,6 +61,12 @@ The `filter` value excludes `4.2.0-rc.5` and other releases, while allowing for 
 This is the expected delay, but it does not mean that promotion will happen at that moment.
 For example, it is possible that release architects decide that there is insufficient data for a `fast-4.2` promotion, in which case the promotion can be delated until sufficient data accumulates.
 
+To see recommended feeder promotions, run:
+
+```console
+$ hack/stabilization-change.py
+```
+
 ### Block Edges
 
 Create/edit an appropriate file in `blocked_edges/`.
