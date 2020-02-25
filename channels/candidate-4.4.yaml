@@ -1,4 +1,15 @@
 name: candidate-4.4
+tombstones:
+# No early 4.3.z will be promoted to fast, these are just for testing -> RC updates
+- 4.3.5
+- 4.3.8
+- 4.3.9
+- 4.3.10
+# RC releases are never promoted to fast channels
+- 4.4.0-rc.0
+- 4.4.0-rc.1
+- 4.4.0-rc.2
+- 4.4.0-rc.4
 versions:
 - 4.3.40
 - 4.3.38

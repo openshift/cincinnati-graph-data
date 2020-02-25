@@ -67,6 +67,21 @@ To see recommended feeder promotions, run:
 $ hack/stabilization-change.py
 ```
 
+##### Tombstones
+
+Removing a node from a channel can strand existing clusters with a `VersionNotFound` error.
+To avoid that, unstable nodes are left in their existing channels, but should not be promoted to additional channels.
+This is reflected through entries in the optional `tombstones` property.
+For example, [`channels/candidate-4.2.yaml`](channels/candidate-4.2.yaml) has:
+
+```yaml
+tombstones:
+- 4.1.18
+- 4.1.20
+```
+
+declaring that, while 4.1.18 and 4.1.20 are in `candidate-4.2`, they should not be promoted to subsequent channels (in this case, `fast-4.2`).
+
 ### Block Edges
 
 Create/edit an appropriate file in `blocked_edges/`.

@@ -53,7 +53,7 @@ def stabilization_changes(directory):
         delay = parse_iso8601_delay(delay=delay_string)
         version_filter = re.compile('^{}$'.format(channel['feeder'].get('filter', '.*')))
         feeder_data = channels[feeder]
-        unpromoted = set(feeder_data['versions']) - set(channel['versions'])
+        unpromoted = set(feeder_data['versions']) - set(channel['versions']) - set(feeder_data.get('tombstones', {}))
         candidates = set(v for v in unpromoted if version_filter.match(v))
         if not candidates:
             continue
