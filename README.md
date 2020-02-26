@@ -44,6 +44,9 @@ For example, a 4.2.z release will appear in `candidate-4.2` first.
 Upon proving itself sufficiently stable in the candidate channel, it will be promoted into `fast-4.2`.
 Some time after landing in `fast-4.2`, it will appear in `stable-4.2`.
 
+_Note:_ Once we have phased release rollouts, we will drop the fast/stable distinction from this repository and promote to a unified fast/stable channel with a start time and rollout duration.
+Until then, we are using fast channels to feed stable channels with a delay, just like candidate channels feed fast channels.
+
 In this repository, the intended promotion flow is reflected by a `feeder` property in the channel declaration.
 For example, for [`channels/fast-4.2.yaml`](channels/fast-4.2.yaml):
 
