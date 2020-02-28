@@ -40,3 +40,4 @@ versions:
 # not 4.2.17 because we had a long quiet time after 4.2.16 with no releases
 - 4.2.18
 - 4.2.19
+- 4.2.20
