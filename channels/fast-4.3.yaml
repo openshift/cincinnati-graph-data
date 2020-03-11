@@ -14,3 +14,4 @@ versions:
 - 4.3.3
 # No 4.3.4 because of https://bugzilla.redhat.com/show_bug.cgi?id=1805726
 - 4.3.5
+# No 4.3.6 because of https://bugzilla.redhat.com/show_bug.cgi?id=1811886
