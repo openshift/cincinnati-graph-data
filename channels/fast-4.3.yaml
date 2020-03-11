@@ -7,6 +7,7 @@ versions:
 - 4.2.18+amd64
 - 4.2.19+amd64
 - 4.2.20+amd64
+- 4.2.21+amd64
 - 4.3.0
 - 4.3.1
 # Upgrade edges disabled for 4.3.2 and 4.3.3 because of bugs https://bugzilla.redhat.com/show_bug.cgi?id=1802248, https://bugzilla.redhat.com/show_bug.cgi?id=1805444, https://bugzilla.redhat.com/show_bug.cgi?id=1808429
