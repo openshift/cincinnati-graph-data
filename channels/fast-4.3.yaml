@@ -13,7 +13,6 @@ versions:
 # No 4.2.24 because of the service CA rotation issue: https://bugzilla.redhat.com/show_bug.cgi?id=1810036 https://bugzilla.redhat.com/show_bug.cgi?id=1801573
 - 4.3.0
 - 4.3.1
-# Upgrade edges disabled for 4.3.2 and 4.3.3 because of bugs https://bugzilla.redhat.com/show_bug.cgi?id=1802248
 - 4.3.2
 - 4.3.3
 # No 4.3.4 because of https://bugzilla.redhat.com/show_bug.cgi?id=1805726
