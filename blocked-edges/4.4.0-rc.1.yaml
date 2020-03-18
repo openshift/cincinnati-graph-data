@@ -1,0 +1,4 @@
+to: 4.4.0-rc.1
+from: 4.3.5
+# 4.3 -> 4.4 update hangs on ClusterOperatorDegraded, NodeInstallerDegraded, RevisionControllerDegraded, TargetConfigControllerDegraded  -> https://bugzilla.redhat.com/show_bug.cgi?id=1812584
+# cluster-etcd-operator should not scale when upgrading from 4.3 to 4.4 -> https://bugzilla.redhat.com/show_bug.cgi?id=1813512
