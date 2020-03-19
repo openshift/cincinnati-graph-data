@@ -4,4 +4,4 @@ versions:
 # No 4.3.6 because of https://bugzilla.redhat.com/show_bug.cgi?id=1811886
 # No 4.3.7 because of the service CA rotation issue: https://bugzilla.redhat.com/show_bug.cgi?id=1810036 https://bugzilla.redhat.com/show_bug.cgi?id=1801573
 - 4.4.0-rc.0
-# No 4.4.0-rc.1 because of the service CA rotation issue: https://bugzilla.redhat.com/show_bug.cgi?id=1810036
+- 4.4.0-rc.1
