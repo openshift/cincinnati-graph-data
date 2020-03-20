@@ -1,3 +1,4 @@
 # https://bugzilla.redhat.com/show_bug.cgi?id=1802248, https://bugzilla.redhat.com/show_bug.cgi?id=1805444, https://bugzilla.redhat.com/show_bug.cgi?id=1808429
 to: 4.3.3
 from: .*
+# 4.3 -> 4.3 updates on GCP occasionally have kube-apiserver-operator panics, fixed in 4.3.5, https://bugzilla.redhat.com/show_bug.cgi?id=1809296
