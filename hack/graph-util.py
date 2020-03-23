@@ -232,10 +232,12 @@ def normalize_node(node):
 
 
 def push(directory, token, push_versions):
+    _LOGGER.info('Getting all nodes we have pushed to ocp-release')
     nodes = load_nodes(directory=os.path.join(directory, '.nodes'), registry='quay.io', repository='openshift-release-dev/ocp-release')
     nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
     nodes = block_edges(directory=os.path.join(directory, 'blocked-edges'), nodes=nodes)
 
+    _LOGGER.info('Syncing nodes, channels, and edges to Quay')
     sync_nodes = []
     for version, arch_nodes in sorted(nodes.items()):
         if not push_versions or version in push_versions.split(','):
@@ -469,8 +471,20 @@ def get_token(args):
             return f.read().strip()
     return None
 
+def set_log_level(args):
+    if args.verbose == "info":
+        _LOGGER.setLevel(logging.INFO)
+        return
+    _LOGGER.setLevel(logging.DEBUG)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Utilities for managing graph data.')
+    parser.add_argument(
+        '-v', '--verbose',
+        help='Verbosity level (info or debug)',
+        choices = ["debug", "info"],
+        default = "debug"
+    )
     subparsers = parser.add_subparsers(dest='command')
 
     push_to_quay_parser = subparsers.add_parser(
@@ -491,6 +505,7 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
+    set_log_level(args)
 
     if args.command == 'push-to-quay':
         token = get_token(args=args)
