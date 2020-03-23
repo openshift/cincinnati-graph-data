@@ -8,3 +8,4 @@
 # Also includes broken OAuth service cert rotation: https://bugzilla.redhat.com/show_bug.cgi?id=1801573
 to: 4.3.5
 from: .*
+# 4.2 -> 4.3 updates occasionally hit PodIP vs. PodIPs, https://bugzilla.redhat.com/show_bug.cgi?id=1816302
