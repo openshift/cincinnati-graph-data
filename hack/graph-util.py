@@ -28,7 +28,6 @@ except ImportError:
 _VERSION_REGEXP = re.compile('^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
 logging.basicConfig(format='%(levelname)s: %(message)s')
 _LOGGER = logging.getLogger(__name__)
-_LOGGER.setLevel(logging.DEBUG)
 
 def get_architecture(meta):
     return meta['image-config-data']['architecture']
@@ -472,18 +471,17 @@ def get_token(args):
     return None
 
 def set_log_level(args):
-    if args.verbose == "info":
-        _LOGGER.setLevel(logging.INFO)
-        return
-    _LOGGER.setLevel(logging.DEBUG)
+    _LOGGER.setLevel(logging.INFO)
+    if args.verbose == "debug":
+        _LOGGER.setLevel(logging.DEBUG)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Utilities for managing graph data.')
     parser.add_argument(
         '-v', '--verbose',
         help='Verbosity level (info or debug)',
-        choices = ["debug", "info"],
-        default = "debug"
+        choices=["debug", "info"],
+        default="info"
     )
     subparsers = parser.add_subparsers(dest='command')
 
