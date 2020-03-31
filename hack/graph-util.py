@@ -230,7 +230,7 @@ def normalize_node(node):
     return node
 
 
-def push(directory, token, push_versions):
+def push(directory, push_versions, token=None):
     _LOGGER.info('Getting all nodes we have pushed to ocp-release')
     nodes = load_nodes(directory=os.path.join(directory, '.nodes'), registry='quay.io', repository='openshift-release-dev/ocp-release')
     nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
@@ -462,13 +462,6 @@ def get_release_metadata(node):
 
     raise ValueError('no release-metadata in {} layers ( {} )'.format(node['payload'], json.dumps(manifest)))
 
-def get_token(args):
-    if args.token:
-        return args.token
-    if args.token_file:
-        with open(args.token_file) as f:
-            return f.read().strip()
-    return None
 
 def set_log_level(args):
     _LOGGER.setLevel(logging.INFO)
@@ -490,14 +483,6 @@ if __name__ == '__main__':
         help='Push graph metadata to Quay.io labels.',
     )
     push_to_quay_parser.add_argument(
-        '-t', '--token',
-        help='Quay token ( https://docs.quay.io/api/#applications-and-tokens )',
-    )
-    push_to_quay_parser.add_argument(
-        '--token-file',
-        help='Path to file with Quay token',
-    )
-    push_to_quay_parser.add_argument(
         '--versions',
         help='Comma Seperated Versions to sync',
     )
@@ -506,7 +491,6 @@ if __name__ == '__main__':
     set_log_level(args)
 
     if args.command == 'push-to-quay':
-        token = get_token(args=args)
-        push(directory='.', token=token, push_versions=args.versions)
+        push(directory='.', push_versions=args.versions)
     else:
         parser.print_usage()

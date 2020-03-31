@@ -10,9 +10,8 @@ The [contributing documentation](CONTRIBUTING.md) covers licencing and the usual
 1. Create a PR.
 1. Merge the PR to master.
 1. Update your local master branch.
-1. [Publish Quay labels](#publish-quay-labels) based on master.
 
-**Do Not Ever Update Quay Labels Based On Your Local Development Branch. Only from master!**
+[Cincinnati][] is configured to track the master branch, so it will automatically react to updates made to this repository.
 
 ### Release names
 
@@ -49,18 +48,6 @@ If you wish to block specific edges it might look like:
 to: 4.2.0-rc.5
 from: 4\.1\.(18|20)
 ```
-
-### Publish Quay Labels
-
-**DO NOT EVER PUSH YOUR LOCAL BRANCH TO QUAY! Only push AFTER changes have merged to master.**
-
-Push to Quay labels with:
-
-```console
-$ hack/graph-util.py push-to-quay --token="${YOUR_TOKEN}"
-```
-
-You can leave `--token` unset for a dry run (the actions the script would take are printed either way, but are only executed if you passed a token).
 
 [channel-semantics]: https://docs.openshift.com/container-platform/4.3/updating/updating-cluster-between-minor.html#understanding-upgrade-channels_updating-cluster-between-minor
 [Cincinnati]: https://github.com/openshift/cincinnati/
