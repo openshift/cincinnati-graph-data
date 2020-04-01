@@ -13,6 +13,7 @@ versions:
 # No 4.2.24 because of the service CA rotation issue: https://bugzilla.redhat.com/show_bug.cgi?id=1810036 https://bugzilla.redhat.com/show_bug.cgi?id=1801573
 - 4.2.25+amd64
 - 4.2.26+amd64
+- 4.2.27+amd64
 - 4.3.0-rc.0
 # I'm not sure what happened to rc1 and rc2. rc2 was, I think, fine
 # but it never got upgrade tests https://github.com/openshift/cincinnati-graph-data/pull/26
