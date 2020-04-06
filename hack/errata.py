@@ -60,8 +60,13 @@ def poll(data_grepper='https://datagrepper.engineering.redhat.com/raw', period=N
         params['page'] = page
         uri = '{}?{}'.format(data_grepper, urllib.parse.urlencode(params))
         _LOGGER.debug('query page {}: {}'.format(page, uri))
-        with urllib.request.urlopen(uri) as f:
-            data = json.load(codecs.getreader('utf-8')(f))  # hack: should actually respect Content-Type
+        try:
+            with urllib.request.urlopen(uri) as f:
+                data = json.load(codecs.getreader('utf-8')(f))  # hack: should actually respect Content-Type
+        except Exception as error:
+            _LOGGER.error('{}: {}'.format(uri, error))
+            time.sleep(10)
+            continue
         for raw_message in data['raw_messages']:
             message = raw_message['msg']
             if message.get('product') == 'RHOSE' and message.get('to') == 'SHIPPED_LIVE':
