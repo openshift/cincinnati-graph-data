@@ -12,7 +12,7 @@ import yaml
 logging.basicConfig(format='%(levelname)s: %(message)s')
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
-_ISO_8601_DELAY_REGEXP = re.compile('^PT(?P<hours>\d+)H$')
+_ISO_8601_DELAY_REGEXP = re.compile('^P((?P<weeks>\d+)W)?(T(?P<hours>\d+)H)?$')
 _GIT_BLAME_COMMIT_REGEXP = re.compile('^(?P<hash>[0-9a-f]{40}) .*')
 _GIT_BLAME_HEADER_REGEXP = re.compile('^(?P<key>[^ \t]+) (?P<value>.*)$')
 _GIT_BLAME_LINE_REGEXP = re.compile('^\t(?P<value>.*)$')
@@ -22,9 +22,10 @@ def parse_iso8601_delay(delay):
     # https://tools.ietf.org/html/rfc3339#page-13
     match = _ISO_8601_DELAY_REGEXP.match(delay)
     if not match:
-        raise ValueError('invalid or unsupported ISO 8601 duration {!r}.  Tooling currently only supports PT<number>H for hour offsets')
-    hours = int(match.group('hours'))
-    return datetime.timedelta(hours=hours)
+        raise ValueError('invalid or unsupported ISO 8601 duration {!r}.  Tooling currently only supports P<number>WT<number>H for week and/or hour offsets')
+    weeks = int(match.group('weeks') or 0)
+    hours = int(match.group('hours') or 0)
+    return datetime.timedelta(days=7*weeks, hours=hours)
 
 
 def stabilization_changes(directory):

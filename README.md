@@ -53,11 +53,11 @@ For example, for [`channels/fast-4.2.yaml`](channels/fast-4.2.yaml):
 ```yaml
 feeder:
   name: candidate-4.2
-  delay: PT24H
+  delay: P1W
   filter: 4\.[0-9]+\.[0-9]+(.*hotfix.*|\+amd64|-s390x)?
 ```
 
-which declares the intention that nodes and edges will be considered for promotion into `fast-4.2` after cooking for 24 hours in `candidate-4.2`.
+which declares the intention that nodes and edges will be considered for promotion into `fast-4.2` after cooking for one week in `candidate-4.2`.
 The `delay` value is an [ISO 8601][rfc-3339-p13] [duration][iso-8601-durations].
 The `filter` value excludes `4.2.0-rc.5` and other releases, while allowing for `4.2.0-0.hotfix-2020-09-19-234758` and `4.2.10-s390x` and `4.2.14+amd64`.
 
