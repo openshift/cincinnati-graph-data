@@ -48,3 +48,4 @@ versions:
 # No 4.2.24 because of the service CA rotation issue: https://bugzilla.redhat.com/show_bug.cgi?id=1810036 https://bugzilla.redhat.com/show_bug.cgi?id=1801573
 - 4.2.25
 - 4.2.26
+- 4.2.27
