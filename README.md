@@ -36,6 +36,14 @@ And LEAVE COMMENTS if you skip a version.
 Create/edit an appropriate file in `blocked_edges/`.
 - `to` is the release which has the existing incoming edges.
 - `from` is a regex for the previous release versions.
+- `clusters` selects cluster flavors for which the edges will be blocked.
+    If it is unset, the edges will blocked for all clusters.
+    - `telemetry` is a PromQL expression.
+        Clusters will have edges blocked if their cluster ID shows up in `max by (_id) $EXPRESSION`.
+    - `insights` is evaluated against the cluster's most-recently pushed insights.
+        - `path` is the path extracted from the insights tarball.
+        - `jq` is a `jq` expression evaluated on the contents of the extracted `path`.
+        Clusters will have edges blocked if the `jq` output is `true`.
 
 For example: to block all incoming edges to a release create a file such as `blocked-edges/4.2.11.yaml` containing:
 ```yaml

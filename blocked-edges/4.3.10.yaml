@@ -1,0 +1,10 @@
+to: 4.3.10
+from: 4\.2\..*
+clusters:
+  telemetry: cluster_infrastructure_provider{type="Azure"}
+  insights:
+    path: config/infrastructure
+    # FIXME: what if we need to consume multiple paths from the tarball?
+    jq: .status.platformStatus.type == "Azure" or .status.platform == "Azure"
+    # FIXME: probably something more standard with Rust support.  Maybe JSON Pointer: https://tools.ietf.org/html/rfc6901 ?  Some scripting shim?
+# 4.2 -> 4.3 updates on Azure exhaust nominal CPU capacity, https://bugzilla.redhat.com/show_bug.cgi?id=1820432
