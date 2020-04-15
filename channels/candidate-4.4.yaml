@@ -5,6 +5,8 @@ tombstones:
 - 4.3.8
 - 4.3.9
 - 4.3.10
+# No 4.3.11 because of build issues: https://bugzilla.redhat.com/show_bug.cgi?id=1823378
+- 4.3.11
 # RC releases are never promoted to fast channels
 - 4.4.0-rc.0
 - 4.4.0-rc.1
