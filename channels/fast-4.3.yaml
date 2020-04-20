@@ -28,3 +28,4 @@ versions:
 - 4.3.10
 # No 4.3.11 because of build issues: https://bugzilla.redhat.com/show_bug.cgi?id=1823378
 - 4.3.12
+- 4.3.13
