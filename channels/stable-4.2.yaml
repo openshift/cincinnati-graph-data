@@ -19,6 +19,8 @@ versions:
 # no 4.1.36 because we didn't cut a release in the week after 4.1.35
 # no 4.1.37 because of https://bugzilla.redhat.com/show_bug.cgi?id=1810393 (Jenkins webconsole 403 Forbidden)
 - 4.1.38
+# no 4.1.40 because we didn't cut a release in the week after 4.1.39
+# no 4.1.39 because we didn't cut a release in the week after 4.1.38
 - 4.1.41
 - 4.2.0
 - 4.2.1
