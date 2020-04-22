@@ -1,5 +1,8 @@
 name: candidate-4.4
 versions:
+# Allow upgrades from 4.3.15. Errata: https://access.redhat.com/errata/RHBA-2020:1529
+- 4.3.15+amd64
+
 - 4.3.14+amd64
 - 4.3.5
 # No 4.3.6 because of https://bugzilla.redhat.com/show_bug.cgi?id=1811886
