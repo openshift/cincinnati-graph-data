@@ -2,3 +2,4 @@ name: stable-4.4
 versions:
 - 4.3.12
 - 4.3.13
+- 4.3.14+amd64
