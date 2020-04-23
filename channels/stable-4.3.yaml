@@ -1,5 +1,8 @@
 name: stable-4.3
 versions:
+# Allow upgrades from 4.2.30. Errata: https://access.redhat.com/errata/RHBA-2020:1547
+- 4.2.30+amd64
+
 - 4.2.16+amd64
 # not 4.2.17 because we had a long quiet time after 4.2.16 with no releases
 - 4.2.18+amd64
