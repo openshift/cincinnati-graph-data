@@ -25,3 +25,6 @@ versions:
 
 # 4.4.0-rc.10 Errata: https://access.redhat.com/errata/RHBA-2020:0581
 - 4.4.0-rc.10
+
+# 4.4.0-rc.11 Errata: https://access.redhat.com/errata/RHBA-2020:0581
+- 4.4.0-rc.11
