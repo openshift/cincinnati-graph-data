@@ -13,6 +13,13 @@ The [contributing documentation](CONTRIBUTING.md) covers licencing and the usual
 
 [Cincinnati][] is configured to track the master branch, so it will automatically react to updates made to this repository.
 
+### Schema version
+
+The layout of this repository is versioned via [a `version` file](version), which contains the [Semantic Version][semver] of the schema.
+As a schema version, the patch level is likely to remain 0, but the minor version will be incremented if backwards-compatible features are added, and the major version will be incremented if backwards-incompatible changes are made.
+Consumers, such as [Cincinnati][], who support *x.y.0* may safely consume this repository when the stated major version matches the understood *x* and the stated minor version is less than or equal to the understood *y*.
+For example, a consumer that supports 1.3.0 and 2.1.0 could safely consume 1.2.0, 1.3.0, 2.0.0, 2.1.0, etc., but could not safely consume 1.4.0, 2.2.0, 3.0.0, etc.
+
 ### Release names
 
 Release names are used for [adding releases to channels](#add-releases-to-channels) and [blocking edges](#block-edges).
@@ -52,4 +59,5 @@ from: 4\.1\.(18|20)
 [channel-semantics]: https://docs.openshift.com/container-platform/4.3/updating/updating-cluster-between-minor.html#understanding-upgrade-channels_updating-cluster-between-minor
 [Cincinnati]: https://github.com/openshift/cincinnati/
 [image-arch]: https://github.com/opencontainers/image-spec/blame/v1.0.1/config.md#L103
+[semver]: https://semver.org/spec/v2.0.0.html
 [semver-build]: https://semver.org/spec/v2.0.0.html#spec-item-10
