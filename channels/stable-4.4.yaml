@@ -1,6 +1,12 @@
 name: stable-4.4
 versions:
+# Because we cannot block edges by channel the only way to prevent 4.3 to 4.4
+# upgrades in the stable channel but prevent errors from being thrown is to
+# temporarilly remove 4.3 versions. Once we intend to promote the 4.3 to 4.4
+# edge to stable we will re-introduce these 4.3 versions. 4.3.12 and 4.3.13
+# are safe but nothing 4.3.18+ should be added since it includes edges to 4.4
 - 4.3.12
 - 4.3.13
 # No 4.3.14 because it was missing version which 4.3.14 can be upgraded. It is rebuilt as 4.3.15
-- 4.3.18
+# - 4.3.18 temporarily to prevent 4.3 to 4.4.0
+- 4.4.3
