@@ -1,5 +1,7 @@
 name: candidate-4.3
 versions:
+- 4.2.33
+
 - 4.2.32
 
 # Allow upgrades from 4.2.30. Errata: https://access.redhat.com/errata/RHBA-2020:1547
