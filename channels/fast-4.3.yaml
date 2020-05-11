@@ -36,3 +36,5 @@ versions:
 # No 4.3.17 because it lacked OCICNI context for robust recovery from network I/O timeouts: https://bugzilla.redhat.com/show_bug.cgi?id=1828104
 
 - 4.3.18
+
+- 4.3.19
