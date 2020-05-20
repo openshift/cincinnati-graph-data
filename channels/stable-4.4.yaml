@@ -13,3 +13,5 @@ versions:
 # No 4.3.16 because ovn container image had unsigned RPMs
 # No 4.3.17 because it lacked OCICNI context for robust recovery from network I/O timeouts: https://bugzilla.redhat.com/show_bug.cgi?id=1828104
 - 4.3.18
+
+- 4.4.3
