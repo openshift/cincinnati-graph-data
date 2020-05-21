@@ -1,0 +1,5 @@
+to: 4.4.4
+from: 4\.3\.1[2|3]
+# 4.3.12, 4.3.13 were added to stable-4.4 since those versions added
+# stable-4.4 channel but 4.3.18 is the minimum version with fixes for
+# https://bugzilla.redhat.com/show_bug.cgi?id=1827337
