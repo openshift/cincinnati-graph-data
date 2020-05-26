@@ -1,4 +1,3 @@
-to: 4.4.3
+to: 4.4.5
 from: 4\.3\..*
-# 4.3 -> 4.4 updates occasionally stick on etcd NodeInstaller_InstallerPodFailed, https://bugzilla.redhat.com/show_bug.cgi?id=1830510
 # 4.3 -> 4.4 breaks on vSphere with machine-config showing waitForControllerConfigToBeCompleted: https://bugzilla.redhat.com/show_bug.cgi?id=1834925
