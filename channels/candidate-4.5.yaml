@@ -1,2 +1,4 @@
 name: candidate-4.5
-versions: []
+versions: 
+
+- 4.5.0-rc.1
