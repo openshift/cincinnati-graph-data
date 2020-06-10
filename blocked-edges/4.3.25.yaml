@@ -1,0 +1,3 @@
+to: 4.3.25
+from: .*
+# Blocked as expected rhcos image didn't get promoted
