@@ -235,6 +235,7 @@ def push(directory, push_versions, token=None):
     nodes = load_nodes(directory=os.path.join(directory, '.nodes'), registry='quay.io', repository='openshift-release-dev/ocp-release')
     nodes = load_channels(directory=os.path.join(directory, 'channels'), nodes=nodes)
     nodes = block_edges(directory=os.path.join(directory, 'blocked-edges'), nodes=nodes)
+    return  # we don't actually care about syncing anymore, just loading to get the validating assertions
 
     _LOGGER.info('Syncing nodes, channels, and edges to Quay')
     sync_nodes = []
