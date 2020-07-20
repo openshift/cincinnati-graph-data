@@ -57,5 +57,4 @@ versions:
 - 4.3.27
 
 - 4.3.28
-
-# No 4.3.29+s390x or 4.3.29+ppc64le because of https://bugzilla.redhat.com/show_bug.cgi?id=1855807 (cri-o problem at boot)
+- 4.3.29
