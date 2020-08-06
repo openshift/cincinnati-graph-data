@@ -2,3 +2,5 @@ name: candidate-4.6
 versions:
 
 - 4.6.0-fc.0
+
+- 4.6.0-rc.42
