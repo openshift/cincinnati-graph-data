@@ -84,7 +84,7 @@ def notify(message, webhook=None):
 
     urllib.request.urlopen(webhook, data=urllib.parse.urlencode({
         'payload': {
-            'text': '{fulladvisory} shipped {when}: {synopsis}'.format(**message),
+            'text': '<!subteam^STE7S7ZU2>: {fulladvisory} shipped {when}: {synopsis}'.format(**message),
         },
     }).encode('utf-8'))
 
