@@ -7,6 +7,7 @@ import codecs
 import datetime
 import json
 import logging
+import os
 import time
 import urllib.parse
 import urllib.request
@@ -92,8 +93,16 @@ def notify(message, webhook=None):
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description='Poll for newly published OCP errata, and optionally push notifications to Slack.')
-    parser.add_argument('webhook', nargs='?', help='Set this to actually push notifications to Slack.')
+    parser = argparse.ArgumentParser(
+        description='Poll for newly published OCP errata, and optionally push notifications to Slack.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        'webhook',
+        nargs='?',
+        help='Set this to actually push notifications to Slack.  Defaults to the value of the WEBHOOK environment variable.',
+        default=os.environ.get('WEBHOOK'),
+    )
     args = parser.parse_args()
 
     cache_path = '.errata.json'
