@@ -12,6 +12,8 @@ import time
 import urllib.parse
 import urllib.request
 
+import github
+
 
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger()
@@ -30,13 +32,19 @@ def save(path, cache):
         json.dump(cache, f, sort_keys=True, indent=2)
 
 
-def run(poll_period=datetime.timedelta(seconds=3600), cache=None, webhook=None, **kwargs):
+def run(poll_period=datetime.timedelta(seconds=3600),
+        cache=None,
+        webhook=None,
+        githubrepo=None,
+        githubtoken=None,
+        **kwargs):
     next_time = datetime.datetime.now()
     while True:
         _LOGGER.debug('poll for messages')
         for message in poll(period=2*poll_period, **kwargs):
             if cache and message['fulladvisory'] in cache or 'bug fix update' not in message['synopsis']:
                 continue
+            message['approved_pr'] = lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
             notify(message=message, webhook=webhook)
             if cache is not None:
                 cache[message['fulladvisory']] = {
@@ -83,11 +91,73 @@ def notify(message, webhook=None):
         print(message)
         return
 
+    msg_text = '<!subteam^STE7S7ZU2>: {fulladvisory} shipped {when}: {synopsis}'.format(**message)
+    if  message['approved_pr']:
+        msg_text += "\nPR {approved_pr} has been approved".format(**message)
+
     urllib.request.urlopen(webhook, data=urllib.parse.urlencode({
         'payload': {
-            'text': '<!subteam^STE7S7ZU2>: {fulladvisory} shipped {when}: {synopsis}'.format(**message),
+            'text': msg_text,
         },
     }).encode('utf-8'))
+
+
+def get_open_prs_to_fast(repo):
+    query_params = {
+        'state': 'open',
+        'base': 'master',
+        'author': 'openshift-bot',
+        'sort': 'created',
+    }
+    for pr in repo.get_pulls(**query_params):
+        try:
+            # Skip unknown PRs
+            if not pr.title.startswith("Enable "):
+                continue
+            # Ignore PRs which don't target fast
+            if pr.title.split(" ")[3] != "fast":
+                continue
+            yield pr
+        except Exception as e:
+            _LOGGER.warn("Failed to parse {}: {}".format(pr.number, e))
+
+
+def extract_errata_number_from_body(body):
+    ERRATA_MARKER = 'https://errata.devel.redhat.com/advisory/'
+    first_line = body.split('\n')[0]
+    links = [
+        x for x in first_line.split(' ') if x.startswith(ERRATA_MARKER)
+    ]
+    if len(links) == 0:
+        _LOGGER.warn("No links found in PR body: {}".format(body))
+        return None
+    errata_num = links[0].rsplit('/', 1)[-1]
+
+    try:
+        return int(errata_num)
+    except ValueError:
+        _LOGGER.warn("Failed to convert PR number to int: {}".format(errata_num))
+        return None
+
+
+def lgtm_fast_pr_for_errata(githubrepo, githubtoken, message):
+    if not githubtoken:
+        _LOGGER.debug("Skipping fast PR check: no github token set")
+        return
+
+    github_object = github.Github(githubtoken)
+    repo = github_object.get_repo(githubrepo)
+
+    for pr in get_open_prs_to_fast(repo):
+        errata_num = extract_errata_number_from_body(pr.body)
+        if not errata_num or errata_num != message.get('errata_id'):
+            continue
+
+        _LOGGER.debug("Found PR #{} promoting to fast for {}".format(pr.number, errata_num))
+        msg = "Autoapproving PR to fast after the errata has shipped\n/lgtm"
+        pr.create_issue_comment(msg)
+        _LOGGER.debug("Commented in {}".format(pr.url))
+        return pr.url
 
 
 if __name__ == '__main__':
@@ -103,12 +173,30 @@ if __name__ == '__main__':
         help='Set this to actually push notifications to Slack.  Defaults to the value of the WEBHOOK environment variable.',
         default=os.environ.get('WEBHOOK'),
     )
+    parser.add_argument(
+        'githubrepo',
+        nargs='?',
+        help='Autoapprove PRs targetting fast in the github repo.',
+        default="openshift/cincinnati-graph-data",
+    )
+    parser.add_argument(
+        'githubtoken',
+        nargs='?',
+        help='Github token for PR autoapproval. Defaults to the value of the GITHUB_TOKEN environment variable.',
+        default=os.environ.get('GITHUB_TOKEN'),
+    )
+
     args = parser.parse_args()
 
     cache_path = '.errata.json'
     cache = load(path=cache_path)
     try:
-        run(cache=cache, webhook=args.webhook)
+        run(
+            cache=cache,
+            webhook=args.webhook,
+            githubrepo=args.githubrepo,
+            githubtoken=args.githubtoken
+        )
     except:
         save(path=cache_path, cache=cache)
         raise
