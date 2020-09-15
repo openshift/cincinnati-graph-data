@@ -44,7 +44,10 @@ def run(poll_period=datetime.timedelta(seconds=3600),
         for message in poll(period=2*poll_period, **kwargs):
             if cache and message['fulladvisory'] in cache or 'bug fix update' not in message['synopsis']:
                 continue
-            message['approved_pr'] = lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
+            try:
+                message['approved_pr'] = lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
+            except Exception as error:
+                _LOGGER.warn('Error looking up PRs: {}'.format(error))
             notify(message=message, webhook=webhook)
             if cache is not None:
                 cache[message['fulladvisory']] = {
@@ -92,7 +95,7 @@ def notify(message, webhook=None):
         return
 
     msg_text = '<!subteam^STE7S7ZU2>: {fulladvisory} shipped {when}: {synopsis}'.format(**message)
-    if  message['approved_pr']:
+    if  message.get('approved_pr'):
         msg_text += "\nPR {approved_pr} has been approved".format(**message)
 
     urllib.request.urlopen(webhook, data=urllib.parse.urlencode({
@@ -116,6 +119,9 @@ def get_open_prs_to_fast(repo):
                 continue
             # Ignore PRs which don't target fast
             if pr.title.split(" ")[3] != "fast":
+                continue
+            # Ignore if its already lgtmed
+            if any([x.name == "lgtm" for x in pr.labels]):
                 continue
             yield pr
         except Exception as e:
@@ -147,8 +153,13 @@ def lgtm_fast_pr_for_errata(githubrepo, githubtoken, message):
 
     github_object = github.Github(githubtoken)
     repo = github_object.get_repo(githubrepo)
+    _LOGGER.debug('looking for errata {} in open PRs for repo {}'.format(
+        message.get('errata_id'),
+        repo)
+    )
 
     for pr in get_open_prs_to_fast(repo):
+        _LOGGER.debug('Parsing PR {}'.format(pr))
         errata_num = extract_errata_number_from_body(pr.body)
         if not errata_num or errata_num != message.get('errata_id'):
             continue
