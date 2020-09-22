@@ -109,11 +109,13 @@ def get_open_prs_to_fast(repo):
     query_params = {
         'state': 'open',
         'base': 'master',
-        'author': 'openshift-bot',
         'sort': 'created',
     }
     for pr in repo.get_pulls(**query_params):
         try:
+            # Check only bot PRs
+            if pr.user.login != "openshift-bot":
+                continue
             # Skip unknown PRs
             if not pr.title.startswith("Enable "):
                 continue
