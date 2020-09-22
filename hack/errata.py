@@ -204,9 +204,9 @@ if __name__ == '__main__':
     try:
         run(
             cache=cache,
-            webhook=args.webhook,
-            githubrepo=args.githubrepo,
-            githubtoken=args.githubtoken
+            webhook=args.webhook.strip(),
+            githubrepo=args.githubrepo.strip(),
+            githubtoken=args.githubtoken.strip(),
         )
     except:
         save(path=cache_path, cache=cache)
