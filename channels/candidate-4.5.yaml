@@ -1,5 +1,7 @@
 name: candidate-4.5
 versions: 
+- 4.4.26
+
 - 4.4.25
 
 - 4.4.24
