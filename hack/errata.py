@@ -184,7 +184,7 @@ if __name__ == '__main__':
         'webhook',
         nargs='?',
         help='Set this to actually push notifications to Slack.  Defaults to the value of the WEBHOOK environment variable.',
-        default=os.environ.get('WEBHOOK'),
+        default=os.environ.get('WEBHOOK', ''),
     )
     parser.add_argument(
         'githubrepo',
@@ -196,7 +196,7 @@ if __name__ == '__main__':
         'githubtoken',
         nargs='?',
         help='Github token for PR autoapproval. Defaults to the value of the GITHUB_TOKEN environment variable.',
-        default=os.environ.get('GITHUB_TOKEN'),
+        default=os.environ.get('GITHUB_TOKEN', ''),
     )
 
     args = parser.parse_args()
