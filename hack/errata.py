@@ -8,6 +8,7 @@ import datetime
 import json
 import logging
 import os
+import re
 import time
 import urllib.parse
 import urllib.request
@@ -17,6 +18,15 @@ import github
 
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger()
+_SYNOPSIS_REGEXP = re.compile(r'''
+  ^OpenShift[ ]Container[ ]Platform[ ]
+  (?P<version>                         # SemVer regexp from https://semver.org/spec/v2.0.0.html#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+    (?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)
+    (?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?
+    (?:\+(?P<build>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?
+  )[ ]bug[ ]fix[ ]update$
+''',
+                           re.VERBOSE)
 
 
 def load(path):
@@ -42,7 +52,18 @@ def run(poll_period=datetime.timedelta(seconds=3600),
     while True:
         _LOGGER.debug('poll for messages')
         for message in poll(period=2*poll_period, **kwargs):
-            if cache and message['fulladvisory'] in cache or 'bug fix update' not in message['synopsis']:
+            synopsis_match = _SYNOPSIS_REGEXP.match(message['synopsis'])
+            if cache and message['fulladvisory'] in cache or not synopsis_match:
+                continue
+            synopsis_groups = synopsis_match.groupdict()
+            advisory = message['fulladvisory'].rsplit('-', 1)[0]  # RHBA-2020:0936-04 -> RHBA-2020:0936, where the -NN suffix is number of respins or something
+            channel = 'candidate-{major}.{minor}'.format(**synopsis_groups)
+            message['uri'] = public_errata_uri(version=synopsis_groups['version'], channel=channel)
+            if not message['uri']:
+                _LOGGER.warn('No known errata URI for {} in {}'.format(synopsis_groups['version'], channel))
+                continue
+            if not message['uri'].endswith(advisory):
+                _LOGGER.warn('Version {} errata {} does not match synopsis {} ({!r})'.format(synopsis_groups['version'], message['uri'], message['fulladvisory'], advisory))
                 continue
             try:
                 message['approved_pr'] = lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
@@ -53,6 +74,7 @@ def run(poll_period=datetime.timedelta(seconds=3600),
                 cache[message['fulladvisory']] = {
                     'when': message['when'],
                     'synopsis': message['synopsis'],
+                    'uri': message['uri'],
                 }
         next_time += poll_period
         _LOGGER.debug('sleep until {}'.format(next_time))
@@ -94,7 +116,7 @@ def notify(message, webhook=None):
         print(message)
         return
 
-    msg_text = '<!subteam^STE7S7ZU2>: {fulladvisory} shipped {when}: {synopsis}'.format(**message)
+    msg_text = '<!subteam^STE7S7ZU2>: {fulladvisory} shipped {when}: {synopsis} {uri}'.format(**message)
     if  message.get('approved_pr'):
         msg_text += "\nPR {approved_pr} has been approved".format(**message)
 
@@ -173,6 +195,36 @@ def lgtm_fast_pr_for_errata(githubrepo, githubtoken, message):
         return pr.url
 
 
+def public_errata_uri(version, arch='amd64', channel='', update_service='https://api.openshift.com/api/upgrades_info/v1/graph'):
+    params = {
+        'channel': channel,
+        'arch': arch,
+    }
+
+    headers = {
+        'Accept': 'application/json',
+    }
+
+    uri = '{}?{}'.format(update_service, urllib.parse.urlencode(params))
+    request = urllib.request.Request(uri, headers=headers)
+    _LOGGER.debug('look for {} in {}'.format(version, uri))
+    while True:
+        try:
+            with urllib.request.urlopen(request) as f:
+                data = json.load(codecs.getreader('utf-8')(f))  # hack: should actually respect Content-Type
+        except Exception as error:
+            _LOGGER.error('{}: {}'.format(uri, error))
+            time.sleep(10)
+            continue
+        versions = set()
+        for node in data['nodes']:
+            if node['version'] == version:
+                return node.get('metadata', {}).get('url')
+            versions.add(node['version'])
+        _LOGGER.debug('{} not found in {} ({})'.format(version, uri, ', '.join(sorted(versions))))
+        return
+
+
 if __name__ == '__main__':
     import argparse
 
@@ -184,7 +236,7 @@ if __name__ == '__main__':
         'webhook',
         nargs='?',
         help='Set this to actually push notifications to Slack.  Defaults to the value of the WEBHOOK environment variable.',
-        default=os.environ.get('WEBHOOK'),
+        default=os.environ.get('WEBHOOK', ''),
     )
     parser.add_argument(
         'githubrepo',
@@ -196,7 +248,7 @@ if __name__ == '__main__':
         'githubtoken',
         nargs='?',
         help='Github token for PR autoapproval. Defaults to the value of the GITHUB_TOKEN environment variable.',
-        default=os.environ.get('GITHUB_TOKEN'),
+        default=os.environ.get('GITHUB_TOKEN', ''),
     )
 
     args = parser.parse_args()
