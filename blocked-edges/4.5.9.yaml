@@ -1,3 +1,4 @@
 to: 4.5.9
-from: 4\.4\.21
+from: 4\.4\.*
+# Cascading failure across all openshift-apiservers renders cluster unusable, https://bugzilla.redhat.com/show_bug.cgi?id=1883589
 # Kernel and other packages older in 4.5.9 than 4.4.21, https://bugzilla.redhat.com/show_bug.cgi?id=1879260
