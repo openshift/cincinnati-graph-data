@@ -1,0 +1,15 @@
+[package]
+name = "cincinnati-graph-data"
+version = "0.1.0"
+authors = ["Vadim Rutkovsky <vrutkovs@redhat.com>"]
+edition = "2018"
+
+[dependencies]
+cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "664ecb731df4a85c77c797563b084958058f11fd"}
+tokio = { version = "0.2.11", features = [ "fs", "stream" ] }
+serde = "^1.0.70"
+serde_yaml = "^0.8.11"
+anyhow = "1.0"
+regex = "^1.1.0"
+semver = { version = "^0.9.0", features = [ "serde" ] }
+toml = "^0.4.10"
