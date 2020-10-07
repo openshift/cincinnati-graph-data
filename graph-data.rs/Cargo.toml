@@ -13,5 +13,6 @@ anyhow = "1.0"
 regex = "^1.1.0"
 semver = { version = "^0.9.0", features = [ "serde" ] }
 toml = "^0.4.10"
+# Lock protoc and protobuf to 2.8.0, as this version works with Rust 1.43 and pulled in by OSUS
 protoc = "=2.8.0"
 protobuf = "=2.8.0"
