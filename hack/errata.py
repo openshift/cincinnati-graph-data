@@ -192,7 +192,7 @@ def lgtm_fast_pr_for_errata(githubrepo, githubtoken, message):
         msg = "Autoapproving PR to fast after the errata has shipped\n/lgtm"
         pr.create_issue_comment(msg)
         _LOGGER.debug("Commented in {}".format(pr.url))
-        return pr.url
+        return pr.html_url
 
 
 def public_errata_uri(version, arch='amd64', channel='', update_service='https://api.openshift.com/api/upgrades_info/v1/graph'):
