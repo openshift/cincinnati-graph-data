@@ -1,0 +1,3 @@
+to: 4.6.0-rc.2
+from: 4\.5\..*
+# Blocking older 4.5 to 4.6 edges to funnel everyone through latest RCs
