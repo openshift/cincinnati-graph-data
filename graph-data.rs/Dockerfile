@@ -2,6 +2,7 @@ FROM registry.access.redhat.com/devtools/rust-toolset-rhel7:1.43.1 as builder
 
 WORKDIR /opt/app-root/src/
 COPY . .
+USER 0
 RUN bash -c "source /opt/app-root/etc/scl_enable && cargo install --path graph-data.rs"
 
 FROM centos:7
