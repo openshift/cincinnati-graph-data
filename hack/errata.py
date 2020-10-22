@@ -19,12 +19,13 @@ import github
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger()
 _SYNOPSIS_REGEXP = re.compile(r'''
-  ^OpenShift[ ]Container[ ]Platform[ ]
+  ^((?P<impact>(Low|Moderate|Important|Critical)):[ ])?
+  OpenShift[ ]Container[ ]Platform[ ]
   (?P<version>                         # SemVer regexp from https://semver.org/spec/v2.0.0.html#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
     (?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)
     (?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?
     (?:\+(?P<build>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?
-  )[ ]bug[ ]fix[ ]update$
+  )(?:[ ]security[ ]and)?[ ]bug[ ]fix[ ]update$
 ''',
                            re.VERBOSE)
 
