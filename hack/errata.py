@@ -22,10 +22,14 @@ _SYNOPSIS_REGEXP = re.compile(r'''
   ^((?P<impact>(Low|Moderate|Important|Critical)):[ ])?
   OpenShift[ ]Container[ ]Platform[ ]
   (?P<version>                         # SemVer regexp from https://semver.org/spec/v2.0.0.html#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-    (?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)
+    (?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)(?:\.(?P<patch>0|[1-9]\d*))?
     (?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?
     (?:\+(?P<build>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?
-  )(?:[ ]security[ ]and)?[ ]bug[ ]fix[ ]update$
+  )
+  [ ](?P<type>
+    (?:(?:security[ ]and[ ])?bug[ ]fix[ ]update)?
+    (?:GA[ ]Images)?
+  )$
 ''',
                            re.VERBOSE)
 
@@ -59,7 +63,7 @@ def run(poll_period=datetime.timedelta(seconds=3600),
             synopsis_groups = synopsis_match.groupdict()
             advisory = message['fulladvisory'].rsplit('-', 1)[0]  # RHBA-2020:0936-04 -> RHBA-2020:0936, where the -NN suffix is number of respins or something
             channel = 'candidate-{major}.{minor}'.format(**synopsis_groups)
-            message['uri'] = public_errata_uri(version=synopsis_groups['version'], channel=channel)
+            message['uri'] = public_errata_uri(version=synopsis_groups['version'], advisory=advisory, channel=channel)
             if not message['uri']:
                 _LOGGER.warn('No known errata URI for {} in {}'.format(synopsis_groups['version'], channel))
                 continue
@@ -196,7 +200,7 @@ def lgtm_fast_pr_for_errata(githubrepo, githubtoken, message):
         return pr.html_url
 
 
-def public_errata_uri(version, arch='amd64', channel='', update_service='https://api.openshift.com/api/upgrades_info/v1/graph'):
+def public_errata_uri(version, advisory, arch='amd64', channel='', update_service='https://api.openshift.com/api/upgrades_info/v1/graph'):
     params = {
         'channel': channel,
         'arch': arch,
@@ -208,7 +212,7 @@ def public_errata_uri(version, arch='amd64', channel='', update_service='https:/
 
     uri = '{}?{}'.format(update_service, urllib.parse.urlencode(params))
     request = urllib.request.Request(uri, headers=headers)
-    _LOGGER.debug('look for {} in {}'.format(version, uri))
+    _LOGGER.debug('look for {} ({}) in {}'.format(version, advisory, uri))
     while True:
         try:
             with urllib.request.urlopen(request) as f:
@@ -223,6 +227,14 @@ def public_errata_uri(version, arch='amd64', channel='', update_service='https:/
                 return node.get('metadata', {}).get('url')
             versions.add(node['version'])
         _LOGGER.debug('{} not found in {} ({})'.format(version, uri, ', '.join(sorted(versions))))
+        advisories = set()
+        for node in data['nodes']:
+            node_advisory = node.get('metadata', {}).get('url', '').rsplit('/', 1)[-1]
+            if node_advisory == advisory:
+                return node['metadata']['url']
+            if node_advisory:
+                advisories.add(node_advisory)
+        _LOGGER.debug('{} not found in {} ({})'.format(advisory, uri, ', '.join(sorted(advisories))))
         return
 
 
