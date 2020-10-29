@@ -28,14 +28,27 @@ versions:
 
 - 4.3.19
 
-- 4.3.12
-- 4.3.13
-# No 4.3.14 because it was missing version which 4.3.14 can be upgraded. It is rebuilt as 4.3.15
-# No 4.3.15 because it did not clear DefaultSecurityContextConstraints_Mutated: https://bugzilla.redhat.com/show_bug.cgi?id=1827337
-# No 4.3.16 because ovn container image had unsigned RPMs
-# No 4.3.17 because it lacked OCICNI context for robust recovery from network I/O timeouts: https://bugzilla.redhat.com/show_bug.cgi?id=1828104
-
 - 4.3.18
+
+- 4.3.13
+
+- 4.3.12
+
+- 4.3.10
+
+- 4.3.9
+
+- 4.3.8
+
+- 4.3.5
+
+- 4.3.3
+
+- 4.3.2
+
+- 4.3.1
+
+- 4.3.0
 
 - 4.4.3
 
