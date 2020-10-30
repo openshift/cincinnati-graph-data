@@ -8,10 +8,7 @@ use anyhow::Result as Fallible;
 
 pub async fn run() -> Fallible<HashSet<Version>> {
     let data_dir = PathBuf::from(".");
-    println!(
-        "Looking for metadata in {:?}",
-        data_dir.canonicalize()?
-    );
+    println!("Looking for metadata in {:?}", data_dir.canonicalize()?);
     let all_files_regex = Regex::new(".*")?;
     let disallowed_errors: HashSet<plugin::DeserializeDirectoryFilesErrorDiscriminants> = [
         plugin::DeserializeDirectoryFilesErrorDiscriminants::File,

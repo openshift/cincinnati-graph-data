@@ -9,6 +9,7 @@ use cincinnati::Release;
 async fn run_all_tests() -> Fallible<()> {
     let found_versions = verify_yaml::run().await?;
     let releases: Vec<Release> = check_releases::run(&found_versions).await?;
+    check_signatures::run(&releases, &found_versions).await?;
     Ok(())
 }
 

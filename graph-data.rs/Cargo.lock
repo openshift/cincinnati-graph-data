@@ -581,14 +581,18 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cincinnati",
+ "futures 0.3.6",
+ "lazy_static",
  "protobuf",
  "protoc",
  "regex",
+ "reqwest",
  "semver",
  "serde",
  "serde_yaml",
  "tokio",
  "toml",
+ "url 2.1.1",
 ]
 
 [[package]]
