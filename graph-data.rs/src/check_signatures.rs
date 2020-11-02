@@ -19,10 +19,25 @@ lazy_static! {
       .expect("could not parse url");
 }
 
+// Signature file request timeout
 static DEFAULT_TIMEOUT_SECS: u64 = 30;
 
 // CVO has maxSignatureSearch = 10 in pkg/verify/verify.go
 static MAX_SIGNATURES: u64 = 10;
+
+// Skip some versions from 4.0 / 4.1 / 4.2 times
+// https://issues.redhat.com/browse/ART-2397
+static SKIP_VERSIONS: &[&str] = &[
+  "4.1.0-rc.3+amd64",
+  "4.1.0-rc.5+amd64",
+  "4.1.0-rc.4+amd64",
+  "4.1.0-rc.0+amd64",
+  "4.1.0-rc.8+amd64",
+  "4.1.37+amd64",
+  "4.2.11+amd64",
+  "4.3.0-rc.0+amd64",
+  "4.6.0-fc.3+s390x",
+];
 
 fn payload_from_release(release: &Release) -> Fallible<String> {
   match release {
@@ -79,6 +94,10 @@ async fn find_signatures_for_version(client: &Client, release: &Release) -> Fall
 }
 
 fn is_release_in_versions(versions: &HashSet<Version>, release: &Release) -> bool {
+  // Check that release version is not in skip list
+  if SKIP_VERSIONS.contains(&release.version()) {
+    return false;
+  }
   // Strip arch identifier
   let stripped_version = release
     .version()
