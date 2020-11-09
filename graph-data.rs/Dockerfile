@@ -1,11 +1,11 @@
-FROM registry.access.redhat.com/devtools/rust-toolset-rhel7:1.43.1 as builder
+FROM registry.redhat.io/rhel8/rust-toolset:1.47.0 as builder
 
 WORKDIR /opt/app-root/src/
 COPY . .
 USER 0
 RUN bash -c "source /opt/app-root/etc/scl_enable && cargo install --path graph-data.rs"
 
-FROM centos:7
+FROM registry.access.redhat.com/ubi8/ubi:latest
 
 ENV RUST_LOG=actix_web=error,dkregistry=error
 
