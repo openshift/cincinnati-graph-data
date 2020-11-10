@@ -16,5 +16,6 @@ RUN yum update -y && \
 WORKDIR /code
 COPY . .
 COPY --from=builder /opt/app-root/src/.cargo/bin/cincinnati-graph-data /usr/local/bin/
+COPY --from=builder /opt/app-root/src/graph-data.rs/public-keys /usr/local/share/public-keys
 
 ENTRYPOINT ["/usr/local/bin/cincinnati-graph-data"]
