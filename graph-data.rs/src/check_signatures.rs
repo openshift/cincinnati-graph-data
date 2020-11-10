@@ -1,5 +1,9 @@
+use crate::gpg;
+
 use anyhow::Result as Fallible;
 use anyhow::{format_err, Context};
+
+use bytes::Bytes;
 use futures::stream::{FuturesOrdered, StreamExt};
 use lazy_static::lazy_static;
 use reqwest::{Client, ClientBuilder};
@@ -39,6 +43,7 @@ static SKIP_VERSIONS: &[&str] = &[
   "4.6.0-fc.3+s390x",
 ];
 
+/// Extract payload value from Release if it is a Concrete release
 fn payload_from_release(release: &Release) -> Fallible<String> {
   match release {
     Release::Concrete(c) => Ok(c.payload.clone()),
@@ -46,25 +51,31 @@ fn payload_from_release(release: &Release) -> Fallible<String> {
   }
 }
 
-async fn fetch_url(client: &Client, sha: &str, i: u64) -> Fallible<()> {
+/// Fetch signature contents by building a URL for signature store
+async fn fetch_url(client: &Client, sha: &str, i: u64) -> Fallible<Bytes> {
   let url = BASE_URL
     .join(format!("{}/", sha.replace(":", "=")).as_str())?
     .join(format!("signature-{}", i).as_str())?;
   let res = client
     .get(url.clone())
     .send()
-    .map_err(|e| anyhow::anyhow!(e.to_string()))
+    .map_err(|e| format_err!(e.to_string()))
     .await?;
 
   let url_s = url.to_string();
   let status = res.status();
   match status.is_success() {
-    true => Ok(()),
+    true => Ok(res.bytes().await?),
     false => Err(format_err!("Error fetching {} - {}", url_s, status)),
   }
 }
 
-async fn find_signatures_for_version(client: &Client, release: &Release) -> Fallible<()> {
+/// Generate URLs for signature store and attempt to find a valid signature
+async fn find_signatures_for_version(
+  client: &Client,
+  public_keys: &gpg::Keyring,
+  release: &Release,
+) -> Fallible<()> {
   let mut errors = vec![];
   let payload = payload_from_release(release)?;
   let digest = payload
@@ -79,7 +90,10 @@ async fn find_signatures_for_version(client: &Client, release: &Release) -> Fall
   loop {
     if let Some(i) = attempts.next() {
       match fetch_url(client, digest, i).await {
-        Ok(_) => return Ok(()),
+        Ok(body) => match gpg::verify_signature(public_keys, body, digest).await {
+          Ok(_) => return Ok(()),
+          Err(e) => errors.push(e),
+        },
         Err(e) => errors.push(e),
       }
     } else {
@@ -93,6 +107,7 @@ async fn find_signatures_for_version(client: &Client, release: &Release) -> Fall
   }
 }
 
+/// Iterate versions and return true if Release is included
 fn is_release_in_versions(versions: &HashSet<Version>, release: &Release) -> bool {
   // Check that release version is not in skip list
   if SKIP_VERSIONS.contains(&release.version()) {
@@ -115,6 +130,10 @@ pub async fn run(
 ) -> Fallible<()> {
   println!("Checking release signatures");
 
+  // Initialize keyring
+  let public_keys = gpg::load_public_keys()?;
+
+  // Prepare http client
   let client: Client = ClientBuilder::new()
     .gzip(true)
     .timeout(Duration::from_secs(DEFAULT_TIMEOUT_SECS))
@@ -130,7 +149,7 @@ pub async fn run(
   let results: Vec<Fallible<()>> = tracked_versions
     //Attempt to find signatures for filtered releases
     .into_iter()
-    .map(|ref r| find_signatures_for_version(&client, r))
+    .map(|ref r| find_signatures_for_version(&client, &public_keys, r))
     .collect::<FuturesOrdered<_>>()
     .collect::<Vec<Fallible<()>>>()
     .await
