@@ -41,6 +41,8 @@ static SKIP_VERSIONS: &[&str] = &[
   "4.2.11+amd64",
   "4.3.0-rc.0+amd64",
   "4.6.0-fc.3+s390x",
+  // 4.1.0+amd64 is signed with CI key
+  "4.1.0+amd64",
 ];
 
 /// Extract payload value from Release if it is a Concrete release
