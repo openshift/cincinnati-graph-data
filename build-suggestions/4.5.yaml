@@ -1,0 +1,18 @@
+# valid archs are amd64, s390x
+# If you specify an arch it must have the full set of values
+---
+default:
+  minor_min: 4.4.13
+  minor_max: 4.4.9999
+  minor_block_list: []
+  z_min: 4.5.3
+  z_max: 4.5.9999
+  z_block_list: []
+# s390x:
+#   minor_min: 4.4.13
+#   minor_max:
+#   minor_block_list:
+#     - 4.4.999
+#   z_min: 4.5.3
+#   z_max:
+#   z_block_list: []
