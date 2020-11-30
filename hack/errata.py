@@ -27,7 +27,7 @@ _SYNOPSIS_REGEXP = re.compile(r'''
     (?:\+(?P<build>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?
   )
   [ ](?P<type>
-    (?:(?:security[ ]and[ ])?bug[ ]fix[ ]update)?
+    (?:(?:security[ ]and[ ])?bug[ ]fix(?:[ ]and[ ]golang[ ]security)?[ ]update)?
     (?:GA[ ]Images)?
   )$
 ''',
@@ -49,6 +49,7 @@ def save(path, cache):
 
 def run(poll_period=datetime.timedelta(seconds=3600),
         cache=None,
+        excluded_cache=None,
         webhook=None,
         githubrepo=None,
         githubtoken=None,
@@ -58,7 +59,14 @@ def run(poll_period=datetime.timedelta(seconds=3600),
         _LOGGER.debug('poll for messages')
         for message in poll(period=2*poll_period, **kwargs):
             synopsis_match = _SYNOPSIS_REGEXP.match(message['synopsis'])
-            if cache and message['fulladvisory'] in cache or not synopsis_match:
+            if not synopsis_match:
+                if excluded_cache is None:
+                    excluded_cache = {}
+                if message['synopsis'] not in excluded_cache:
+                    _LOGGER.debug('{fulladvisory} shipped {when} does not match synopsis regular expression: {synopsis}'.format(**message))
+                    excluded_cache[message['synopsis']] = message['fulladvisory']
+                    continue
+            if cache and message['fulladvisory'] in cache:
                 continue
             synopsis_groups = synopsis_match.groupdict()
             advisory = message['fulladvisory'].rsplit('-', 1)[0]  # RHBA-2020:0936-04 -> RHBA-2020:0936, where the -NN suffix is number of respins or something
@@ -268,9 +276,11 @@ if __name__ == '__main__':
 
     cache_path = '.errata.json'
     cache = load(path=cache_path)
+    excluded_cache = {}
     try:
         run(
             cache=cache,
+            excluded_cache=excluded_cache,
             webhook=args.webhook.strip(),
             githubrepo=args.githubrepo.strip(),
             githubtoken=args.githubtoken.strip(),
