@@ -1,5 +1,7 @@
 name: candidate-4.6
 versions:
+- 4.5.25
+
 - 4.5.24
 
 - 4.5.23
