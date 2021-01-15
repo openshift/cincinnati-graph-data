@@ -5,7 +5,7 @@ authors = ["Vadim Rutkovsky <vrutkovs@redhat.com>"]
 edition = "2018"
 
 [dependencies]
-cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "664ecb731df4a85c77c797563b084958058f11fd"}
+cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "942743910e6fdee387dce99e243dcc52b5cf70bd"}
 tokio = { version = "0.2.11", features = [ "fs", "stream" ] }
 serde = "^1.0.70"
 serde_yaml = "^0.8.11"
@@ -19,7 +19,4 @@ lazy_static = "^1.2.0"
 url = "^2.1.0"
 reqwest = { version = "^0.10", features = ["gzip"] }
 futures = "^0.3"
-pgp = "^0.7.1"
-bytes = "^0.5.6"
-serde_json = "^1.0.59"
 itertools = "^0.10"

@@ -456,9 +456,9 @@ dependencies = [
 
 [[package]]
 name = "backtrace"
-version = "0.3.55"
+version = "0.3.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef5140344c85b01f9bbb4d4b7288a8aa4b3287ccef913a14bcc78a1063623598"
+checksum = "9d117600f438b1707d4e4ae15d3595657288f8235a0eb593e80ecc98ab34e1bc"
 dependencies = [
  "addr2line",
  "cfg-if 1.0.0",
@@ -661,10 +661,11 @@ dependencies = [
 [[package]]
 name = "cincinnati"
 version = "0.1.0"
-source = "git+https://github.com/openshift/cincinnati?rev=664ecb731df4a85c77c797563b084958058f11fd#664ecb731df4a85c77c797563b084958058f11fd"
+source = "git+https://github.com/openshift/cincinnati?rev=942743910e6fdee387dce99e243dcc52b5cf70bd#942743910e6fdee387dce99e243dcc52b5cf70bd"
 dependencies = [
  "actix-web",
  "async-trait",
+ "bytes 0.5.6",
  "commons",
  "custom_debug_derive",
  "daggy",
@@ -677,6 +678,7 @@ dependencies = [
  "lazy_static",
  "log",
  "opentelemetry",
+ "pgp",
  "prometheus 0.9.0",
  "protobuf",
  "protoc-rust",
@@ -689,13 +691,14 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "smart-default",
- "strum 0.19.5",
- "strum_macros 0.19.4",
+ "strum",
+ "strum_macros",
  "tar",
  "tempfile",
  "tokio",
  "toml",
- "url 1.7.2",
+ "url 2.2.0",
+ "walkdir",
 ]
 
 [[package]]
@@ -703,19 +706,16 @@ name = "cincinnati-graph-data"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bytes 0.5.6",
  "cincinnati",
  "futures 0.3.12",
  "itertools 0.10.0",
  "lazy_static",
- "pgp",
  "protobuf",
  "protoc",
  "regex",
  "reqwest",
  "semver",
  "serde",
- "serde_json",
  "serde_yaml",
  "tokio",
  "toml",
@@ -740,7 +740,7 @@ dependencies = [
 [[package]]
 name = "commons"
 version = "0.1.0"
-source = "git+https://github.com/openshift/cincinnati?rev=664ecb731df4a85c77c797563b084958058f11fd#664ecb731df4a85c77c797563b084958058f11fd"
+source = "git+https://github.com/openshift/cincinnati?rev=942743910e6fdee387dce99e243dcc52b5cf70bd#942743910e6fdee387dce99e243dcc52b5cf70bd"
 dependencies = [
  "actix-service",
  "actix-web",
@@ -942,13 +942,11 @@ dependencies = [
 
 [[package]]
 name = "dkregistry"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4662f4c95a2b2516851ee61158575676ae435424baf687846878b7cbf046143"
+version = "0.5.1-alpha.0"
+source = "git+https://github.com/camallo/dkregistry-rs.git?rev=c618c93baf537a9d7b9b4df3b8da5af06d7a1d3f#c618c93baf537a9d7b9b4df3b8da5af06d7a1d3f"
 dependencies = [
  "async-stream",
- "base64 0.12.3",
- "error-chain",
+ "base64 0.13.0",
  "futures 0.3.12",
  "http",
  "libflate",
@@ -960,10 +958,12 @@ dependencies = [
  "serde_ignored",
  "serde_json",
  "sha2",
- "strum 0.18.0",
- "strum_macros 0.18.0",
+ "strum",
+ "strum_macros",
  "tar",
+ "thiserror",
  "tokio",
+ "url 2.2.0",
 ]
 
 [[package]]
@@ -1036,15 +1036,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "error-chain"
-version = "0.12.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d2f06b9cac1506ece98fe3231e3cc9c4410ec3d5b1f24ae1c8946f0742cdefc"
-dependencies = [
- "version_check 0.9.2",
-]
-
-[[package]]
 name = "failure"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1068,13 +1059,13 @@ dependencies = [
 
 [[package]]
 name = "filetime"
-version = "0.2.13"
+version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c122a393ea57648015bf06fbd3d372378992e86b9ff5a7a497b076a28c79efe"
+checksum = "1d34cfa13a63ae058bfa601fe9e313bbdb3746427c1459185464ce0fcf62e1e8"
 dependencies = [
  "cfg-if 1.0.0",
  "libc",
- "redox_syscall 0.1.57",
+ "redox_syscall 0.2.4",
  "winapi 0.3.9",
 ]
 
@@ -1868,9 +1859,9 @@ dependencies = [
 
 [[package]]
 name = "object"
-version = "0.22.0"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d3b63360ec3cb337817c2dbd47ab4a0f170d285d8e5a2064600f3def1402397"
+checksum = "a9a7ab5d64814df0fe4a4b5ead45ed6c5f181ee3ff04ba344313a6c80446c5d4"
 
 [[package]]
 name = "once_cell"
@@ -2224,7 +2215,7 @@ dependencies = [
 [[package]]
 name = "quay"
 version = "0.0.0-dev"
-source = "git+https://github.com/openshift/cincinnati?rev=664ecb731df4a85c77c797563b084958058f11fd#664ecb731df4a85c77c797563b084958058f11fd"
+source = "git+https://github.com/openshift/cincinnati?rev=942743910e6fdee387dce99e243dcc52b5cf70bd#942743910e6fdee387dce99e243dcc52b5cf70bd"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -2487,6 +2478,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef703b7cb59335eae2eb93ceb664c0eb7ea6bf567079d843e09420219668e072"
 
 [[package]]
+name = "same-file"
+version = "1.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
+dependencies = [
+ "winapi-util",
+]
+
+[[package]]
 name = "schannel"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2745,27 +2745,9 @@ checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
 
 [[package]]
 name = "strum"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57bd81eb48f4c437cadc685403cad539345bf703d78e63707418431cecd4522b"
-
-[[package]]
-name = "strum"
 version = "0.19.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b89a286a7e3b5720b9a477b23253bc50debac207c8d21505f8e70b36792f11b5"
-
-[[package]]
-name = "strum_macros"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87c85aa3f8ea653bfd3ddf25f7ee357ee4d204731f6aa9ad04002306f6e2774c"
-dependencies = [
- "heck",
- "proc-macro2 1.0.24",
- "quote 1.0.8",
- "syn 1.0.58",
-]
 
 [[package]]
 name = "strum_macros"
@@ -2958,9 +2940,11 @@ dependencies = [
  "memchr",
  "mio",
  "mio-uds",
+ "num_cpus",
  "pin-project-lite 0.1.11",
  "signal-hook-registry",
  "slab",
+ "tokio-macros",
  "winapi 0.3.9",
 ]
 
@@ -2982,6 +2966,17 @@ checksum = "fb2d1b8f4548dbf5e1f7818512e9c406860678f29c300cdf0ebac72d1a3a1671"
 dependencies = [
  "crossbeam-utils",
  "futures 0.1.30",
+]
+
+[[package]]
+name = "tokio-macros"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e44da00bfc73a25f814cd8d7e57a68a5c31b74b3152a0a1d1f590c97ed06265a"
+dependencies = [
+ "proc-macro2 1.0.24",
+ "quote 1.0.8",
+ "syn 1.0.58",
 ]
 
 [[package]]
@@ -3224,6 +3219,17 @@ name = "version_check"
 version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5a972e5669d67ba988ce3dc826706fb0a8b01471c088cb0b6110b805cc36aed"
+
+[[package]]
+name = "walkdir"
+version = "2.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "777182bc735b6424e1a57516d35ed72cb8019d85c8c9bf536dccb3445c1a2f7d"
+dependencies = [
+ "same-file",
+ "winapi 0.3.9",
+ "winapi-util",
+]
 
 [[package]]
 name = "want"
