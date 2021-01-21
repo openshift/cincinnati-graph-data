@@ -1,3 +1,4 @@
+mod check_channels;
 mod check_releases;
 mod check_signatures;
 mod gpg;
@@ -8,7 +9,8 @@ use anyhow::Result as Fallible;
 use cincinnati::Release;
 
 async fn run_all_tests() -> Fallible<()> {
-    let found_versions = verify_yaml::run().await?;
+    let (found_versions, channels) = verify_yaml::run().await?;
+    check_channels::run(&channels).await?;
     let releases: Vec<Release> = check_releases::run(&found_versions).await?;
     check_signatures::run(&releases, &found_versions).await?;
     Ok(())

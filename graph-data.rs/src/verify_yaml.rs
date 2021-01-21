@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use anyhow::Result as Fallible;
 
-pub async fn run() -> Fallible<HashSet<Version>> {
+pub async fn run() -> Fallible<(HashSet<Version>, Vec<Channel>)> {
     let data_dir = PathBuf::from(".");
     println!("Looking for metadata in {:?}", data_dir.canonicalize()?);
     let all_files_regex = Regex::new(".*")?;
@@ -48,5 +48,5 @@ pub async fn run() -> Fallible<HashSet<Version>> {
         }
     }
 
-    Ok(found_versions)
+    Ok((found_versions, channels_vec))
 }
