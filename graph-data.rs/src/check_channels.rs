@@ -49,6 +49,9 @@ pub async fn run(channels_vec: &Vec<Channel>) -> Fallible<()> {
 
     // Prepare a list of expected channels, ordered according to the rule
     for r in releases {
+        if r == "4.1" {
+            continue;
+        }
         let release_vec: Vec<String> = CHANNEL_ORDER
             .iter()
             .map(|v| format!("{}-{}", v, r))
