@@ -7,6 +7,29 @@ use cincinnati::plugins::internal::openshift_secondary_metadata_parser::plugin::
 
 static CHANNEL_ORDER: [&'static str; 3] = ["stable", "fast", "candidate"];
 
+fn validate_two_channels(
+    channels: &HashMap<String, Vec<semver::Version>>,
+    a: &String,
+    b: &String,
+) -> Option<String> {
+    // Skip test if channel 'a' doesn't exist
+    if channels.get(a).is_none() {
+        return None;
+    }
+    // Channel 'b' must be present
+    if channels.get(b).is_none() {
+        return Some(format!("Channel {} exists, but not {}", a, b));
+    }
+    // All releases in channel 'a' must be present in channel 'b'
+    let hashset_a: HashSet<_> = HashSet::from_iter(channels[a].iter().cloned());
+    let hashset_b: HashSet<_> = HashSet::from_iter(channels[b].iter().cloned());
+    let diff = hashset_a.difference(&hashset_b);
+    for r in diff {
+        return Some(format!("Release {} present in {}, but not in {}", r, a, b));
+    }
+    None
+}
+
 pub async fn run(channels_vec: &Vec<Channel>) -> Fallible<()> {
     let mut errors: Vec<String> = vec![];
 
@@ -30,19 +53,15 @@ pub async fn run(channels_vec: &Vec<Channel>) -> Fallible<()> {
             .iter()
             .map(|v| format!("{}-{}", v, r))
             .collect();
-        // Iterate over pairs
-        for (a, b) in release_vec.iter().tuple_windows() {
-            // Check that channels are present
-            if channels.get(a).is_none() || channels.get(b).is_none() {
-                continue;
-            }
-            // All releases in channel 'a' must be present in channel 'b'
-            let hashset_a: HashSet<_> = HashSet::from_iter(channels[a].iter().cloned());
-            let hashset_b: HashSet<_> = HashSet::from_iter(channels[b].iter().cloned());
-            let diff = hashset_a.difference(&hashset_b);
-            for r in diff {
-                errors.push(format!("Release {} present in {}, but not in {}", r, a, b))
-            }
+        // Iterate over pairs of channels, returing optional errors and pushing errors to the list
+        for e in release_vec
+            .iter()
+            .tuple_windows()
+            .map(|(a, b)| validate_two_channels(&channels, a, b))
+            .filter(|e| e.is_some())
+            .collect::<Vec<_>>()
+        {
+            errors.push(e.unwrap())
         }
     }
     if errors.is_empty() {
