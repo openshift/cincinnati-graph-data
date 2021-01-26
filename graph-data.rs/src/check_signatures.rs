@@ -1,33 +1,30 @@
-use crate::gpg;
+use cincinnati::plugins::internal::dkrv2_openshift_secondary_metadata_scraper::gpg;
+use cincinnati::plugins::internal::dkrv2_openshift_secondary_metadata_scraper::plugin::{
+  DEFAULT_SIGNATURE_BASEURL, DEFAULT_SIGNATURE_FETCH_TIMEOUT_SECS,
+};
 
 use anyhow::Result as Fallible;
 use anyhow::{format_err, Context};
 
-use bytes::Bytes;
 use futures::stream::{FuturesOrdered, StreamExt};
 use lazy_static::lazy_static;
 use reqwest::{Client, ClientBuilder};
 use semver::Version;
 use std::collections::HashSet;
-use std::ops::Range;
+use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Duration;
 use url::Url;
 
-use cincinnati::plugins::prelude_plugin_impl::TryFutureExt;
 use cincinnati::Release;
-// base url for signature storage - see https://github.com/openshift/cluster-update-keys/blob/master/stores/store-openshift-official-release-mirror
+
 lazy_static! {
-  static ref BASE_URL: Url =
-    Url::parse("https://mirror.openshift.com/pub/openshift-v4/signatures/openshift/release/")
-      .expect("could not parse url");
+  // Location of public keys
+  static ref PUBKEYS_DIR: PathBuf = PathBuf::from("/usr/local/share/public-keys/");
+  // base url for signature storage - see https://github.com/openshift/cluster-update-keys/blob/master/stores/store-openshift-official-release-mirror
+
+  static ref BASE_URL: Url = Url::parse(DEFAULT_SIGNATURE_BASEURL).unwrap();
 }
-
-// Signature file request timeout
-static DEFAULT_TIMEOUT_SECS: u64 = 30;
-
-// CVO has maxSignatureSearch = 10 in pkg/verify/verify.go
-static MAX_SIGNATURES: u64 = 10;
 
 // Skip some versions from 4.0 / 4.1 / 4.2 times
 // https://issues.redhat.com/browse/ART-2397
@@ -55,60 +52,19 @@ fn payload_from_release(release: &Release) -> Fallible<String> {
   }
 }
 
-/// Fetch signature contents by building a URL for signature store
-async fn fetch_url(client: &Client, sha: &str, i: u64) -> Fallible<Bytes> {
-  let url = BASE_URL
-    .join(format!("{}/", sha.replace(":", "=")).as_str())?
-    .join(format!("signature-{}", i).as_str())?;
-  let res = client
-    .get(url.clone())
-    .send()
-    .map_err(|e| format_err!(e.to_string()))
-    .await?;
-
-  let url_s = url.to_string();
-  let status = res.status();
-  match status.is_success() {
-    true => Ok(res.bytes().await?),
-    false => Err(format_err!("Error fetching {} - {}", url_s, status)),
-  }
-}
-
 /// Generate URLs for signature store and attempt to find a valid signature
 async fn find_signatures_for_version(
   client: &Client,
   public_keys: &gpg::Keyring,
   release: &Release,
 ) -> Fallible<()> {
-  let mut errors = vec![];
   let payload = payload_from_release(release)?;
   let digest = payload
     .split("@")
     .last()
     .ok_or_else(|| format_err!("could not parse payload '{:?}'", payload))?;
 
-  let mut attempts = Range {
-    start: 1,
-    end: MAX_SIGNATURES,
-  };
-  loop {
-    if let Some(i) = attempts.next() {
-      match fetch_url(client, digest, i).await {
-        Ok(body) => match gpg::verify_signature(public_keys, body, digest).await {
-          Ok(_) => return Ok(()),
-          Err(e) => errors.push(e),
-        },
-        Err(e) => errors.push(e),
-      }
-    } else {
-      return Err(format_err!(
-        "Failed to find signatures for {} - {}: {:#?}",
-        release.version(),
-        payload,
-        errors
-      ));
-    }
-  }
+  gpg::verify_signatures_for_digest(client, &BASE_URL, public_keys, digest).await
 }
 
 /// Iterate versions and return true if Release is included
@@ -135,12 +91,12 @@ pub async fn run(
   println!("Checking release signatures");
 
   // Initialize keyring
-  let public_keys = gpg::load_public_keys()?;
+  let public_keys = gpg::load_public_keys(&PUBKEYS_DIR)?;
 
   // Prepare http client
   let client: Client = ClientBuilder::new()
     .gzip(true)
-    .timeout(Duration::from_secs(DEFAULT_TIMEOUT_SECS))
+    .timeout(Duration::from_secs(DEFAULT_SIGNATURE_FETCH_TIMEOUT_SECS))
     .build()
     .context("Building reqwest client")?;
 

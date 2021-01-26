@@ -1,7 +1,6 @@
 mod check_channels;
 mod check_releases;
 mod check_signatures;
-mod gpg;
 mod verify_yaml;
 
 use anyhow::Result as Fallible;
