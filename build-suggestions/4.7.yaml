@@ -5,7 +5,7 @@ default:
   minor_min: 4.6.15
   minor_max: 4.6.9999
   minor_block_list: []
-  z_min: 4.7.0-fc.5
+  z_min: 4.7.0-fc.1
   z_max: 4.7.9999
   z_block_list: []
 # s390x:
