@@ -1,1 +1,2 @@
 PyGithub==1.52
+pytest==6.2.2
