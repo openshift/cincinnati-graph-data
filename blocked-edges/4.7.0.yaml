@@ -1,0 +1,3 @@
+to: 4.7.0
+from: 4\.6\.19
+# 4.6.19 doesn't exist yet, so block the edge to 4.7.0 until we know what it will contain
