@@ -98,35 +98,6 @@ def test_poll_params_of_url(urlopen_mock, json_load_mock):
     assert params["contains"][0] == "RHOSE"         # Only messages containing RHOSE
 
 
-# Possible minor bug, calling errata.poll() without passing arguments
-# @patch("json.load")
-# @patch("urllib.request.urlopen")
-# def test_poll_default_params(urlopen_mock, json_load_mock):
-#     urlopen_mock.return_value = MagicMock()
-#     # Mocked response from API
-#     raw_messages = [
-#         {
-#             "msg": {
-#                 "product": "RHOSE",
-#                 "to": "SHIPPED_LIVE",
-#             }
-#         }
-#     ]
-#     json_load_mock.return_value = {
-#         "raw_messages": raw_messages,
-#         "pages": 1
-#     }
-    
-#     # Retrive messages from errata.poll without specifying parameters
-#     polled_messages = []
-#     for message in errata.poll():
-#         polled_messages.append(message)
-
-#     # Test if data was polled correctly
-#     expected_messages = [x['msg'] for x in raw_messages]
-#     assert expected_messages == polled_messages
-
-
 @patch("json.load")
 @patch("urllib.request.urlopen")
 def test_poll_number_of_returned_pages_is_zero(urlopen_mock, json_load_mock):
