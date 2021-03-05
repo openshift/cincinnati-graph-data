@@ -91,9 +91,9 @@ def test_poll_params_of_url(urlopen_mock, json_load_mock):
     parsed_url = urllib.parse.urlparse(url)
     params = urllib.parse.parse_qs(parsed_url.query)
 
-    # Assert if parametres complies with datagrepper reference
+    # Assert if parameters complies with datagrepper reference
     assert int(params["page"][0]) > 0               # Page must be greater than 0
-    assert int(params["rows_per_page"][0]) <= 100   # Must be les than or equal to 100
+    assert int(params["rows_per_page"][0]) <= 100   # Must be less than or equal to 100
     assert params["category"][0] == "errata"        # Should only look for errata category
     assert params["contains"][0] == "RHOSE"         # Only messages containing RHOSE
 
@@ -117,7 +117,7 @@ def test_poll_params_of_url(urlopen_mock, json_load_mock):
 #         "pages": 1
 #     }
     
-#     # Retrive messages from errata.poll without specifying parametres
+#     # Retrive messages from errata.poll without specifying parameters
 #     polled_messages = []
 #     for message in errata.poll():
 #         polled_messages.append(message)
@@ -208,7 +208,7 @@ def test_poll_multiple_messages(urlopen_mock, json_load_mock):
     urlopen_mock.return_value = MagicMock()
     raw_messages = [
         {
-            "additional_necessary_info": "shouldn't be proccesed",
+            "additional_necessary_info": "shouldn't be processed",
             "msg": {
                 "errata_id": 1,
                 "product": "RHOSE",
@@ -216,7 +216,7 @@ def test_poll_multiple_messages(urlopen_mock, json_load_mock):
             }
         },
         {
-            "additional_necessary_info": "shouldn't be proccesed",
+            "additional_necessary_info": "shouldn't be processed",
             "msg": {
                 "errata_id": 2,
                 "product": "RHOSE",
@@ -224,7 +224,7 @@ def test_poll_multiple_messages(urlopen_mock, json_load_mock):
             }
         },
         {
-            "additional_necessary_info": "shouldn't be proccesed",
+            "additional_necessary_info": "shouldn't be processed",
             "msg": {
                 "errata_id": 3,
                 "product": "RHEL",
@@ -232,7 +232,7 @@ def test_poll_multiple_messages(urlopen_mock, json_load_mock):
             }
         },
         {
-            "additional_necessary_info": "shouldn't be proccesed",
+            "additional_necessary_info": "shouldn't be processed",
             "msg": {
                 "errata_id": 4,
                 "product": "RHEL",
@@ -240,7 +240,7 @@ def test_poll_multiple_messages(urlopen_mock, json_load_mock):
             }
         },
         {
-            "additional_necessary_info": "shouldn't be proccesed",
+            "additional_necessary_info": "shouldn't be processed",
             "msg": {
                 "errata_id": 5,
                 "product": "RHOSE",
