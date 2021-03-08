@@ -37,31 +37,72 @@ class GithubRepoPrMock:
                 and self.url == other.url       \
                 and self.html_url == other.html_url
 
-class TestErrata(unittest.TestCase):
-
-    def test_extract_errata_number_from_body_valid_url(self):
-        body = "errata is https://errata.devel.redhat.com/advisory/12345"
-        self.assertEqual(errata.extract_errata_number_from_body(body), 12345)
-
-        body = "errata is https://errata.devel.redhat.com/advisory/9999"
-        self.assertEqual(errata.extract_errata_number_from_body(body), 9999)
-
-        body = "errata is https://errata.devel.redhat.com/advisory/"
-        self.assertEqual(errata.extract_errata_number_from_body(body), None)
-
-        body = "errata is https://errata.devel.redhat.com/advisory/invalid"
-        self.assertEqual(errata.extract_errata_number_from_body(body), None)
-
-
-    def test_extract_errata_number_from_body_invalid_url(self):
-        # Possible invalid body
-        # body = "errata is https://errata.devel.redhat.com/advisory/advisory/12345"
-        # assert errata.extract_errata_number_from_body(body) == None
-
-        body = "errata is https://errata.devel.redhat.com/"
-        self.assertEqual(errata.extract_errata_number_from_body(body), None)
+class ExtractErrataNumberFromBodyTest(unittest.TestCase):
+    def test_valid_url(self):
+        """
+        Test errata number extraction from valid URLs.
+        """
+        param_list = [
+            ('https://errata.devel.redhat.com/advisory/12345', 12345),
+            ('https://errata.devel.redhat.com/advisory/67890', 67890),
+            ('https://errata.devel.redhat.com/advisory/13579', 13579),
+            ('https://errata.devel.redhat.com/advisory/24680', 24680),
+            ('https://errata.devel.redhat.com/advisory/', None),
+            ('https://errata.devel.redhat.com/advisory/invalid', None)
+        ]
+        for (url, expected) in param_list:
+            with self.subTest():
+                self.assertEqual(errata.extract_errata_number_from_body(url), expected)
 
 
+    def test_invalid_url(self):
+        """
+        Test errata number extraction from invalid URLs.
+        """
+        param_list = [
+            ('http://errata.devel.redhat.com/advisory/12345', None),
+            ('https://errrata.devel.redhat.com/advisory/12345', None),
+            ('https://errata.dvel.reddhat.com/advisori/12345', None),
+            ('https://errata.devel.redhat.com/12345', None),
+            ('https://errata.devel.com/advisory/12345', None),
+            ('https://errata.redhat.com/advisory/12345', None),
+            ('https://devel.redhat.com/advisory/12345', None),
+            ('https://redhat.com/advisory/12345', None),
+            ('https://errata.com/advisory/12345', None)
+        ]
+        for (url, expected) in param_list:
+            with self.subTest():
+                self.assertEqual(errata.extract_errata_number_from_body(url), expected)
+
+
+    def test_missing_url(self):
+        """
+        Test errata number extraction from missing URLs.
+        """
+        param_list = [
+            ('errata', None),
+            ('12345', None),
+            ('errata is 12345', None)
+        ]
+        for (url, expected) in param_list:
+            with self.subTest():
+                self.assertEqual(errata.extract_errata_number_from_body(url), expected)
+
+
+    def test_url_is_not_on_the_first_line(self):
+        """
+        Test errata number extraction from valid URLs which are not located on the first line.
+        """
+        param_list = [
+            ('\nhttps://errata.devel.redhat.com/advisory/12345', None),
+            ('\n\nhttps://errata.devel.redhat.com/advisory/12345', None),
+        ]
+        for (url, expected) in param_list:
+            with self.subTest():
+                self.assertEqual(errata.extract_errata_number_from_body(url), expected)
+
+
+class ErrataTest(unittest.TestCase):
     def test_load(self):
         with tempfile.TemporaryDirectory() as tempdir:
             cachepath = os.path.join(tempdir, "cache.json")
