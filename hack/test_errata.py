@@ -102,37 +102,37 @@ class ExtractErrataNumberFromBodyTest(unittest.TestCase):
                 self.assertEqual(errata.extract_errata_number_from_body(url), expected)
 
 
-class ErrataTest(unittest.TestCase):
-    def test_load(self):
-        with tempfile.TemporaryDirectory() as tempdir:
-            cachepath = os.path.join(tempdir, "cache.json")
-            cache = {"foo": "bar"}
-
-            with open(cachepath, 'w') as file:
-                json.dump(cache, file)
-
-            loaded_cache = errata.load(cachepath)
-            self.assertEqual(loaded_cache, cache)
-
-
+class SaveAndLoadTest(unittest.TestCase):
     def test_load_nonexisting_file(self):
+        """
+        Test loading a nonexisting file.
+        """
         with tempfile.TemporaryDirectory() as tempdir:
-            return_val = errata.load(os.path.join(tempdir, "non_existing_file.txt"))
-            self.assertEqual(return_val, {})
-
-
-    def test_save(self):
-        with tempfile.TemporaryDirectory() as tempdir:
-            cache = {"foo": "bar"}
             cachepath = os.path.join(tempdir, "cache.json")
-            errata.save(cachepath, cache)
-            self.assertTrue(os.path.isfile(cachepath))
-
-            with open(cachepath, "r") as file:
-                loaded_cache = json.load(file)
-                self.assertEqual(cache, loaded_cache)
+            self.assertCountEqual(errata.load(cachepath), {})
 
 
+    def test_save_and_load_as_a_pair(self):
+        """
+        Test using errata.save and errata.load as a pair to confirm their functionality.
+        """
+        param_list = [
+            (),
+            ({"foo": "bar"}),
+            ({"value": "1234"}),
+            ({"company": "Red Hat"}),
+            ({"foo": "bar"}, {"value": "1234"}, {"errata": "1234"}),
+            ({"value": "1234"}, {"foo": "bar"}, {"errata": "1234"})
+        ]
+        for cache in param_list:
+            with self.subTest():
+                with tempfile.TemporaryDirectory() as tempdir:
+                    cachepath = os.path.join(tempdir, "cache.json")
+                    errata.save(cachepath, cache)
+                    self.assertCountEqual(errata.load(cachepath), cache)
+
+
+class ErrataTest(unittest.TestCase):
     @patch("json.load")
     @patch("urllib.request.urlopen")
     def test_poll_params_of_url(self, urlopen_mock, json_load_mock):
