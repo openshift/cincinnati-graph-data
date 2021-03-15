@@ -736,3 +736,6 @@ class LgtmFastPrForErrata(unittest.TestCase):
                 issue_comment = prs[expected_index_of_pr_to_create_issue].create_issue_comment.call_args
                 expected_issue_comment = "Autoapproving PR to fast after the errata has shipped\n/lgtm"
                 self.assertEqual(issue_comment, (unittest.mock.call(expected_issue_comment)))
+
+if __name__ == '__main__':
+    unittest.main()
