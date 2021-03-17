@@ -57,7 +57,7 @@ class ExtractErrataNumberFromBodyTest(unittest.TestCase):
             ('https://errata.devel.redhat.com/advisory/invalid', None)
         ]
         for (url, expected) in param_list:
-            with self.subTest():
+            with self.subTest(url=url):
                 self.assertEqual(errata.extract_errata_number_from_body(url), expected)
 
     def test_invalid_url(self):
@@ -76,7 +76,7 @@ class ExtractErrataNumberFromBodyTest(unittest.TestCase):
             'https://errata.com/advisory/12345'
         ]
         for url in param_list:
-            with self.subTest():
+            with self.subTest(url=url):
                 self.assertEqual(errata.extract_errata_number_from_body(url), None)
 
     def test_missing_url(self):
@@ -88,9 +88,9 @@ class ExtractErrataNumberFromBodyTest(unittest.TestCase):
             '12345',
             'errata is 12345'
         ]
-        for url in param_list:
-            with self.subTest():
-                self.assertEqual(errata.extract_errata_number_from_body(url), None)
+        for body in param_list:
+            with self.subTest(body=body):
+                self.assertEqual(errata.extract_errata_number_from_body(body), None)
 
     def test_url_is_not_on_the_first_line(self):
         """
@@ -100,9 +100,9 @@ class ExtractErrataNumberFromBodyTest(unittest.TestCase):
             '\nhttps://errata.devel.redhat.com/advisory/12345',
             '\n\nhttps://errata.devel.redhat.com/advisory/12345'
         ]
-        for url in param_list:
-            with self.subTest():
-                self.assertEqual(errata.extract_errata_number_from_body(url), None)
+        for body in param_list:
+            with self.subTest(body=body):
+                self.assertEqual(errata.extract_errata_number_from_body(body), None)
 
 
 class SaveAndLoadTest(unittest.TestCase):
@@ -396,7 +396,7 @@ class NotifyTest(unittest.TestCase):
         Test functionality of notify if parameter webhook is set to its default value.
         """
         for message in self.messages:
-            with self.subTest():
+            with self.subTest(message=message):
                 errata.notify(message[0])
                 expected_message = message[0]
                 self.assertEqual(print_mock.call_args, unittest.mock.call(expected_message))
@@ -409,7 +409,7 @@ class NotifyTest(unittest.TestCase):
         Only testing messages including approved_pr key.
         """
         for (message, expected_message_in_data_to_be_uploaded) in self.messages_not_including_approved_pr:
-            with self.subTest():
+            with self.subTest(message=message):
                 expected_data_to_be_uploaded = urllib.parse.urlencode({
                     'payload': {
                         'text': expected_message_in_data_to_be_uploaded
@@ -428,7 +428,7 @@ class NotifyTest(unittest.TestCase):
         Only testing messages that do not include approved_pr key.
         """
         for (message, expected_message_in_data_to_be_uploaded) in self.messages_including_approved_pr:
-            with self.subTest():
+            with self.subTest(message=message):
                 expected_data_to_be_uploaded = urllib.parse.urlencode({
                     'payload': {
                         'text': expected_message_in_data_to_be_uploaded
@@ -692,7 +692,7 @@ class LgtmFastPrForErrata(unittest.TestCase):
         param_list = self.prs_with_html_url_of_expected_pr
 
         for (prs, message, expected_pr_html_url) in param_list:
-            with self.subTest():
+            with self.subTest(prs_body=[x.body for x in prs], message=message):
                 self.repo.get_pulls = MagicMock(return_value=prs)
 
                 pr_html_url = errata.lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
@@ -713,7 +713,7 @@ class LgtmFastPrForErrata(unittest.TestCase):
             errata.lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
 
             for index, pr in enumerate(prs):
-                with self.subTest():
+                with self.subTest(prs_body=[x.body for x in prs], message=message):
                     if index == expected_index_of_pr_to_create_issue:
                         pr.create_issue_comment.assert_called_once()
                     else:
@@ -730,7 +730,7 @@ class LgtmFastPrForErrata(unittest.TestCase):
         param_list = self.prs_with_index_of_expected_pr
 
         for (prs, message, expected_index_of_pr_to_create_issue) in param_list:
-            with self.subTest():
+            with self.subTest(prs_body=[x.body for x in prs], message=message):
                 self.repo.get_pulls = MagicMock(return_value=prs)
                 errata.lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
 
