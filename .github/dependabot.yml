@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "cargo"
-    directory: "/hack"
+    directory: "/graph-data.rs"
     schedule:
       interval: "daily"
     reviewers:
