@@ -79,7 +79,7 @@ def process_message(message, cache, excluded_cache, webhook, githubrepo, githubt
         if message['synopsis'] not in excluded_cache:
             _LOGGER.debug('{fulladvisory} shipped {when} does not match synopsis regular expression: {synopsis}'.format(**message))
             excluded_cache[message['synopsis']] = message['fulladvisory']
-            return
+        return
     if cache and message['fulladvisory'] in cache:
         return
     synopsis_groups = synopsis_match.groupdict()
