@@ -55,43 +55,54 @@ def run(poll_period=datetime.timedelta(seconds=3600),
         githubtoken=None,
         **kwargs):
     next_time = datetime.datetime.now()
+    if excluded_cache is None:
+        excluded_cache = {}
     while True:
         _LOGGER.debug('poll for messages')
         for message in poll(period=2*poll_period, **kwargs):
-            synopsis_match = _SYNOPSIS_REGEXP.match(message['synopsis'])
-            if not synopsis_match:
-                if excluded_cache is None:
-                    excluded_cache = {}
-                if message['synopsis'] not in excluded_cache:
-                    _LOGGER.debug('{fulladvisory} shipped {when} does not match synopsis regular expression: {synopsis}'.format(**message))
-                    excluded_cache[message['synopsis']] = message['fulladvisory']
-                    continue
-            if cache and message['fulladvisory'] in cache:
-                continue
-            synopsis_groups = synopsis_match.groupdict()
-            advisory = message['fulladvisory'].rsplit('-', 1)[0]  # RHBA-2020:0936-04 -> RHBA-2020:0936, where the -NN suffix is number of respins or something
-            channel = 'candidate-{major}.{minor}'.format(**synopsis_groups)
-            message['uri'] = public_errata_uri(version=synopsis_groups['version'], advisory=advisory, channel=channel)
-            if not message['uri']:
-                _LOGGER.warn('No known errata URI for {} in {}'.format(synopsis_groups['version'], channel))
-                continue
-            if not message['uri'].endswith(advisory):
-                _LOGGER.warn('Version {} errata {} does not match synopsis {} ({!r})'.format(synopsis_groups['version'], message['uri'], message['fulladvisory'], advisory))
-                continue
-            try:
-                message['approved_pr'] = lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
-            except Exception as error:
-                _LOGGER.warn('Error looking up PRs: {}'.format(error))
-            notify(message=message, webhook=webhook)
-            if cache is not None:
-                cache[message['fulladvisory']] = {
-                    'when': message['when'],
-                    'synopsis': message['synopsis'],
-                    'uri': message['uri'],
-                }
+            process_message(
+                message=message,
+                cache=cache,
+                excluded_cache=excluded_cache,
+                webhook=webhook,
+                githubrepo=githubrepo,
+                githubtoken=githubtoken,
+            )
         next_time += poll_period
         _LOGGER.debug('sleep until {}'.format(next_time))
         time.sleep((next_time - datetime.datetime.now()).seconds)
+
+
+def process_message(message, cache, excluded_cache, webhook, githubrepo, githubtoken):
+    synopsis_match = _SYNOPSIS_REGEXP.match(message['synopsis'])
+    if not synopsis_match:
+        if message['synopsis'] not in excluded_cache:
+            _LOGGER.debug('{fulladvisory} shipped {when} does not match synopsis regular expression: {synopsis}'.format(**message))
+            excluded_cache[message['synopsis']] = message['fulladvisory']
+            return
+    if cache and message['fulladvisory'] in cache:
+        return
+    synopsis_groups = synopsis_match.groupdict()
+    advisory = message['fulladvisory'].rsplit('-', 1)[0]  # RHBA-2020:0936-04 -> RHBA-2020:0936, where the -NN suffix is number of respins or something
+    channel = 'candidate-{major}.{minor}'.format(**synopsis_groups)
+    message['uri'] = public_errata_uri(version=synopsis_groups['version'], advisory=advisory, channel=channel)
+    if not message['uri']:
+        _LOGGER.warn('No known errata URI for {} in {}'.format(synopsis_groups['version'], channel))
+        return
+    if not message['uri'].endswith(advisory):
+        _LOGGER.warn('Version {} errata {} does not match synopsis {} ({!r})'.format(synopsis_groups['version'], message['uri'], message['fulladvisory'], advisory))
+        return
+    try:
+        message['approved_pr'] = lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
+    except Exception as error:
+        _LOGGER.warn('Error looking up PRs: {}'.format(error))
+    notify(message=message, webhook=webhook)
+    if cache is not None:
+        cache[message['fulladvisory']] = {
+            'when': message['when'],
+            'synopsis': message['synopsis'],
+            'uri': message['uri'],
+        }
 
 
 def poll(data_grepper='https://datagrepper.engineering.redhat.com/raw', period=None):
