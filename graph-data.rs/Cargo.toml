@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "942743910e6fdee387dce99e243dcc52b5cf70bd"}
-tokio = { version = "0.2.11", features = [ "fs", "stream" ] }
+tokio = { version = "0.3.7", features = [ "fs", "stream" ] }
 serde = "^1.0.125"
 serde_yaml = "^0.8.17"
 anyhow = "1.0"
