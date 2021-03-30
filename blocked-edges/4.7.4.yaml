@@ -1,3 +1,4 @@
 to: 4.7.4
-from: 4\.6\..*
+from: .*
+# 4.7.4 introduced a node-hostname clear on vSphere: https://bugzilla.redhat.com/show_bug.cgi?id=1942207
 # 4.7 has cross-node SDN issues on vSphere Virtual Hardware Version 14 and later: https://bugzilla.redhat.com/show_bug.cgi?id=1935539
