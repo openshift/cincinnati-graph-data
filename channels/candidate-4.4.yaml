@@ -36,6 +36,8 @@ tombstones:
 - 4.4.2
 # No 4.4.7, because we were minimizing Quay load
 - 4.4.7
+# Shares an errata with a later release
+- 4.4.22
 versions:
 - 4.3.40
 - 4.3.38
