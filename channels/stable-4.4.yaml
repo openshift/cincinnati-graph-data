@@ -1,7 +1,7 @@
 name: stable-4.4
 feeder:
   name: fast-4.4
-  delay: PT24H
+  delay: PT48H
 versions:
 - 4.3.40
 - 4.3.38
