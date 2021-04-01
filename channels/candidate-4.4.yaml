@@ -38,6 +38,8 @@ tombstones:
 - 4.4.7
 # Shares an errata with a later release
 - 4.4.22
+- 4.4.24
+- 4.4.25
 versions:
 - 4.3.40
 - 4.3.38
