@@ -13,6 +13,8 @@ tombstones:
 - 4.6.5
 # Blocked on born-in-4.1 ingress regression: https://bugzilla.redhat.com/show_bug.cgi?id=1904582#c4
 - 4.6.7
+# Did not fix 4.6.9 OVS regression https://bugzilla.redhat.com/show_bug.cgi?id=1914284
+- 4.6.10
 versions:
 - 4.5.37
 
