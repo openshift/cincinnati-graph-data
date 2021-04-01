@@ -4,6 +4,9 @@ tombstones:
 - 4.5.0-0.hotfix-2020-11-28-021842
 # Shares an errata with a later release
 - 4.5.0
+- 4.5.25
+- 4.5.29
+- 4.5.32
 versions:
 - 4.5.37
 
