@@ -6,6 +6,8 @@ tombstones:
 - 4.4.2
 # No 4.4.7, because we were minimizing Quay load
 - 4.4.7
+# Never got an errata
+- 4.5.0-0.hotfix-2020-11-28-021842
 # Shares an errata with a later release
 - 4.4.22
 - 4.4.24

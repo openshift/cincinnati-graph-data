@@ -1,5 +1,7 @@
 name: candidate-4.6
 tombstones:
+# Never got an errata
+- 4.5.0-0.hotfix-2020-11-28-021842
 # Shares an errata with a later release
 - 4.5.0
 versions:
