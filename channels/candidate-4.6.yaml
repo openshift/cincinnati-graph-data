@@ -11,6 +11,8 @@ tombstones:
 - 4.6.2
 # Rerolling as 4.6.6 with a rebuilt CRI-O RPM
 - 4.6.5
+# Blocked on born-in-4.1 ingress regression: https://bugzilla.redhat.com/show_bug.cgi?id=1904582#c4
+- 4.6.7
 versions:
 - 4.5.37
 
