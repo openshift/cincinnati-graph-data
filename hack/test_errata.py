@@ -299,6 +299,77 @@ class PollTest(unittest.TestCase):
         self.assertEqual(polled_messages, self.multiple_msg_expected_to_be_polled)
 
 
+class SynopsisMatchTest(unittest.TestCase):
+    def test_match(self):
+        """
+        Ensure we match only the synopses that we want to match.
+        """
+        for synopsis, expected in [
+                (
+                    'Moderate: OpenShift Container Platform 4.7.5 security and bug fix update',
+                    {
+                        'impact': 'Moderate',
+                        'version': '4.7.5',
+                        'major': '4',
+                        'minor': '7',
+                        'patch': '5',
+                        'prerelease': None,
+                        'build': None,
+                        'type': 'security and bug fix update',
+                    },
+                ),
+                (
+                    'OpenShift Container Platform 4.6 GA Images',
+                    {
+                        'impact': None,
+                        'version': '4.6',
+                        'major': '4',
+                        'minor': '6',
+                        'patch': None,
+                        'prerelease': None,
+                        'build': None,
+                        'type': 'GA Images',
+                    },
+                ),
+                (
+                    'OpenShift Container Platform 4.5.11 optional CSI driver Operators bug fix update',
+                    None,
+                ),
+                (
+                    'Moderate: OpenShift Container Platform 4.5.20 bug fix and golang security update',
+                    {
+                        'impact': 'Moderate',
+                        'version': '4.5.20',
+                        'major': '4',
+                        'minor': '5',
+                        'patch': '20',
+                        'prerelease': None,
+                        'build': None,
+                        'type': 'bug fix and golang security update',
+                    },
+                ),
+                (
+                    'Low: OpenShift Container Platform 4.3.40 security and bug fix update',
+                    {
+                        'impact': 'Low',
+                        'version': '4.3.40',
+                        'major': '4',
+                        'minor': '3',
+                        'patch': '40',
+                        'prerelease': None,
+                        'build': None,
+                        'type': 'security and bug fix update',
+                    },
+                ),
+            ]:
+            with self.subTest(synopsis=synopsis):
+                actual = errata._SYNOPSIS_REGEXP.match(synopsis)
+                if actual:
+                    self.assertEqual(actual.groupdict(), expected)
+                else:
+                    self.assertEqual(actual, expected)
+
+
 class NotifyTest(unittest.TestCase):
     def setUp(self):
         self.messages_including_approved_pr = [
