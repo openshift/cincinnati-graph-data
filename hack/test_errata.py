@@ -1,3 +1,4 @@
+import copy
 import datetime
 import os
 import tempfile
@@ -252,7 +253,7 @@ class PollTest(unittest.TestCase):
 
     @patch("json.load")
     @patch("urllib.request.urlopen")
-    def test_poll_no_raw_messages(self, urlopen_mock, json_load_mock):
+    def test_no_raw_messages(self, urlopen_mock, json_load_mock):
         """
         Test polling messages if data doesn't contain any raw messages.
         """
@@ -270,7 +271,7 @@ class PollTest(unittest.TestCase):
     @patch("json.load")
     @patch("time.sleep")
     @patch("urllib.request.urlopen")
-    def test_poll_unresponsive_url_becomes_responsive(self, urlopen_mock, sleep_mock, json_load_mock):
+    def test_unresponsive_url_becomes_responsive(self, urlopen_mock, sleep_mock, json_load_mock):
         """
         Test polling messages if request.urlopen throws exception on a first try.
         """
@@ -293,7 +294,7 @@ class PollTest(unittest.TestCase):
 
     @patch("json.load")
     @patch("urllib.request.urlopen")
-    def test_poll_multiple_messages(self, urlopen_mock, json_load_mock):
+    def test_multiple_messages(self, urlopen_mock, json_load_mock):
         """
         Test polling messages from raw messages that include wanted and unwanted messages.
         """
@@ -680,6 +681,19 @@ class LgtmFastPrForErrata(unittest.TestCase):
                 2
             )
         ]
+        self.prs_with_invalid_errata_url = [
+            (
+                [
+                    GithubPRMock(GithubUserMock("openshift-bot"), "Enable 3.0.0 in fast channel(s)", [], 1, "", "PR_URL1", "PR_HTML_URL1"),
+                    GithubPRMock(GithubUserMock("openshift-bot"), "Enable 4.0.0 in fast channel(s)", [], 2, "https://errata", "PR_URL2", "PR_HTML_URL2"),
+                    GithubPRMock(GithubUserMock("openshift-bot"), "Enable 4.1.2 in fast channel(s)", [], 3, "https://redhat.com/advisory/84", "PR_URL3", "PR_HTML_URL3"),
+                    GithubPRMock(GithubUserMock("openshift-bot"), "Enable 4.2.3 in fast channel(s)", [], 4, "https://errata.devel.redhat.com", "PR_URL4", "PR_HTML_URL4")
+                ],
+                {
+                    "errata_id": 21
+                }
+            )
+        ]
 
     @patch("github.Github")
     def test_return_value_is_correct_for_specific_pr(self, Github_mock):
@@ -737,6 +751,809 @@ class LgtmFastPrForErrata(unittest.TestCase):
                 issue_comment = prs[expected_index_of_pr_to_create_issue].create_issue_comment.call_args
                 expected_issue_comment = "Autoapproving PR to fast after the errata has shipped\n/lgtm"
                 self.assertEqual(issue_comment, (unittest.mock.call(expected_issue_comment)))
+
+    @patch("github.Github")
+    def test_prs_include_invalid_errata_url(self, Github_mock):
+        """
+        Test PRs which body include invalid errata url.
+        These prs should be skipped.
+        """
+        githubrepo = MagicMock()
+        githubtoken = MagicMock()
+        Github_mock.return_value = self.github_object_mock
+        param_list = self.prs_with_invalid_errata_url
+
+        for (prs, message) in param_list:
+            with self.subTest(body=[x.body for x in prs]):
+                self.repo.get_pulls = MagicMock(return_value=prs)
+                pr_html_url = errata.lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
+
+                self.assertEqual(pr_html_url, None)
+
+
+class PublicErrataUriTest(unittest.TestCase):
+    def setUp(self):
+        self.nodes_valid = [
+            (
+                {   # nodes received via urlopen
+                    "nodes": [
+                        {
+                            "version": "4.0.0",
+                            "metadata": {
+                                "url": "https://access.redhat.com/errata/RHBA-2020:0000"
+                            }
+                        }
+                    ]
+                },
+                (   # Parameteres for calling errata.public_errata_uri
+                    "4.0.0",
+                    "RHBA-2020:0000",
+                    "candidate-4.0.0",
+                ),
+                #  Expected uri of the wanted node
+                "https://access.redhat.com/errata/RHBA-2020:0000",
+            ),
+            (
+                {
+                    "nodes": [
+                        {
+                            "version": "4.1.0",
+                            "metadata": {
+                                "url": "https://access.redhat.com/errata/RHBA-2020:1000"
+                            }
+                        }
+                    ]
+                },
+                (
+                    "4.1.0",
+                    "RHBA-2020:1000",
+                    "candidate-4.1.0",
+                ),
+                "https://access.redhat.com/errata/RHBA-2020:1000",
+            ),
+            (
+                {
+                    "nodes": [
+                        {
+                            "version": "4.2.0",
+                            "metadata": {
+                                "url": "https://access.redhat.com/errata/RHBA-2020:2000"
+                            }
+                        }
+                    ]
+                },
+                (
+                    "4.2.0",
+                    "RHBA-2020:2000",
+                    "candidate-4.2.0",
+                ),
+                "https://access.redhat.com/errata/RHBA-2020:2000",
+            ),
+        ]
+
+    @patch("json.load")
+    @patch("urllib.request.urlopen")
+    def test_should_return_uri_of_same_version(self, urlopen_mock, json_load_mock):
+        """
+        Test if URL of the node with the same version as the parameter is returned.
+        """
+        for (data, params, expected_errata_uri) in self.nodes_valid:
+            version = params[0]
+            channel = params[2]
+            json_load_mock.return_value = data
+            with self.subTest(version=version):
+                errata_uri = errata.public_errata_uri(version=version, advisory="", channel=channel)
+                self.assertEqual(errata_uri, expected_errata_uri)
+
+    @patch("json.load")
+    @patch("urllib.request.urlopen")
+    def test_should_return_uri_of_the_same_advisory(self, urlopen_mock, json_load_mock):
+        """
+        Test if URL of the node with the same advisory as the parameter is returned.
+        """
+        for (data, params, expected_errata_uri) in self.nodes_valid:
+            advisory = params[1]
+            channel = params[2]
+            json_load_mock.return_value = data
+            with self.subTest(advisory=advisory):
+                errata_uri = errata.public_errata_uri(version="", advisory=advisory, channel=channel)
+                self.assertEqual(errata_uri, expected_errata_uri)
+
+    @patch("json.load")
+    @patch("urllib.request.urlopen")
+    def test_zero_nodes_received(self, urlopen_mock, json_load_mock):
+        """
+        Test if None is returned when zero nodes are received.
+        """
+        json_load_mock.return_value = {
+            "nodes": []
+        }
+        for (_, params, _) in self.nodes_valid:
+            version = params[0]
+            advisory = params[1]
+            channel = params[2]
+            with self.subTest(version=version, advisory=advisory):
+                errata_uri = errata.public_errata_uri(version=version, advisory=advisory, channel=channel)
+                self.assertEqual(errata_uri, None)
+
+    @patch("json.load")
+    @patch("urllib.request.urlopen")
+    def test_zero_nodes_match(self, urlopen_mock, json_load_mock):
+        """
+        Test if None is returned when zero nodes match wanted version or advisory.
+        """
+        for (data, params, _) in self.nodes_valid:
+            version = params[0]
+            advisory = params[1]
+            channel = params[2]
+            json_load_mock.return_value = data
+            with self.subTest(version=version, advisory=advisory):
+                errata_uri = errata.public_errata_uri(version="", advisory="", channel=channel)
+                self.assertEqual(errata_uri, None)
+
+    @patch("time.sleep")
+    @patch("json.load")
+    @patch("urllib.request.urlopen")
+    def test_unresponsive_url_becomes_responsive(self, urlopen_mock, json_load_mock, sleep_mock):
+        """
+        Test requesting messages if request.urlopen throws exception on a first try.
+        """
+        for (data, params, expected_errata_uri) in self.nodes_valid:
+            version = params[0]
+            advisory = params[1]
+            channel = params[2]
+            json_load_mock.return_value = data
+            urlopen_mock.side_effect = [
+                Exception("Unresponsive, request.urlopen has failed"),
+                MagicMock()
+            ]
+            sleep_mock.reset_mock()
+            with self.subTest():
+                errata_uri = errata.public_errata_uri(version=version, advisory=advisory, channel=channel)
+                sleep_mock.assert_called_once()
+                self.assertEqual(errata_uri, expected_errata_uri)
+
+
+class ProcessMessageTest(unittest.TestCase):
+    def setUp(self):
+        self.valid_params = [
+            (
+                "https://access.redhat.com/errata/RHBA-2020:0000",
+                {
+                    "synopsis": "Moderate: OpenShift Container Platform 4.0.0 bug fix and golang security update",
+                    "fulladvisory": "RHBA-2020:0000-01",
+                    "when": "2021-01-01 00:00:00 UTC",
+                }
+            ),
+            (
+                "https://access.redhat.com/errata/RHBA-2021:0749",
+                {
+                    "synopsis": "OpenShift Container Platform 4.7.2 bug fix update",
+                    "fulladvisory": "RHBA-2021:0749-06",
+                    "when": "2021-03-16 08:42:16 UTC",
+                }
+            )
+        ]
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_content_of_cache_when_invalid_synopsis_is_received(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test content of the cache should remain unchanged when invalid synopsis is received.
+        """
+        public_errata_uri_mock.return_value = "https://access.redhat.com/errata/RHBA-2020:0000"
+        invalid_synopsis = "Invalid Synopsis 0.0.0"
+        cache = {
+                "RHBA-2020:0000-01":
+                {
+                    "synopsis": "Moderate: OpenShift Container Platform 4.0.0 bug fix and golang security update",
+                    "uri": "https://access.redhat.com/errata/RHBA-2020:0000",
+                    "when": "2021-01-01 00:00:00 UTC",
+                }
+        }
+        cache_copy = copy.deepcopy(cache)
+
+        message = {
+            "synopsis": invalid_synopsis,
+            "fulladvisory": "RHBA-2020:0000-01",
+            "when": "2021-01-01 00:00:00 UTC",
+        }
+        excluded_cache = {}
+        errata.process_message(
+            message=message,
+            cache=cache,
+            excluded_cache=excluded_cache,
+            webhook=None,
+            githubrepo=None,
+            githubtoken=None,
+        )
+        self.assertDictEqual(cache, cache_copy)
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_add_new_invalid_synopsis_to_the_excluded_cache(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test processing invalid synopsis which is not in the excluded cache.
+        Should add the synopsis and the fulladvisory to the excluded cache.
+        """
+        public_errata_uri_mock.return_value = "https://access.redhat.com/errata/RHBA-2020:0000"
+        invalid_synopsis = "Invalid Synopsis 0.0.0"
+
+        message = {
+            "synopsis": invalid_synopsis,
+            "fulladvisory": "RHBA-2020:0000-01",
+            "when": "2021-01-01 00:00:00 UTC",
+        }
+        cache = {}
+        excluded_cache = {}
+        errata.process_message(
+            message=message,
+            cache=cache,
+            excluded_cache=excluded_cache,
+            webhook=None,
+            githubrepo=None,
+            githubtoken=None,
+        )
+        self.assertDictEqual(
+            excluded_cache,
+            {
+                invalid_synopsis: "RHBA-2020:0000-01",
+            }
+        )
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_not_lgtm_fast_pr_when_new_invalid_synopsis_is_received(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test if there isn't an attempt to lgtm fast pr when a new invalid synopsis is received.
+        The new invalid synopsis wasn't saved in the excluded cache.
+        """
+        public_errata_uri_mock.return_value = "https://access.redhat.com/errata/RHBA-2020:0000"
+        invalid_synopsis = "Invalid Synopsis 0.0.0"
+
+        message = {
+            "synopsis": invalid_synopsis,
+            "fulladvisory": "RHBA-2020:0000-01",
+            "when": "2021-01-01 00:00:00 UTC",
+        }
+        cache = {}
+        excluded_cache = {}
+        errata.process_message(
+            message=message,
+            cache=cache,
+            excluded_cache=excluded_cache,
+            webhook=None,
+            githubrepo=None,
+            githubtoken=None,
+        )
+        lgtm_fast_pr_for_errata_mock.assert_not_called()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_not_notify_when_new_invalid_synopsis_is_received(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test if there isn't an attempt to notify when a new invalid synopsis is received.
+        The new invalid synopsis wasn't saved in the excluded cache.
+        """
+        public_errata_uri_mock.return_value = "https://access.redhat.com/errata/RHBA-2020:0000"
+        invalid_synopsis = "Invalid Synopsis 0.0.0"
+
+        message = {
+            "synopsis": invalid_synopsis,
+            "fulladvisory": "RHBA-2020:0000-01",
+            "when": "2021-01-01 00:00:00 UTC",
+        }
+        cache = {}
+        excluded_cache = {}
+        errata.process_message(
+            message=message,
+            cache=cache,
+            excluded_cache=excluded_cache,
+            webhook=None,
+            githubrepo=None,
+            githubtoken=None,
+        )
+        notify_mock.assert_not_called()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_content_of_excluded_cache_when_reprocessing_invalid_synopsis(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test processing invalid synopsis which is already in the excluded cache.
+        Should not change the content of the excluded cache.
+        """
+        public_errata_uri_mock.return_value = "https://access.redhat.com/errata/RHBA-2020:0000"
+        invalid_synopsis = "Invalid Synopsis 0.0.0"
+        invalid_synopsis_2 = "Invalid 1.0.0"
+        excluded_cache = {
+            invalid_synopsis: "RHBA-2020:0000-01",
+            invalid_synopsis_2: "RHBA-2020:1111-01"
+        }
+        excluded_cache_copy = copy.deepcopy(excluded_cache)
+
+        message = {
+            "synopsis": invalid_synopsis,
+            "fulladvisory": "RHBA-2020:0000-01",
+            "when": "2021-01-01 00:00:00 UTC",
+        }
+        cache = {}
+        errata.process_message(
+            message=message,
+            cache=cache,
+            excluded_cache=excluded_cache,
+            webhook=None,
+            githubrepo=None,
+            githubtoken=None,
+        )
+        self.assertDictEqual(excluded_cache, excluded_cache_copy)
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_not_lgtm_fast_pr_when_reprocessing_invalid_synopsis(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test if there isn't an attempt to lgtm fast pr
+        when an already processed invalid synopsis is received.
+        Invalid synopsis is saved in the excluded cache.
+        """
+        public_errata_uri_mock.return_value = "https://access.redhat.com/errata/RHBA-2020:0000"
+        invalid_synopsis = "Invalid Synopsis 0.0.0"
+
+        message = {
+            "synopsis": invalid_synopsis,
+            "fulladvisory": "RHBA-2020:0000-01",
+            "when": "2021-01-01 00:00:00 UTC",
+        }
+        cache = {}
+        excluded_cache = {
+            invalid_synopsis: "RHBA-2020:0000-01"
+        }
+        errata.process_message(
+            message=message,
+            cache=cache,
+            excluded_cache=excluded_cache,
+            webhook=None,
+            githubrepo=None,
+            githubtoken=None,
+        )
+        lgtm_fast_pr_for_errata_mock.assert_not_called()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_not_notify_when_reprocessing_invalid_synopsis(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test if there isn't an attempt to notify
+        when an already processed invalid synopsis is received.
+        Invalid synopsis is saved in the excluded cache.
+        """
+        public_errata_uri_mock.return_value = "https://access.redhat.com/errata/RHBA-2020:0000"
+        invalid_synopsis = "Invalid Synopsis 0.0.0"
+
+        message = {
+            "synopsis": invalid_synopsis,
+            "fulladvisory": "RHBA-2020:0000-01",
+            "when": "2021-01-01 00:00:00 UTC",
+        }
+        cache = {}
+        excluded_cache = {
+            invalid_synopsis: "RHBA-2020:0000-01",
+        }
+        errata.process_message(
+            message=message,
+            cache=cache,
+            excluded_cache=excluded_cache,
+            webhook=None,
+            githubrepo=None,
+            githubtoken=None,
+        )
+        notify_mock.assert_not_called()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_add_new_valid_synopsis_to_the_cache(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test processing valid synopsis which is not in the cache.
+        Should add the synopsis's data to the cache.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                public_errata_uri_mock.return_value = public_errata_uri
+                message_copy = copy.deepcopy(message)
+
+                cache = {}
+                excluded_cache = {}
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+
+                self.assertDictEqual(
+                    cache,
+                    {
+                        message_copy['fulladvisory']:
+                        {
+                            "when": message_copy['when'],
+                            "synopsis": message_copy['synopsis'],
+                            "uri": public_errata_uri,
+                        }
+                    }
+                )
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_notify_when_new_valid_synopsis_is_received(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test if there is an attempt to notify when a new valid synopsis is received.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                public_errata_uri_mock.return_value = public_errata_uri
+                notify_mock.reset_mock()
+
+                cache = {}
+                excluded_cache = {}
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+                notify_mock.assert_called_once()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_lgtm_fast_pr_when_new_valid_synopsis_is_received(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test if there is an attempt to lgtm fast pr when a new valid synopsis is received.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                public_errata_uri_mock.return_value = public_errata_uri
+                lgtm_fast_pr_for_errata_mock.reset_mock()
+
+                cache = {}
+                excluded_cache = {}
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+                lgtm_fast_pr_for_errata_mock.assert_called_once()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_content_of_cache_when_reprocessing_valid_synopsis(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test processing valid synopsis which is already in the cache.
+        Should not change the content of the cache.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                public_errata_uri_mock.return_value = public_errata_uri
+                cache = {}
+                cache[message['fulladvisory']] = {
+                    'when': message['when'],
+                    'synopsis': message['synopsis'],
+                    'uri': public_errata_uri,
+                }
+                cache_copy = copy.deepcopy(cache)
+
+                excluded_cache = {}
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+                self.assertDictEqual(cache, cache_copy)
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_not_notify_when_reprocessing_valid_synopsis(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test if there isn't an attempt to notify when
+        reprocessing a valid synopsis.
+        The valid synopsis is already saved in the cache.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                public_errata_uri_mock.return_value = public_errata_uri
+                notify_mock.reset_mock()
+
+                cache = {}
+                cache[message['fulladvisory']] = {
+                    'when': message['when'],
+                    'synopsis': message['synopsis'],
+                    'uri': public_errata_uri,
+                }
+                excluded_cache = {}
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+                notify_mock.assert_not_called()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_not_lgtm_fast_pr_when_reprocessing_valid_synopsis(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test if there isn't an attempt to lgtm fast PR when
+        reprocessing a valid synopsis.
+        The valid synopsis is already saved in the cache.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                public_errata_uri_mock.return_value = public_errata_uri
+                lgtm_fast_pr_for_errata_mock.reset_mock()
+
+                cache = {}
+                cache[message['fulladvisory']] = {
+                    'when': message['when'],
+                    'synopsis': message['synopsis'],
+                    'uri': public_errata_uri,
+                }
+                excluded_cache = {}
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+                lgtm_fast_pr_for_errata_mock.assert_not_called()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_not_notify_for_valid_synopsis_does_not_have_public_errata(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test processing a new valid synopsis which does not have a public errata uri.
+        Test if there isn't attempt to notify.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                public_errata_uri_mock.return_value = None
+                notify_mock.reset_mock()
+
+                cache = {}
+                excluded_cache = {}
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+                notify_mock.assert_not_called()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_not_lgtm_fast_pr_for_valid_synopsis_does_not_have_public_errata(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test processing a new valid synopsis which does not have a public errata uri.
+        Test if there isn't attempt to lgtm fast pr for a message's synopsis.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                public_errata_uri_mock.return_value = None
+                lgtm_fast_pr_for_errata_mock.reset_mock()
+
+                cache = {}
+                excluded_cache = {}
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+                lgtm_fast_pr_for_errata_mock.assert_not_called()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_not_notify_when_public_errata_does_not_match_synopsis(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test processing a new valid synopsis which does not have a matching public errata uri.
+        Test if there isn't attempt to notify
+        when the public errata uri does not match message's advisory.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                public_errata_uri_mock.return_value = 'non_matching_errata_uri'
+                lgtm_fast_pr_for_errata_mock.reset_mock()
+                notify_mock.reset_mock()
+
+                cache = {}
+                excluded_cache = {}
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+                notify_mock.assert_not_called()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_should_not_lgtm_fast_pr_when_public_errata_does_not_match_synopsis(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test processing a new valid synopsis which does not have a matching public errata uri.
+        Test if there isn't attempt to lgtm fast pr for a message's synopsis
+        when the public errata uri does not match message's advisory.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                public_errata_uri_mock.return_value = 'non_matching_errata_uri'
+                lgtm_fast_pr_for_errata_mock.reset_mock()
+                notify_mock.reset_mock()
+
+                cache = {}
+                excluded_cache = {}
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+                lgtm_fast_pr_for_errata_mock.assert_not_called()
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
+    def test_processing_valid_message_multiple_times(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Processing multiple valid messages.
+        Should attempt to notify and to lgtm the fast pr once for the same message.
+        """
+        for (public_errata_uri, message) in self.valid_params:
+            public_errata_uri_mock.return_value = public_errata_uri
+            lgtm_fast_pr_for_errata_mock.reset_mock()
+            notify_mock.reset_mock()
+
+            message_copy = copy.deepcopy(message)
+            cache = {}
+            excluded_cache = {}
+            for _ in range(10):
+                message = copy.deepcopy(message_copy)
+                errata.process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=None,
+                    githubrepo=None,
+                    githubtoken=None,
+                )
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                lgtm_fast_pr_for_errata_mock.assert_called_once()
+            with self.subTest(message=message, errata_uri=public_errata_uri):
+                notify_mock.assert_called_once()
 
 
 if __name__ == '__main__':
