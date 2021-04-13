@@ -58,26 +58,30 @@ def run(poll_period=datetime.timedelta(seconds=3600),
     while True:
         _LOGGER.debug('poll for messages')
         for message in poll(period=2*poll_period, **kwargs):
-            process_message(
-                message=message,
-                cache=cache,
-                excluded_cache=excluded_cache,
-                webhook=webhook,
-                githubrepo=githubrepo,
-                githubtoken=githubtoken,
-            )
+            try:
+                process_message(
+                    message=message,
+                    cache=cache,
+                    excluded_cache=excluded_cache,
+                    webhook=webhook,
+                    githubrepo=githubrepo,
+                    githubtoken=githubtoken,
+                )
+            except ValueError as error:
+                _LOGGER.warn(error)
         next_time += poll_period
         _LOGGER.debug('sleep until {}'.format(next_time))
         time.sleep((next_time - datetime.datetime.now()).seconds)
 
 
 def process_message(message, cache, excluded_cache, webhook, githubrepo, githubtoken):
+    if excluded_cache and message['synopsis'] in excluded_cache:
+        return
     synopsis_match = _SYNOPSIS_REGEXP.match(message['synopsis'])
     if not synopsis_match:
-        if message['synopsis'] not in excluded_cache:
-            _LOGGER.debug('{fulladvisory} shipped {when} does not match synopsis regular expression: {synopsis}'.format(**message))
+        if excluded_cache is not None:
             excluded_cache[message['synopsis']] = message['fulladvisory']
-        return
+        raise ValueError('{fulladvisory} shipped {when} does not match synopsis regular expression: {synopsis}'.format(**message))
     if cache and message['fulladvisory'] in cache:
         return
     synopsis_groups = synopsis_match.groupdict()
