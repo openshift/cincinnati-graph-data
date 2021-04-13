@@ -938,6 +938,40 @@ class ProcessMessageTest(unittest.TestCase):
     @patch("errata.lgtm_fast_pr_for_errata")
     @patch("errata.public_errata_uri")
     @patch("errata.notify")
+    def test_should_raise_exception_when_new_invalid_synopsis_is_received(
+        self,
+        notify_mock,
+        public_errata_uri_mock,
+        lgtm_fast_pr_for_errata_mock
+    ):
+        """
+        Test processing an invalid synopsis which is not in the excluded cache.
+        Should raise the ValueError exception.
+        """
+        public_errata_uri_mock.return_value = "https://access.redhat.com/errata/RHBA-2020:0000"
+        invalid_synopsis = "Invalid Synopsis 0.0.0"
+
+        message = {
+            "synopsis": invalid_synopsis,
+            "fulladvisory": "RHBA-2020:0000-01",
+            "when": "2021-01-01 00:00:00 UTC",
+        }
+        cache = {}
+        excluded_cache = {}
+
+        with self.assertRaises(ValueError):
+            errata.process_message(
+                message=message,
+                cache=cache,
+                excluded_cache=excluded_cache,
+                webhook=None,
+                githubrepo=None,
+                githubtoken=None,
+            )
+
+    @patch("errata.lgtm_fast_pr_for_errata")
+    @patch("errata.public_errata_uri")
+    @patch("errata.notify")
     def test_content_of_cache_when_invalid_synopsis_is_received(
         self,
         notify_mock,
