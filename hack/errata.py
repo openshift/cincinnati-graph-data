@@ -49,14 +49,12 @@ def save(path, cache):
 
 def run(poll_period=datetime.timedelta(seconds=3600),
         cache=None,
-        excluded_cache=None,
         webhook=None,
         githubrepo=None,
         githubtoken=None,
         **kwargs):
     next_time = datetime.datetime.now()
-    if excluded_cache is None:
-        excluded_cache = {}
+    excluded_cache = {}
     while True:
         _LOGGER.debug('poll for messages')
         for message in poll(period=2*poll_period, **kwargs):
@@ -287,11 +285,9 @@ if __name__ == '__main__':
 
     cache_path = '.errata.json'
     cache = load(path=cache_path)
-    excluded_cache = {}
     try:
         run(
             cache=cache,
-            excluded_cache=excluded_cache,
             webhook=args.webhook.strip(),
             githubrepo=args.githubrepo.strip(),
             githubtoken=args.githubtoken.strip(),
