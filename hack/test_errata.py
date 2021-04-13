@@ -965,14 +965,15 @@ class ProcessMessageTest(unittest.TestCase):
             "when": "2021-01-01 00:00:00 UTC",
         }
         excluded_cache = {}
-        errata.process_message(
-            message=message,
-            cache=cache,
-            excluded_cache=excluded_cache,
-            webhook=None,
-            githubrepo=None,
-            githubtoken=None,
-        )
+        with self.assertRaises(ValueError):
+            errata.process_message(
+                message=message,
+                cache=cache,
+                excluded_cache=excluded_cache,
+                webhook=None,
+                githubrepo=None,
+                githubtoken=None,
+            )
         self.assertDictEqual(cache, cache_copy)
 
     @patch("errata.lgtm_fast_pr_for_errata")
@@ -998,14 +999,16 @@ class ProcessMessageTest(unittest.TestCase):
         }
         cache = {}
         excluded_cache = {}
-        errata.process_message(
-            message=message,
-            cache=cache,
-            excluded_cache=excluded_cache,
-            webhook=None,
-            githubrepo=None,
-            githubtoken=None,
-        )
+
+        with self.assertRaises(ValueError):
+            errata.process_message(
+                message=message,
+                cache=cache,
+                excluded_cache=excluded_cache,
+                webhook=None,
+                githubrepo=None,
+                githubtoken=None,
+            )
         self.assertDictEqual(
             excluded_cache,
             {
@@ -1036,14 +1039,15 @@ class ProcessMessageTest(unittest.TestCase):
         }
         cache = {}
         excluded_cache = {}
-        errata.process_message(
-            message=message,
-            cache=cache,
-            excluded_cache=excluded_cache,
-            webhook=None,
-            githubrepo=None,
-            githubtoken=None,
-        )
+        with self.assertRaises(ValueError):
+            errata.process_message(
+                message=message,
+                cache=cache,
+                excluded_cache=excluded_cache,
+                webhook=None,
+                githubrepo=None,
+                githubtoken=None,
+            )
         lgtm_fast_pr_for_errata_mock.assert_not_called()
 
     @patch("errata.lgtm_fast_pr_for_errata")
@@ -1069,14 +1073,15 @@ class ProcessMessageTest(unittest.TestCase):
         }
         cache = {}
         excluded_cache = {}
-        errata.process_message(
-            message=message,
-            cache=cache,
-            excluded_cache=excluded_cache,
-            webhook=None,
-            githubrepo=None,
-            githubtoken=None,
-        )
+        with self.assertRaises(ValueError):
+            errata.process_message(
+                message=message,
+                cache=cache,
+                excluded_cache=excluded_cache,
+                webhook=None,
+                githubrepo=None,
+                githubtoken=None,
+            )
         notify_mock.assert_not_called()
 
     @patch("errata.lgtm_fast_pr_for_errata")
