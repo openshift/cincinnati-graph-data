@@ -16,6 +16,6 @@ async fn run_all_tests() -> Fallible<()> {
 }
 
 fn main() -> Fallible<()> {
-    let mut runtime = tokio::runtime::Runtime::new()?;
+    let runtime = tokio::runtime::Runtime::new()?;
     runtime.block_on(run_all_tests())
 }
