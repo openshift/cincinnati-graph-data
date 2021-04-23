@@ -10,7 +10,7 @@ tokio = { version = "0.2.11", features = [ "fs", "stream" ] }
 serde = "^1.0.125"
 serde_yaml = "^0.8.17"
 anyhow = "1.0"
-regex = "^1.4.5"
+regex = "^1.4.6"
 semver = { version = "^0.11", features = [ "serde" ] }
 toml = "^0.5.8"
 lazy_static = "^1.2.0"
