@@ -1,4 +1,21 @@
 name: candidate-4.3
+tombstones:
+# no 4.2.30 because broken build causing machine-api-operator CrashLoopBackoff, https://bugzilla.redhat.com/show_bug.cgi?id=1829028
+- 4.2.30
+# no 4.2.32 because of RHEL 8.2 ICMP, https://bugzilla.redhat.com/show_bug.cgi?id=1781575
+- 4.2.32
+# No 4.3.11 because of build issues: https://bugzilla.redhat.com/show_bug.cgi?id=1823378
+- 4.3.11
+# No 4.3.14 (did not include 4.3.0 as an update source: https://github.com/openshift/cincinnati-graph-data/pull/194#issuecomment-618080792 )
+- 4.3.14
+# No 4.3.15 (did not include DefaultSecurityContextConstraints_Mutated clear: https://bugzilla.redhat.com/show_bug.cgi?id=1827337 )
+- 4.3.15
+# No 4.3.16 (OVN container has unsigned RPMs: https://github.com/openshift/cincinnati-graph-data/pull/205#issuecomment-619049150 )
+- 4.3.16
+# No 4.3.17 because of CRI-O OCINI context, https://bugzilla.redhat.com/show_bug.cgi?id=1828104
+- 4.3.17
+# No 4.3.24, because we were minimizing Quay load
+- 4.3.24
 versions:
 - 4.2.36
 - 4.2.34

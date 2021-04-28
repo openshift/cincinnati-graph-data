@@ -1,4 +1,13 @@
 name: candidate-4.2
+tombstones:
+- 4.1.18
+# no 4.1.37 because of https://bugzilla.redhat.com/show_bug.cgi?id=1810393 (Jenkins webconsole 403 Forbidden)
+- 4.1.37
+- 4.2.14
+# no 4.2.30 because broken build causing machine-api-operator CrashLoopBackoff, https://bugzilla.redhat.com/show_bug.cgi?id=1829028
+- 4.2.30
+# no 4.2.32 because of RHEL 8.2 ICMP, https://bugzilla.redhat.com/show_bug.cgi?id=1781575
+- 4.2.32
 versions:
 - 4.1.18
 - 4.1.20

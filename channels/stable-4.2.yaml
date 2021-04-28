@@ -1,4 +1,7 @@
 name: stable-4.2
+feeder:
+  name: fast-4.2
+  delay: PT48H
 versions:
 - 4.1.20
 - 4.1.21

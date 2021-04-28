@@ -1,0 +1,5 @@
+name: stable-4.8
+feeder:
+  name: fast-4.8
+  delay: PT48H
+versions: []
