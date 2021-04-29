@@ -3,4 +3,14 @@ feeder:
   name: candidate-4.8
   delay: P1W
   filter: 4\.[0-9]+\.[0-9]+(.*hotfix.*)?
-versions: []
+versions:
+- 4.7.9
+- 4.7.8
+- 4.7.7
+- 4.7.6
+- 4.7.5
+- 4.7.4
+- 4.7.3
+- 4.7.2
+- 4.7.1
+- 4.7.0
