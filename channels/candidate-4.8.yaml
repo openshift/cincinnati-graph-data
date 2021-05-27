@@ -3,6 +3,10 @@ tombstones:
 # 4.7.10 installer segfaults on install-config serviceEndpoints https://bugzilla.redhat.com/show_bug.cgi?id=1958420
 - 4.7.10
 versions:
+- 4.7.13
+
+- 4.7.12
+
 - 4.7.11
 
 - 4.7.10
@@ -26,3 +30,5 @@ versions:
 - 4.8.0-fc.2
 
 - 4.8.0-fc.3
+
+- 4.8.0-fc.5

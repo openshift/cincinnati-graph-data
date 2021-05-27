@@ -18,6 +18,8 @@ tombstones:
 # 4.6.24 introduced a regression in registry ca-trust handling: https://bugzilla.redhat.com/show_bug.cgi?id=1949040#c4
 - 4.6.24
 versions:
+- 4.5.40
+
 - 4.5.39
 
 - 4.5.38
@@ -152,3 +154,5 @@ versions:
 - 4.6.29
 
 - 4.6.30
+
+- 4.6.31
