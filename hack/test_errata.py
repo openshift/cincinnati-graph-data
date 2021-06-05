@@ -319,6 +319,19 @@ class SynopsisMatchTest(unittest.TestCase):
         """
         for synopsis, expected in [
                 (
+                    'Moderate: OpenShift Container Platform 4.7.13 bug fix and security update',
+                    {
+                        'impact': 'Moderate',
+                        'version': '4.7.13',
+                        'major': '4',
+                        'minor': '7',
+                        'patch': '13',
+                        'prerelease': None,
+                        'build': None,
+                        'type': 'bug fix and security update',
+                    },
+                ),
+                (
                     'Moderate: OpenShift Container Platform 4.7.5 security and bug fix update',
                     {
                         'impact': 'Moderate',

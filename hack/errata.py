@@ -27,7 +27,7 @@ _SYNOPSIS_REGEXP = re.compile(r'''
     (?:\+(?P<build>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?
   )
   [ ](?P<type>
-    (?:(?:security[ ]and[ ])?bug[ ]fix(?:[ ]and[ ]golang[ ]security)?[ ]update)?
+    (?:(?:security[ ]and[ ])?bug[ ]fix(?:[ ]and(?:[ ]golang)?[ ]security)?[ ]update)?
     (?:GA[ ]Images)?
   )$
 ''',
