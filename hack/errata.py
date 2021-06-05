@@ -18,6 +18,7 @@ import github
 
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger()
+_ADVISORY_TYPE_REGEXP = re.compile(r'RH[BS]A')
 _SYNOPSIS_REGEXP = re.compile(r'''
   ^((?P<impact>(Low|Moderate|Important|Critical)):[ ])?
   OpenShift[ ]Container[ ]Platform[ ]
@@ -91,7 +92,7 @@ def process_message(message, cache, excluded_cache, webhook, githubrepo, githubt
     if not message['uri']:
         _LOGGER.warning('No known errata URI for {} in {}'.format(synopsis_groups['version'], channel))
         return
-    if not message['uri'].endswith(advisory):
+    if not any(message['uri'].endswith(a) for a in advisory_phrasings(advisory=advisory)):
         _LOGGER.warning('Version {} errata {} does not match synopsis {} ({!r})'.format(synopsis_groups['version'], message['uri'], message['fulladvisory'], advisory))
         return
     try:
@@ -257,6 +258,15 @@ def public_errata_uri(version, advisory, arch='amd64', channel='', update_servic
                 advisories.add(node_advisory)
         _LOGGER.debug('{} not found in {} ({})'.format(advisory, uri, ', '.join(sorted(advisories))))
         return
+
+
+def advisory_phrasings(advisory):
+    match = _ADVISORY_TYPE_REGEXP.search(advisory)
+    if not match:
+        _LOGGER.warning('advisory did not match the advisory type regular expression: {}'.format(advisory))
+        return
+    for phrasing in ['RHBA', 'RHSA']:
+        yield '{}{}{}'.format(advisory[:match.start()], phrasing, advisory[match.end():])
 
 
 if __name__ == '__main__':
