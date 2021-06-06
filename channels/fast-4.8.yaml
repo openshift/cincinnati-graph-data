@@ -2,5 +2,6 @@ name: fast-4.8
 feeder:
   name: candidate-4.8
   delay: P1W
+  errata: public
   filter: 4\.8\.[0-9]+(.*hotfix.*)?
 versions: []

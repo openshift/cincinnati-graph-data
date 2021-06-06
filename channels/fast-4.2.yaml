@@ -2,6 +2,7 @@ name: fast-4.2
 feeder:
   name: candidate-4.2
   delay: P1W
+  errata: public
   filter: 4\.[0-9]+\.[0-9]+(.*hotfix.*|\+amd64|-s390x)?
 tombstones:
 - 4.2.10-s390x
