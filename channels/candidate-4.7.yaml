@@ -4,9 +4,21 @@ tombstones:
 - 4.6.10
 # 4.6.24 introduced a regression in registry ca-trust handling: https://bugzilla.redhat.com/show_bug.cgi?id=1949040#c4
 - 4.6.24
+# Shares an errata with a later release
+- 4.6.33
 # 4.7.10 installer segfaults on install-config serviceEndpoints https://bugzilla.redhat.com/show_bug.cgi?id=1958420
 - 4.7.10
+# 4.7.14 moved monitoring to hard-anti-affinity, and that can conflict with volume affinity https://bugzilla.redhat.com/show_bug.cgi?id=1967614
+- 4.7.14
+# 4.7.15 OVN EgressFirewall doesn't work well as expected https://bugzilla.redhat.com/show_bug.cgi?id=1970322
+- 4.7.15
 versions:
+- 4.6.34
+
+- 4.6.33
+
+- 4.6.32
+
 - 4.6.31
 
 - 4.6.30
@@ -98,3 +110,7 @@ versions:
 - 4.7.12
 
 - 4.7.13
+
+- 4.7.14
+
+- 4.7.15

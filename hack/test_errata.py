@@ -319,6 +319,19 @@ class SynopsisMatchTest(unittest.TestCase):
         """
         for synopsis, expected in [
                 (
+                    'Moderate: OpenShift Container Platform 4.7.13 bug fix and security update',
+                    {
+                        'impact': 'Moderate',
+                        'version': '4.7.13',
+                        'major': '4',
+                        'minor': '7',
+                        'patch': '13',
+                        'prerelease': None,
+                        'build': None,
+                        'type': 'bug fix and security update',
+                    },
+                ),
+                (
                     'Moderate: OpenShift Container Platform 4.7.5 security and bug fix update',
                     {
                         'impact': 'Moderate',
@@ -381,6 +394,34 @@ class SynopsisMatchTest(unittest.TestCase):
                     self.assertEqual(actual.groupdict(), expected)
                 else:
                     self.assertEqual(actual, expected)
+
+
+class AdvisoryPhrasingsTest(unittest.TestCase):
+    def test_phrasings(self):
+        """
+        Ensure we can construct synonym phrasins.
+        """
+        for advisory, expected in [
+                (
+                    'RHBA-123',
+                    ['RHBA-123', 'RHSA-123'],
+                ),
+                (
+                    'RHSA-123',
+                    ['RHBA-123', 'RHSA-123'],
+                ),
+                (
+                    'https://example.com/RHBA-123',
+                    ['https://example.com/RHBA-123', 'https://example.com/RHSA-123'],
+                ),
+                (
+                    'https://example.com/RHBA-123/abc',
+                    ['https://example.com/RHBA-123/abc', 'https://example.com/RHSA-123/abc'],
+                ),
+            ]:
+            with self.subTest(advisory=advisory):
+                actual = list(errata.advisory_phrasings(advisory=advisory))
+                self.assertEqual(actual, expected)
 
 
 class NotifyTest(unittest.TestCase):

@@ -18,6 +18,7 @@ import github
 
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger()
+_ADVISORY_TYPE_REGEXP = re.compile(r'RH[BS]A')
 _SYNOPSIS_REGEXP = re.compile(r'''
   ^((?P<impact>(Low|Moderate|Important|Critical)):[ ])?
   OpenShift[ ]Container[ ]Platform[ ]
@@ -27,7 +28,7 @@ _SYNOPSIS_REGEXP = re.compile(r'''
     (?:\+(?P<build>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?
   )
   [ ](?P<type>
-    (?:(?:security[ ]and[ ])?bug[ ]fix(?:[ ]and[ ]golang[ ]security)?[ ]update)?
+    (?:(?:security[ ]and[ ])?bug[ ]fix(?:[ ]and(?:[ ]golang)?[ ]security)?[ ]update)?
     (?:GA[ ]Images)?
   )$
 ''',
@@ -68,7 +69,7 @@ def run(poll_period=datetime.timedelta(seconds=3600),
                     githubtoken=githubtoken,
                 )
             except ValueError as error:
-                _LOGGER.warn(error)
+                _LOGGER.warning(error)
         next_time += poll_period
         _LOGGER.debug('sleep until {}'.format(next_time))
         time.sleep((next_time - datetime.datetime.now()).seconds)
@@ -89,15 +90,15 @@ def process_message(message, cache, excluded_cache, webhook, githubrepo, githubt
     channel = 'candidate-{major}.{minor}'.format(**synopsis_groups)
     message['uri'] = public_errata_uri(version=synopsis_groups['version'], advisory=advisory, channel=channel)
     if not message['uri']:
-        _LOGGER.warn('No known errata URI for {} in {}'.format(synopsis_groups['version'], channel))
+        _LOGGER.warning('No known errata URI for {} in {}'.format(synopsis_groups['version'], channel))
         return
-    if not message['uri'].endswith(advisory):
-        _LOGGER.warn('Version {} errata {} does not match synopsis {} ({!r})'.format(synopsis_groups['version'], message['uri'], message['fulladvisory'], advisory))
+    if not any(message['uri'].endswith(a) for a in advisory_phrasings(advisory=advisory)):
+        _LOGGER.warning('Version {} errata {} does not match synopsis {} ({!r})'.format(synopsis_groups['version'], message['uri'], message['fulladvisory'], advisory))
         return
     try:
         message['approved_pr'] = lgtm_fast_pr_for_errata(githubrepo, githubtoken, message)
     except Exception as error:
-        _LOGGER.warn('Error looking up PRs: {}'.format(error))
+        _LOGGER.warning('Error looking up PRs: {}'.format(error))
     notify(message=message, webhook=webhook)
     if cache is not None:
         cache[message['fulladvisory']] = {
@@ -175,7 +176,7 @@ def get_open_prs_to_fast(repo):
                 continue
             yield pr
         except Exception as e:
-            _LOGGER.warn("Failed to parse {}: {}".format(pr.number, e))
+            _LOGGER.warning("Failed to parse {}: {}".format(pr.number, e))
 
 
 def extract_errata_number_from_body(body):
@@ -185,14 +186,14 @@ def extract_errata_number_from_body(body):
         x for x in first_line.split(' ') if x.startswith(ERRATA_MARKER)
     ]
     if len(links) == 0:
-        _LOGGER.warn("No links found in PR body: {}".format(body))
+        _LOGGER.warning("No links found in PR body: {}".format(body))
         return None
     errata_num = links[0].rsplit('/', 1)[-1]
 
     try:
         return int(errata_num)
     except ValueError:
-        _LOGGER.warn("Failed to convert PR number to int: {}".format(errata_num))
+        _LOGGER.warning("Failed to convert PR number to int: {}".format(errata_num))
         return None
 
 
@@ -257,6 +258,15 @@ def public_errata_uri(version, advisory, arch='amd64', channel='', update_servic
                 advisories.add(node_advisory)
         _LOGGER.debug('{} not found in {} ({})'.format(advisory, uri, ', '.join(sorted(advisories))))
         return
+
+
+def advisory_phrasings(advisory):
+    match = _ADVISORY_TYPE_REGEXP.search(advisory)
+    if not match:
+        _LOGGER.warning('advisory did not match the advisory type regular expression: {}'.format(advisory))
+        return
+    for phrasing in ['RHBA', 'RHSA']:
+        yield '{}{}{}'.format(advisory[:match.start()], phrasing, advisory[match.end():])
 
 
 if __name__ == '__main__':
