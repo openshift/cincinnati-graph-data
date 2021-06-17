@@ -6,6 +6,8 @@ tombstones:
 - 4.7.14
 # 4.7.15 OVN EgressFirewall doesn't work well as expected https://bugzilla.redhat.com/show_bug.cgi?id=1970322
 - 4.7.15
+# 4.7.17 MCO does not cordone nodes on upgrade https://bugzilla.redhat.com/show_bug.cgi?id=1973006
+- 4.7.17
 versions:
 - 4.7.17
 
