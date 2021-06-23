@@ -53,12 +53,21 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
     if not channel.get('feeder'):
         return
     feeder = channel['feeder']['name']
-    delay_string = channel['feeder']['delay']
+    conditions = []
+
+    delay_string = channel['feeder'].get('delay')
+    if delay_string is not None:
+        delay = parse_iso8601_delay(delay=delay_string)
+        conditions.append('{}'.format(delay_string))
+    else:
+        delay = None
+
     errata = channel['feeder'].get('errata')
     if errata is not None and errata != 'public':
         raise ValueError('invalid errata value for {}: {}', channel, errata)
+    if errata:
+        conditions.append('the errata is published')
 
-    delay = parse_iso8601_delay(delay=delay_string)
     version_filter = re.compile('^{}$'.format(channel['feeder'].get('filter', '.*')))
     feeder_data = channels[feeder]
     unpromoted = set(feeder_data['versions']) - set(channel['versions']) - set(feeder_data.get('tombstones', {}))
@@ -66,10 +75,7 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
     if not candidates:
         return
     feeder_promotions = get_promotions(channel_paths[feeder])
-    suffix = ''
-    if errata:
-        suffix = ' or the errata is published'
-    _LOGGER.info('considering promotions from {} to {} after {}{}'.format(feeder, name, delay_string, suffix))
+    _LOGGER.info('considering promotions from {} to {} after {}'.format(feeder, name, ' or '.join(conditions)))
     for version in sorted(candidates):
         feeder_promotion = feeder_promotions[version]
         yield from stabilize_release(
@@ -92,7 +98,7 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
         errata_uri, errata_public = public_errata_uri(version=version, channel=feeder_name, cache=cache)
         if errata_uri:
             public_errata_message = ' {} is{} public.'.format(errata_uri, '' if errata_public else ' not')
-    if version_delay > delay or errata_public:
+    if (delay is not None and version_delay > delay) or errata_public:
         path_without_extension, _ = os.path.splitext(channel_path)
         subject = '{}: Promote {}'.format(path_without_extension, version)
         body = 'It was promoted to the feeder {} by {} ({}, {}) {} ago.{}'.format(
