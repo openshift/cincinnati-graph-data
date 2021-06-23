@@ -365,6 +365,13 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
+        '--poll',
+        metavar='SECONDS',
+        type=int,
+        help='Seconds to wait between stabilization checks.  By default runs a single round of stabilization changes.',
+        default=None,
+    )
+    parser.add_argument(
         '--github-repo',
         dest='github_repo',
         metavar='REPO',
@@ -387,10 +394,22 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    stabilization_changes(
-        directory='channels',
-        github_repo=args.github_repo.strip(),
-        github_token=args.github_token.strip(),
-        webhook=args.webhook.strip(),
-        waiting_notifications=True,
-    )
+    next_notification = datetime.datetime.now()
+    while True:
+        waiting_notifications = False
+        if datetime.datetime.now() > next_notification:
+            waiting_notifications = True
+            next_notification += datetime.timedelta(hours=24)  # don't flood notifications
+
+        stabilization_changes(
+            directory='channels',
+            github_repo=args.github_repo.strip(),
+            github_token=args.github_token.strip(),
+            webhook=args.webhook.strip(),
+            waiting_notifications=waiting_notifications,
+        )
+        if args.poll:
+            _LOGGER.info('sleeping {} seconds before reconsidering promotions'.format(args.poll))
+            time.sleep(args.poll)
+        else:
+            break
