@@ -20,6 +20,8 @@ tombstones:
 # Shares an errata with a later release
 - 4.6.33
 versions:
+- 4.5.41
+
 - 4.5.40
 
 - 4.5.39
