@@ -1,0 +1,2 @@
+PyGithub >= 1.55
+PyYAML >= 5.4.0
