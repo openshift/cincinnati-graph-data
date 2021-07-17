@@ -159,10 +159,10 @@ def load_channels(directory):
 
 def get_promotions(path):
     # https://git-scm.com/docs/git-blame#_the_porcelain_format
-    process = subprocess.run(['git', 'blame', '--first-parent', '--porcelain', path], check=True, capture_output=True)
+    process = subprocess.run(['git', 'blame', '--first-parent', '--porcelain', path], check=True, capture_output=True, text=True)
     commits = {}
     lines = {}
-    for line in process.stdout.decode('utf-8').strip().split('\n'):
+    for line in process.stdout.strip().split('\n'):
         match = _GIT_BLAME_COMMIT_REGEXP.match(line)
         if match:
             commit = match.group('hash')
@@ -314,11 +314,18 @@ def notify(message, webhook=None):
     }).encode('utf-8'))
 
 
-def promote(version, channel_name, channel_path, subject, body, github_repo, github_token, upstream_remote='origin', upstream_branch='master'):
+def promote(version, channel_name, channel_path, subject, body, github_repo, github_token, upstream_remote, upstream_branch):
     if not github_token:
         raise ValueError('cannot promote without a configured GitHub token')
     subprocess.run(['git', 'fetch', upstream_remote], check=True)
     branch = 'promote-{}-to-{}'.format(version, channel_name)
+    try:
+        subprocess.run(['git', 'show', branch], check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as error:
+        if 'unknown revision or path not in the working tree' not in error.stderr:
+            raise
+    else:
+        raise ValueError('branch {} already exists; possibly waiting for an open pull request to merge'.format(branch))
     subprocess.run(['git', 'checkout', '-b', branch, '{}/{}'.format(upstream_remote, upstream_branch)], check=True)
     with open(channel_path) as f:
         try:
@@ -401,15 +408,22 @@ if __name__ == '__main__':
             waiting_notifications = True
             next_notification += datetime.timedelta(hours=24)  # don't flood notifications
 
+        upstream_remote = 'origin'
+        upstream_branch = 'master'
+
         stabilization_changes(
             directory='channels',
             github_repo=args.github_repo.strip(),
             github_token=args.github_token.strip(),
             webhook=args.webhook.strip(),
             waiting_notifications=waiting_notifications,
+            upstream_remote=upstream_remote,
+            upstream_branch=upstream_branch,
         )
         if args.poll:
             _LOGGER.info('sleeping {} seconds before reconsidering promotions'.format(args.poll))
             time.sleep(args.poll)
+            subprocess.run(['git', 'fetch', upstream_remote], check=True)
+            subprocess.run(['git', 'checkout', '{}/{}'.format(upstream_remote, upstream_branch)], check=True)
         else:
             break
