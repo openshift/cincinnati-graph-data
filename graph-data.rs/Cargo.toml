@@ -5,7 +5,7 @@ authors = ["Vadim Rutkovsky <vrutkovs@redhat.com>"]
 edition = "2018"
 
 [dependencies]
-cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "1201519bbb90c30d0ba5da967bdaea546c7db349"}
+cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "87a7ac35dec5e8a2b4abfe65f95fa82502d4085e"}
 actix-http = "=3.0.0-beta.5"
 actix-service = "=2.0.0-beta.5"
 tokio = { version = "1.7", features = [ "fs", "rt-multi-thread" ] }
@@ -20,3 +20,4 @@ url = "^2.2.2"
 reqwest = { version = "^0.11", features = ["gzip"] }
 futures = "^0.3"
 itertools = "^0.10"
+zeroize = "=1.3.0"
