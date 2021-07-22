@@ -13,8 +13,6 @@ tombstones:
 # 4.8.0 unspecified behavior change
 - 4.8.0
 versions:
-- 4.7.0-assembly.art3091
-
 - 4.7.21
 
 - 4.7.20
