@@ -411,6 +411,9 @@ if __name__ == '__main__':
         upstream_remote = 'origin'
         upstream_branch = 'master'
 
+        if args.poll:
+            subprocess.run(['git', 'fetch', upstream_remote], check=True)
+            subprocess.run(['git', 'checkout', '{}/{}'.format(upstream_remote, upstream_branch)], check=True)
         stabilization_changes(
             directory='channels',
             github_repo=args.github_repo.strip(),
@@ -423,7 +426,5 @@ if __name__ == '__main__':
         if args.poll:
             _LOGGER.info('sleeping {} seconds before reconsidering promotions'.format(args.poll))
             time.sleep(args.poll)
-            subprocess.run(['git', 'fetch', upstream_remote], check=True)
-            subprocess.run(['git', 'checkout', '{}/{}'.format(upstream_remote, upstream_branch)], check=True)
         else:
             break
