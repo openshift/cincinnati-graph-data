@@ -317,6 +317,16 @@ def notify(message, webhook=None):
 def promote(version, channel_name, channel_path, subject, body, github_repo, github_token, upstream_remote, upstream_branch):
     if not github_token:
         raise ValueError('cannot promote without a configured GitHub token')
+
+    process = subprocess.run(['git', 'remote', 'get-url', '--push', upstream_remote], check=True, capture_output=True, text=True)
+    upstream_uri = urllib.parse.urlsplit(process.stdout.strip())
+    if upstream_uri.scheme != 'https':
+        raise ValueError('pushing by token requires HTTPS for security, so cannot use {} scheme {}'.format(upstream_remote, upstream_uri.scheme))
+    _, have_user_info, host_info = upstream_uri.netloc.rpartition('@')
+    if have_user_info:
+        raise ValueError('remote {} configured with user info is not supported, because we expect to authenticate with the configured GitHub token'.format(upstream_remote))
+    upstream_uri_with_token = urllib.parse.urlunsplit(upstream_uri._replace(netloc='{}@{}'.format(github_token, host_info)))
+
     subprocess.run(['git', 'fetch', upstream_remote], check=True)
     branch = 'promote-{}-to-{}'.format(version, channel_name)
     try:
@@ -341,7 +351,7 @@ def promote(version, channel_name, channel_path, subject, body, github_repo, git
         yaml.safe_dump(data, f, default_flow_style=False)
     message = '{}\n\n{}\n'.format(subject, textwrap.fill(body, width=76))
     subprocess.run(['git', 'commit', '--file', '-', channel_path], check=True, encoding='utf-8', input=message)
-    subprocess.run(['git', 'push', '-u', upstream_remote, branch], check=True)
+    subprocess.run(['git', 'push', '-u', upstream_uri_with_token, branch], check=True)
 
     github_object = github.Github(github_token)
     repo = github_object.get_repo(github_repo)
