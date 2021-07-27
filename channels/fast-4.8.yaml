@@ -1,6 +1,7 @@
-name: fast-4.8
 feeder:
-  name: candidate-4.8
   errata: public
   filter: 4\.8\.[0-9]+(.*hotfix.*)?
-versions: []
+  name: candidate-4.8
+name: fast-4.8
+versions:
+- 4.8.2
