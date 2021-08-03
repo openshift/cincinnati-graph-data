@@ -1,5 +1,5 @@
 feeder:
-  delay: PT48H
+  delay: PT72H
   name: fast-4.7
 name: stable-4.7
 versions:
