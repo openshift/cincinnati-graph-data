@@ -19,6 +19,8 @@ tombstones:
 # 4.7.20 unspecified behavior change
 - 4.7.20
 versions:
+- 4.6.42
+
 - 4.6.41
 
 - 4.6.40
