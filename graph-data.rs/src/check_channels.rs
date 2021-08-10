@@ -73,3 +73,58 @@ pub async fn run(channels_vec: &Vec<Channel>) -> Fallible<()> {
         Err(anyhow::anyhow!("Error in channel ordering: {:?}", errors))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test_case::test_case;
+
+    static CHANNEL_A: &str = "a";
+    static CHANNEL_B: &str = "b";
+    static CHANNEL_EMPTY: &str = "empty";
+    static NO_SUCH_CHANNEL: &str = "foobar";
+
+    fn get_test_channels() -> HashMap<String, Vec<semver::Version>> {
+        let channel_a = (
+            CHANNEL_A.to_string(),
+            vec![semver::Version::parse("1.0.0").unwrap()],
+        );
+        let channel_b = (
+            CHANNEL_B.to_string(),
+            vec![
+                semver::Version::parse("1.0.0").unwrap(),
+                semver::Version::parse("2.0.0").unwrap(),
+            ],
+        );
+        let channel_empty = (CHANNEL_EMPTY.to_string(), Vec::<semver::Version>::new());
+        return HashMap::<_, _>::from_iter(vec![channel_a, channel_b, channel_empty].into_iter());
+    }
+
+    // Releases from empty channel would always be valid
+    #[test_case(CHANNEL_EMPTY, CHANNEL_A, None)]
+    // Channel is always valid when compared to itself
+    #[test_case(CHANNEL_A, CHANNEL_A, None)]
+    // All channels from a are in b
+    #[test_case(CHANNEL_A, CHANNEL_B, None)]
+    // No such channel
+    #[test_case(NO_SUCH_CHANNEL, CHANNEL_B, None)]
+    // Some channels in a are not b
+    #[test_case(CHANNEL_B, CHANNEL_A, Some("Release 2.0.0 present in b, but not in a".to_string()))]
+    // Can't compare to inexisting channel
+    #[test_case(CHANNEL_A, NO_SUCH_CHANNEL, Some("Channel a exists, but not foobar".to_string()))]
+    fn test_validate_two_channels(
+        first_channel: &str,
+        second_channel: &str,
+        expected: Option<String>,
+    ) {
+        let channels = get_test_channels();
+        assert_eq!(
+            validate_two_channels(
+                &channels,
+                &first_channel.to_string(),
+                &second_channel.to_string(),
+            ),
+            expected
+        );
+    }
+}
