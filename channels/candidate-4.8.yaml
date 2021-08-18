@@ -15,6 +15,8 @@ tombstones:
 # 4.8.1 s390x missed a kernel bump that went into the other platforms; rerolling as 4.8.2
 - 4.8.1
 versions:
+- 4.7.25
+
 - 4.7.24
 
 - 4.7.23
