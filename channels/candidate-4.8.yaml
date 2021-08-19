@@ -10,10 +10,14 @@ tombstones:
 - 4.7.17
 # 4.7.20 unspecified behavior change
 - 4.7.20
+# 4.7.25 has a CRI-O path issue for born-before-4.6 clusters: https://bugzilla.redhat.com/show_bug.cgi?id=1995785
+- 4.7.25
 # 4.8.0 unspecified behavior change
 - 4.8.0
 # 4.8.1 s390x missed a kernel bump that went into the other platforms; rerolling as 4.8.2
 - 4.8.1
+# 4.8.6 has a CRI-O path issue for born-before-4.6 clusters: https://bugzilla.redhat.com/show_bug.cgi?id=1995785
+- 4.8.6
 versions:
 - 4.7.25
 
