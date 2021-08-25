@@ -1,4 +1,6 @@
 name: candidate-4.9
 versions:
+- 4.8.7
+
 
 - 4.9.0-fc.0
