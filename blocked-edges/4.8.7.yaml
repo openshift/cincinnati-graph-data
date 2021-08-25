@@ -1,4 +1,3 @@
-to: 4.8.2
+to: 4.8.7
 from: 4\.7\..*
-# Authentication operator fails to become available during upgrade https://bugzilla.redhat.com/show_bug.cgi?id=1988576
 # Networking issue with vSphere clusters running HW14 and later. SDN Packet loss resulting in service unavailability.  https://bugzilla.redhat.com/show_bug.cgi?id=1987108
