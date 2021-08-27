@@ -3,7 +3,7 @@ FROM registry.redhat.io/rhel8/rust-toolset:1.47.0 as builder
 WORKDIR /opt/app-root/src/
 COPY . .
 USER 0
-RUN bash -c "source /opt/app-root/etc/scl_enable && cargo test --manifest-path graph-data.rs/Cargo.toml && cargo install --path graph-data.rs"
+RUN bash -c "source /opt/app-root/etc/scl_enable && cargo test --manifest-path graph-data.rs/Cargo.toml && cargo install --locked --path graph-data.rs"
 
 FROM registry.access.redhat.com/ubi8/ubi:latest
 
