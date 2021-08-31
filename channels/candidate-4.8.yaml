@@ -22,6 +22,8 @@ tombstones:
 - 4.8.6
 # 4.8.7 has a networking issue with vSphere clusters running HW14 and later. SDN Packet loss resulting in service unavailability.  https://bugzilla.redhat.com/show_bug.cgi?id=1987108
 - 4.8.7
+# 4.8.9's metadata lacked an errata URI
+- 4.8.9
 versions:
 - 4.7.28
 

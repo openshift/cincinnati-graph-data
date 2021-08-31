@@ -1,4 +1,7 @@
 name: candidate-4.9
+tombstones:
+# 4.8.9's metadata lacked an errata URI
+- 4.8.9
 versions:
 - 4.8.9
 
