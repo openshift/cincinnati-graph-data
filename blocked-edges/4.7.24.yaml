@@ -1,3 +1,4 @@
 to: 4.7.24
 from: .*
 # Networking issue with vSphere clusters running HW14 and later. SDN Packet loss resulting in service unavailability.  https://bugzilla.redhat.com/show_bug.cgi?id=1987108
+# CRI-O leaks files into /run, potentially leading to node out-of-memory issues: https://bugzilla.redhat.com/show_bug.cgi?id=1997062#c24
