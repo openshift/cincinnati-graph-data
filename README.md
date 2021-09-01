@@ -100,17 +100,20 @@ declaring that, while 4.1.18 and 4.1.20 are in `candidate-4.2`, they should not 
 Create/edit an appropriate file in `blocked_edges/`.
 - `to` is the release which has the existing incoming edges.
 - `from` is a regex for the previous release versions.
+    If you want to require `from` to match the full version string (and not just a substring), you must include explicit `^` and `$` anchors.
 
 For example: to block all incoming edges to a release create a file such as `blocked-edges/4.2.11.yaml` containing:
+
 ```yaml
 to: 4.2.11
 from: .*
 ```
 
 If you wish to block specific edges it might look like:
+
 ```yaml
 to: 4.2.0-rc.5
-from: 4\.1\.(18|20)
+from: ^4\.1\.(18|20)$
 ```
 
 [channel-semantics]: https://docs.openshift.com/container-platform/4.3/updating/updating-cluster-between-minor.html#understanding-upgrade-channels_updating-cluster-between-minor
