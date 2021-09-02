@@ -1,3 +1,5 @@
 to: 4.8.9
 from: 4[.]7[.]2[123]|4[.]8[.][234]
 # CRI-O leaks files into /run, potentially leading to node out-of-memory issues: https://bugzilla.redhat.com/show_bug.cgi?id=1997062#c24
+# Internal registry is rejecting the container creation due to sha256 layer mismatch when CephFS is used for the PV https://bugzilla.redhat.com/show_bug.cgi?id=1999591#c23
+
