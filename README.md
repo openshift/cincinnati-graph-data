@@ -113,8 +113,10 @@ If you wish to block specific edges it might look like:
 
 ```yaml
 to: 4.2.0-rc.5
-from: ^4\.1\.(18|20)$
+from: ^4\.1\.(18|20)[+].*$
 ```
+
+The `[+].*` portion absorbs [the architecture-suffix](#release-names) from the release name that consumers will use for comparisons.
 
 [channel-semantics]: https://docs.openshift.com/container-platform/4.3/updating/updating-cluster-between-minor.html#understanding-upgrade-channels_updating-cluster-between-minor
 [Cincinnati]: https://github.com/openshift/cincinnati/
