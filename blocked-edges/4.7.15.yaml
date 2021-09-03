@@ -1,0 +1,3 @@
+to: 4.7.15
+from: .*
+# Blocking all the incoming edges as these versions are tombstoned in candidate-4.7 channel but accidentally promoted to fast-4.8 channel
