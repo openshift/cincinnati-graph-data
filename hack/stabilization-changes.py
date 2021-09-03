@@ -70,7 +70,11 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
 
     version_filter = re.compile('^{}$'.format(channel['feeder'].get('filter', '.*')))
     feeder_data = channels[feeder]
-    unpromoted = set(feeder_data['versions']) - set(channel['versions']) - set(feeder_data.get('tombstones', {}))
+    tombstones = set(feeder_data.get('tombstones', {}))
+    zombies = set(channel['versions']).intersection(tombstones)
+    if zombies:
+        _LOGGER.warning('some versions in {} despite tombstones in {}: {}'.format(name, feeder, ', '.join(sorted(zombies))))
+    unpromoted = set(feeder_data['versions']) - set(channel['versions']) - tombstones
     candidates = set(v for v in unpromoted if version_filter.match(v))
     if not candidates:
         return
