@@ -3,6 +3,5 @@
 
 approvers:
   - cincinnati-graph-data-approvers
-  - release-admins
 reviewers:
-  - cincinnati-graph-data-reviewers
+  - cincinnati-graph-data-approvers
