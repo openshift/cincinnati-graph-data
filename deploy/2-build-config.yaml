@@ -1,0 +1,19 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: graph-data
+  namespace: openshift-update-service
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/openshift/cincinnati-graph-data.git
+      ref: master
+  strategy:
+    type: Docker
+  output:
+    to:
+      kind: ImageStreamTag
+      name: graph-data:latest
+  triggers:
+  - type: ConfigChange
