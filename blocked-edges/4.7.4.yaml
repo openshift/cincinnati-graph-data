@@ -1,5 +1,0 @@
-to: 4.7.4
-from: .*
-# 4.7.4 introduced a node-hostname clear on vSphere: https://bugzilla.redhat.com/show_bug.cgi?id=1942207
-# 4.7 has cross-node SDN issues on vSphere Virtual Hardware Version 14 and later: https://bugzilla.redhat.com/show_bug.cgi?id=1935539
-# Authentication operator's endpoints controller fails to close connections, causing intermittent apiserver and authentication cluster operator instability and high memory usage by the router.  A regression since 4.6, eventually fixed in 4.7.11 https://bugzilla.redhat.com/show_bug.cgi?id=1941840
