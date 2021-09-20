@@ -2,16 +2,16 @@
 # If you specify an arch it must have the full set of values
 ---
 default:
-  minor_min: 4.7.21
-  minor_max: 4.7.9999
+  minor_min: 4.8.11
+  minor_max: 4.8.9999
   minor_block_list: []
-  z_min: 4.8.2
-  z_max: 4.8.9999
+  z_min: 4.9.0-fc.0
+  z_max: 4.9.9999
   z_block_list: []
 # s390x:
-#   minor_min: 4.7.6
-#  minor_max: 4.7.9999
+#   minor_min: 4.8.6
+#  minor_max: 4.8.9999
 #  minor_block_list: []
-#  z_min: 4.8.0
-#  z_max: 4.8.9999
+#  z_min: 4.9.0
+#  z_max: 4.9.9999
 #  z_block_list: []

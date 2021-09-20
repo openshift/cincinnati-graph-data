@@ -53,16 +53,26 @@ For example, for [`channels/fast-4.2.yaml`](channels/fast-4.2.yaml):
 ```yaml
 feeder:
   name: candidate-4.2
-  delay: P1W
+  errata: public
   filter: 4\.[0-9]+\.[0-9]+(.*hotfix.*|\+amd64|-s390x)?
 ```
 
-which declares the intention that nodes and edges will be considered for promotion into `fast-4.2` after cooking for one week in `candidate-4.2`.
-The `delay` value is an [ISO 8601][rfc-3339-p13] [duration][iso-8601-durations].
+which declares the intention that nodes and edges will be considered for promotion from `candidate-4.2` into `fast-4.2` after the errata becomes public.
+The optional `errata` property only accepts one value, `public`, and marks a public errata as sufficient, but not necessary, for promoting a feeder node.
 The `filter` value excludes `4.2.0-rc.5` and other releases, while allowing for `4.2.0-0.hotfix-2020-09-19-234758` and `4.2.10-s390x` and `4.2.14+amd64`.
 
-This is the expected delay, but it does not mean that promotion will happen at that moment.
-For example, it is possible that release architects decide that there is insufficient data for a `fast-4.2` promotion, in which case the promotion can be delated until sufficient data accumulates.
+Another example is [`channels/stable-4.2.yaml`](channels/stable-4.2.yaml):
+
+```yaml
+feeder:
+  name: fast-4.2
+  delay: PT48H
+```
+
+which declares the intention that nodes and edges will be considered for promotion from `fast-4.2` into `stable-4.2` after a delay of 48 hours.
+The `delay` value is an [ISO 8601][rfc-3339-p13] [duration][iso-8601-durations], and spending sufficient time in the feeder channel is sufficient, but not necessary, for promoting the feeder node.
+
+If both `errata` and `delay` are set, the feeder nodes will be promoted when `delay` has elapsed or the release errata becomes public, whichever comes first.
 
 To see recommended feeder promotions, run:
 
@@ -88,25 +98,55 @@ declaring that, while 4.1.18 and 4.1.20 are in `candidate-4.2`, they should not 
 ### Block Edges
 
 Create/edit an appropriate file in `blocked_edges/`.
-- `to` is the release which has the existing incoming edges.
-- `from` is a regex for the previous release versions.
+
+* `to` (required, [string][json-string]) is the release which has the existing incoming edges.
+* `from` (required, [string][json-string]) is a regex for the previous release versions.
+    If you want to require `from` to match the full version string (and not just a substring), you must include explicit `^` and `$` anchors.
+    Release version strings will receive [the architecture-suffix](#release-names) before being compared to this regular expression.
+* `url` (optional, [string][json-string]), with a URI documenting the blocking reason.
+    For example, this could link to a bug's impact statement or knowledge-base article.
+* `name` (optional, [string][json-string]), with a CamelCase reason suitable for [a `ClusterOperatorStatusCondition` `reason` property][api-reason].
+* `message` (optional, [string][json-string]), with a human-oriented message describing the blocking reason, suitable for [a `ClusterOperatorStatusCondition` `message` property][api-message].
+* `matchingRules` (optional, [array][json-array]), defining conditions for deciding which clusters have the update recommended and which do not.
+    The array is ordered by decreasing precedence.
+    Consumers should walk the array in order.
+    For a given entry, if a condition type is unrecognized, or fails to evaluate, consumers should proceed to the next entry.
+    If a condition successfully evaluates (either as a match or as an explicit does-not-match), that result is used, and no further entries should be attempted.
+    If no condition can be successfully evaluated, the update should not be recommended.
+    Each entry must be an [object][json-object] with at least the following property:
+
+    * `type` (required, [string][json-string]), defining the type in [the condition type registry][cluster-condition-type-registry].
+        For example, `type: promql` identifies the condition as [the `promql` type][cluster-condition-type-registry-promql].
+
+    Additional properties for each entry are defined in [the cluster-condition type registry][cluster-condition-type-registry].
 
 For example: to block all incoming edges to a release create a file such as `blocked-edges/4.2.11.yaml` containing:
+
 ```yaml
 to: 4.2.11
 from: .*
 ```
 
 If you wish to block specific edges it might look like:
+
 ```yaml
 to: 4.2.0-rc.5
-from: 4\.1\.(18|20)
+from: ^4\.1\.(18|20)[+].*$
 ```
 
+The `[+].*` portion absorbs [the architecture-suffix](#release-names) from the release name that consumers will use for comparisons.
+
+[api-message]: https://github.com/openshift/api/blob/67c28690af52a69e0b8fa565916fe1b9b7f52f10/config/v1/types_cluster_operator.go#L135-L139
+[api-reason]: https://github.com/openshift/api/blob/67c28690af52a69e0b8fa565916fe1b9b7f52f10/config/v1/types_cluster_operator.go#L131-L133
 [channel-semantics]: https://docs.openshift.com/container-platform/4.3/updating/updating-cluster-between-minor.html#understanding-upgrade-channels_updating-cluster-between-minor
 [Cincinnati]: https://github.com/openshift/cincinnati/
+[cluster-condition-type-registry]: https://github.com/openshift/enhancements/pull/821#FIXME
+[cluster-condition-type-registry-promql]: https://github.com/openshift/enhancements/pull/821#FIXME
 [image-arch]: https://github.com/opencontainers/image-spec/blame/v1.0.1/config.md#L103
 [iso-8601-durations]: https://en.wikipedia.org/wiki/ISO_8601#Durations
+[json-array]: https://datatracker.ietf.org/doc/html/rfc8259#section-5
+[json-object]: https://datatracker.ietf.org/doc/html/rfc8259#section-4
+[json-string]: https://datatracker.ietf.org/doc/html/rfc8259#section-7
 [rfc-3339-p13]: https://tools.ietf.org/html/rfc3339#page-13
 [semver]: https://semver.org/spec/v2.0.0.html
 [semver-build]: https://semver.org/spec/v2.0.0.html#spec-item-10

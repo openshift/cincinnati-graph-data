@@ -1,5 +1,13 @@
-name: stable-4.8
 feeder:
+  delay: PT96H
+  filter: 4\.8\.[0-9]+(.*hotfix.*)?
   name: fast-4.8
-  delay: PT48H
-versions: []
+name: stable-4.8
+versions:
+- 4.8.2
+- 4.8.3
+- 4.8.4
+- 4.8.5
+- 4.8.9
+- 4.8.10
+- 4.8.11
