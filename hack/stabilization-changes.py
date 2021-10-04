@@ -37,7 +37,7 @@ def parse_iso8601_delay(delay):
     weeks = int(match.group('weeks') or 0)
     days = int(match.group('days') or 0)
     hours = int(match.group('hours') or 0)
-    return datetime.timedelta(days=7*weeks + days, hours=hours)
+    return datetime.timedelta(weeks=weeks, days=days, hours=hours)
 
 
 def stabilization_changes(directory, webhook=None, **kwargs):
