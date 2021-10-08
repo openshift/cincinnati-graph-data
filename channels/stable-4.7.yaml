@@ -1,5 +1,5 @@
 feeder:
-  delay: PT7D
+  delay: P1W
   name: fast-4.7
 name: stable-4.7
 versions:
