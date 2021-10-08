@@ -1,5 +1,5 @@
 feeder:
-  delay: PT168H
+  delay: PT7D
   name: fast-4.6
 name: stable-4.6
 versions:
