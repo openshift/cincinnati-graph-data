@@ -3,4 +3,5 @@ feeder:
   filter: 4\.9\.[0-9]+(.*hotfix.*)?
   name: candidate-4.9
 name: fast-4.9
-versions: []
+versions:
+- 4.9.0
