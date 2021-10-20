@@ -19,10 +19,13 @@ def validate_blocked_edges(directory):
             try:
                 validate_blocked_edge(data=data)
             except Exception as error:
-                raise ValueError('invalid blocked edge {}'.format(path)) from error
+                raise ValueError('invalid blocked edge {}: {}'.format(path, error))
 
 
 def validate_blocked_edge(data):
+    for prop in ['to', 'from']:
+        if prop not in data:
+            raise ValueError('{!r} is a required property'.format(prop))
     if 'url' in data and not data['url'].startswith('https://'):
         raise ValueError('url must be an https:// URI, not {!r}'.format(data['url']))
     if 'name' in data and (not isinstance(data['name'], str) or ' ' in data['name']):
