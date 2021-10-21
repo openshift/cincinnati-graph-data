@@ -1,9 +1,14 @@
-FROM registry.redhat.io/rhel8/rust-toolset:1.47.0 as builder
+FROM registry.access.redhat.com/ubi8/ubi:latest as builder
 
 WORKDIR /opt/app-root/src/
 COPY . .
 USER 0
-RUN bash -c "source /opt/app-root/etc/scl_enable && cargo test --manifest-path graph-data.rs/Cargo.toml && cargo install --locked --path graph-data.rs"
+RUN dnf update -y \
+    && dnf install -y rust cargo openssl-devel \
+    && dnf clean all
+
+RUN cargo test --manifest-path graph-data.rs/Cargo.toml \
+    && cargo install --locked --path graph-data.rs
 
 FROM registry.access.redhat.com/ubi8/ubi:latest
 
@@ -15,7 +20,7 @@ RUN yum update -y && \
 
 WORKDIR /code
 COPY . .
-COPY --from=builder /opt/app-root/src/.cargo/bin/cincinnati-graph-data /usr/local/bin/
+COPY --from=builder /root/.cargo/bin/cincinnati-graph-data /usr/local/bin/
 COPY --from=builder /opt/app-root/src/graph-data.rs/public-keys /usr/local/share/public-keys
 
 ENTRYPOINT ["/usr/local/bin/cincinnati-graph-data"]
