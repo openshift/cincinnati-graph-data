@@ -14,6 +14,8 @@ tombstones:
 - 4.7.25
 # 4.7.26 has a networking issue with vSphere clusters running HW14 and later. SDN Packet loss resulting in service unavailability.  https://bugzilla.redhat.com/show_bug.cgi?id=1987108
 - 4.7.26
+# 4.7.35 lacks metadata errata URIs for s390x and ppc64le
+- 4.7.35
 # 4.8.0 unspecified behavior change
 - 4.8.0
 # 4.8.1 s390x missed a kernel bump that went into the other platforms; rerolling as 4.8.2
