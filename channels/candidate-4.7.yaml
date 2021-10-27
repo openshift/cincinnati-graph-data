@@ -25,6 +25,8 @@ tombstones:
 # 4.7.35 lacks metadata errata URIs for s390x and ppc64le
 - 4.7.35
 versions:
+- 4.6.49
+
 - 4.6.48
 
 - 4.6.47
