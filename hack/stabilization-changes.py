@@ -105,11 +105,11 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
             public_errata_message = ' {} is{} public.'.format(errata_uri, '' if errata_public else ' not')
     if (delay is not None and version_delay > delay) or errata_public:
         path_without_extension, _ = os.path.splitext(channel_path)
+        commit_link = '<https://github.com/openshift/cincinnati-graph-data/commits/{0}|{0}>'.format(feeder_promotion['hash'][:10])
         subject = '{}: Promote {}'.format(path_without_extension, version)
-        body = 'It was promoted to the feeder {} by {} ({}, {}) {} ago.{}'.format(
+        body = 'It was promoted to the feeder {} by {} ({}) {} ago.{}'.format(
                 feeder_name,
-                feeder_promotion['hash'][:10],
-                feeder_promotion['summary'],
+                commit_link,
                 feeder_promotion['committer-time'].date().isoformat(),
                 version_delay,
                 public_errata_message,
