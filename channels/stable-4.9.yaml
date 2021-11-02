@@ -5,3 +5,4 @@ feeder:
 name: stable-4.9
 versions:
 - 4.9.0
+- 4.9.4
