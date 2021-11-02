@@ -2,6 +2,7 @@
 
 import codecs
 import datetime
+import dateutil.relativedelta
 import http
 import json
 import logging
@@ -94,24 +95,33 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
             **kwargs)
 
 
+def human_readable_relativedelta(delta):
+    attrs = ['years', 'months', 'days', 'hours', 'minutes']
+    human_readable = ['%d %s' % (getattr(delta, attr), attr if getattr(delta, attr) > 1 else attr[:-1])
+        for attr in attrs if getattr(delta, attr)]
+    return "{} ago".format(", ".join(human_readable))
+
+
 def stabilize_release(version, channel_name, channel_path, delay, errata, feeder_name, feeder_promotion, cache, waiting_notifications=True, **kwargs):
     now = datetime.datetime.now()
     version_delay = now - feeder_promotion['committer-time']
+    merged_ago = human_readable_relativedelta(
+        dateutil.relativedelta.relativedelta(now, feeder_promotion['committer-time']))
     errata_public = False
     public_errata_message = ''
+    commit_link = '<https://github.com/openshift/cincinnati-graph-data/commits/{0}|{0}>'.format(feeder_promotion['hash'][:10])
     if errata:
         errata_uri, errata_public = public_errata_uri(version=version, channel=feeder_name, cache=cache)
         if errata_uri:
             public_errata_message = ' {} is{} public.'.format(errata_uri, '' if errata_public else ' not')
     if (delay is not None and version_delay > delay) or errata_public:
         path_without_extension, _ = os.path.splitext(channel_path)
-        commit_link = '<https://github.com/openshift/cincinnati-graph-data/commits/{0}|{0}>'.format(feeder_promotion['hash'][:10])
         subject = '{}: Promote {}'.format(path_without_extension, version)
-        body = 'It was promoted to the feeder {} by {} ({}) {} ago.{}'.format(
+        body = 'It was promoted to the feeder {} by {} ({}) {}.{}'.format(
                 feeder_name,
                 commit_link,
                 feeder_promotion['committer-time'].date().isoformat(),
-                version_delay,
+                merged_ago,
                 public_errata_message,
             )
         try:
@@ -128,16 +138,21 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
         else:
             yield '{}. {} {}'.format(subject, body, pull.html_url)
     else:
-        _LOGGER.info('  waiting: {} ({}){}'.format(version, version_delay, public_errata_message))
+        _LOGGER.info('  waiting: {} ({}){}'.format(version, merged_ago, public_errata_message))
         if waiting_notifications:
-            yield 'Recommend waiting to promote {} to {}; it was promoted the feeder {} by {} ({}, {}, {}){}'.format(
+            # Show either expected promotion time or when
+            time_message = None
+            if delay:
+                # Show expected date to promote
+                time_message = "Expected to be promoted on {}".format(feeder_promotion['committer-time'] + delay)
+            else:
+                time_message = "Merged {}".format(merged_ago)
+            yield 'Recommend waiting to promote {} to {}; it was promoted the feeder {} by {} {}){}'.format(
                 version,
                 channel_name,
                 feeder_name,
-                feeder_promotion['hash'][:10],
-                feeder_promotion['summary'],
-                feeder_promotion['committer-time'].date().isoformat(),
-                version_delay,
+                commit_link,
+                time_message,
                 public_errata_message)
 
 
