@@ -1,12 +1,25 @@
+feeder:
+  delay: PT0H
+  filter: 4\.[89]\.[0-9].*
+  name: candidate
 name: candidate-4.9
 tombstones:
-# 4.8.7 has a networking issue with vSphere clusters running HW14 and later. SDN Packet loss resulting in service unavailability.  https://bugzilla.redhat.com/show_bug.cgi?id=1987108
 - 4.8.7
-# 4.8.16's amd64 build only has baked-in update edges from 4.7.35
 - 4.8.16
-# 4.9.1 lacked a baked-in update from 4.8.17
 - 4.9.1
 versions:
+- 4.8.0-fc.0
+- 4.8.0-fc.1
+- 4.8.0-fc.2
+- 4.8.0-fc.3
+- 4.8.0-fc.5
+- 4.8.0-fc.7
+- 4.8.0-fc.8
+- 4.8.0-fc.9
+- 4.8.0-rc.0
+- 4.8.0-rc.1
+- 4.8.0-rc.2
+- 4.8.0-rc.3
 - 4.8.2
 - 4.8.3
 - 4.8.4
