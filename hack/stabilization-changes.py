@@ -202,6 +202,9 @@ def public_errata_uri(version, cache=None, **kwargs):
         if not cached:
             return None, None
         return cached['uri'], cached['public']
+    if kwargs.get('channel') == 'candidate':
+        major_minor = '.'.join(version.split('.', 2)[:2])
+        kwargs['channel'] = 'candidate-{}'.format(major_minor)
     cincinnati_uri, cincinnati_data = get_cincinnati_channel(cache=cache, **kwargs)
     canonical_errata_uri = errata_uri_from_cincinnati(version=version, cincinnati_data=cincinnati_data, cincinnati_uri=cincinnati_uri)
     if not canonical_errata_uri:

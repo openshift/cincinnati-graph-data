@@ -3,10 +3,6 @@ feeder:
   filter: 4\.[89]\.[0-9].*
   name: candidate
 name: candidate-4.9
-tombstones:
-- 4.8.7
-- 4.8.16
-- 4.9.1
 versions:
 - 4.8.0-fc.0
 - 4.8.0-fc.1
