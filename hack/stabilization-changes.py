@@ -2,7 +2,6 @@
 
 import codecs
 import datetime
-import dateutil.relativedelta
 import http
 import json
 import logging
@@ -95,18 +94,22 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
             **kwargs)
 
 
-def human_readable_relativedelta(delta):
-    attrs = ['years', 'months', 'days', 'hours', 'minutes']
-    human_readable = ['%d %s' % (getattr(delta, attr), attr if getattr(delta, attr) > 1 else attr[:-1])
-        for attr in attrs if getattr(delta, attr)]
+def human_readable_relativedelta(delay):
+    delta = {}
+    # Convert delay.seconds to hours and minutes
+    delta["days"] = delay.days
+    delta["hours"] = delay.seconds // 3600
+    delta["minutes"] = delay.seconds // 60 % 60
+    human_readable = [
+        '{} {}'.format(delta.get(attr), attr if delta.get(attr) > 1 else attr[:-1])
+            for attr in delta.keys()]
     return "{} ago".format(", ".join(human_readable))
 
 
 def stabilize_release(version, channel_name, channel_path, delay, errata, feeder_name, feeder_promotion, cache, waiting_notifications=True, **kwargs):
     now = datetime.datetime.now()
     version_delay = now - feeder_promotion['committer-time']
-    merged_ago = human_readable_relativedelta(
-        dateutil.relativedelta.relativedelta(now, feeder_promotion['committer-time']))
+    merged_ago = human_readable_relativedelta(version_delay)
     errata_public = False
     public_errata_message = ''
     commit_link = '<https://github.com/openshift/cincinnati-graph-data/commits/{0}|{0}>'.format(feeder_promotion['hash'][:10])
