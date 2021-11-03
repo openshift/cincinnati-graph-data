@@ -374,13 +374,13 @@ def semver_sort_key(version):
     # Precedence is defined in https://semver.org/spec/v2.0.0.html#spec-item-11
     identifiers = _SEMANTIC_VERSION_DELIMITERS.sub(' ', version)
     ids = []
-    for identifier in identifiers.split():
-        try:
-            i = int(identifier)
-        except ValueError:
-            ids.append(identifier)
-        else:
-            ids.append(i)
+    for indx, identifier in enumerate(identifiers.split()):
+        if indx < 3:
+            try:
+                identifier = int(identifier)
+            except ValueError:
+                pass
+        ids.append(identifier)
     return tuple(ids)
 
 
