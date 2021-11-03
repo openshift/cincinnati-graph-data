@@ -147,10 +147,10 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
             time_message = None
             if delay:
                 # Show expected date to promote
-                time_message = "Expected to be promoted on {}".format(feeder_promotion['committer-time'] + delay)
+                time_message = "Current promotion delay will be satisfied on {}".format(feeder_promotion['committer-time'] + delay)
             else:
                 time_message = "Merged {}".format(merged_ago)
-            yield 'Recommend waiting to promote {} to {}; it was promoted the feeder {} by {} {}){}'.format(
+            yield 'Recommend waiting to promote {} to {}; it was promoted the to feeder {} by {} {}){}'.format(
                 version,
                 channel_name,
                 feeder_name,
