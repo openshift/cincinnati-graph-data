@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import codecs
+import collections
 import datetime
 import http
 import json
@@ -95,7 +96,7 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
 
 
 def human_readable_relativedelta(delay):
-    delta = {}
+    delta = collections.OrderedDict()
     # Convert delay.seconds to hours and minutes
     delta["days"] = delay.days
     delta["hours"] = delay.seconds // 3600
