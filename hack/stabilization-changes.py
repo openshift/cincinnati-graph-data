@@ -113,7 +113,11 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
     merged_ago = human_readable_relativedelta(version_delay)
     errata_public = False
     public_errata_message = ''
-    commit_link = '<https://github.com/openshift/cincinnati-graph-data/commits/{0}|{0}>'.format(feeder_promotion['hash'][:10])
+
+    # Use commit link unless its dummy hash
+    commit_link = ''
+    if feeder_promotion['hash'][:10] != '0'*10:
+        commit_link = '<https://github.com/openshift/cincinnati-graph-data/commits/{0}|{0}>'.format(feeder_promotion['hash'][:10])
     if errata:
         errata_uri, errata_public = public_errata_uri(version=version, channel=feeder_name, cache=cache)
         if errata_uri:
@@ -121,9 +125,10 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
     if (delay is not None and version_delay > delay) or errata_public:
         path_without_extension, _ = os.path.splitext(channel_path)
         subject = '{}: Promote {}'.format(path_without_extension, version)
-        body = 'It was promoted to the feeder {} by {} ({}) {}.{}'.format(
+        body = 'It was promoted to the feeder {} by {} {} ({}) {}.{}'.format(
                 feeder_name,
                 commit_link,
+                feeder_promotion['summary'],
                 feeder_promotion['committer-time'].date().isoformat(),
                 merged_ago,
                 public_errata_message,
@@ -151,11 +156,13 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
                 time_message = "Current promotion delay will be satisfied on {}".format(feeder_promotion['committer-time'] + delay)
             else:
                 time_message = "Merged {}".format(merged_ago)
-            yield 'Recommend waiting to promote {} to {}; it was promoted the to feeder {} by {} {}) {}'.format(
+            yield 'Recommend waiting to promote {} to {}; it was promoted to the feeder {} by {} {} ({}). {}{}'.format(
                 version,
                 channel_name,
                 feeder_name,
                 commit_link,
+                feeder_promotion['summary'],
+                feeder_promotion['committer-time'].date().isoformat(),
                 time_message,
                 public_errata_message)
 
