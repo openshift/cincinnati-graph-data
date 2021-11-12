@@ -1,7 +1,7 @@
 feeder:
-  delay: P1W
-  filter: 4\.9\.[0-9]+(.*hotfix.*)?
-  name: fast-4.9
+  delay: PT0H
+  filter: 4\.9\.[0-9].*
+  name: stable
 name: stable-4.9
 versions:
 - 4.9.0
