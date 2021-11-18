@@ -20,14 +20,13 @@ dependencies = [
 
 [[package]]
 name = "actix-http"
-version = "3.0.0-beta.11"
+version = "3.0.0-beta.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9b510d35f13987537289f38bf136e7e702a5c87cc28760310cc459544f40afd"
+checksum = "afaeb3d3fcb06b775ac62f05d580aae4afe5a149513333a73f688fdf26c06639"
 dependencies = [
  "actix-codec",
  "actix-rt",
  "actix-service",
- "actix-tls",
  "actix-utils",
  "ahash",
  "base64 0.13.0",
@@ -49,14 +48,12 @@ dependencies = [
  "local-channel",
  "log",
  "mime",
- "once_cell",
  "percent-encoding",
  "pin-project",
  "pin-project-lite",
  "rand 0.8.4",
  "sha-1",
  "smallvec",
- "tokio",
  "zstd",
 ]
 
@@ -121,23 +118,6 @@ dependencies = [
  "futures-core",
  "paste",
  "pin-project-lite",
-]
-
-[[package]]
-name = "actix-tls"
-version = "3.0.0-beta.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4af84e13e4600829858a3e68079be710d1ada461431e1e4c5ae663479ea0a3c"
-dependencies = [
- "actix-codec",
- "actix-rt",
- "actix-service",
- "actix-utils",
- "derive_more",
- "futures-core",
- "http",
- "log",
- "tokio-util",
 ]
 
 [[package]]
@@ -1198,9 +1178,9 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "http"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "527e8c9ac747e28542699a951517aa9a6945af506cd1f2e1b53a576c17b6cc11"
+checksum = "1323096b05d41827dadeaee54c9981958c0f94e670bc94ed80037d1a7b8b186b"
 dependencies = [
  "bytes",
  "fnv",
