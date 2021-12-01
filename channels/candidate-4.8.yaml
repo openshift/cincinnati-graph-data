@@ -27,6 +27,8 @@ tombstones:
 # 4.8.16's amd64 build only has baked-in update edges from 4.7.35
 - 4.8.16
 versions:
+- 4.7.39
+
 - 4.7.38
 
 - 4.7.37
