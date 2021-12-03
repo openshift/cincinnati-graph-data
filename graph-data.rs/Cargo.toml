@@ -5,10 +5,10 @@ authors = ["Vadim Rutkovsky <vrutkovs@redhat.com>"]
 edition = "2018"
 
 [dependencies]
-cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "858548d7d73d426c28c3f88606dc93735400a043"}
+cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "51009e75eea1102fbf639c4687d96d924be3e8b9"}
 actix-http = "^3.0.0-beta.13"
 actix-service = "^2.0.1"
-tokio = { version = "^1.13", features = [ "fs", "rt-multi-thread" ] }
+tokio = { version = "^1.14", features = [ "fs", "rt-multi-thread" ] }
 serde = "^1.0.130"
 serde_yaml = "^0.8.21"
 anyhow = "1.0"
