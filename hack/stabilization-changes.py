@@ -40,8 +40,8 @@ def parse_iso8601_delay(delay):
     return datetime.timedelta(weeks=weeks, days=days, hours=hours)
 
 
-def stabilization_changes(directory, webhook=None, **kwargs):
-    channels, channel_paths = load_channels(directory=directory)
+def stabilization_changes(directories, webhook=None, **kwargs):
+    channels, channel_paths = load_channels(directories=directories)
     cache = {}
     notifications = []
     for name, channel in sorted(channels.items()):
@@ -141,24 +141,25 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
                 public_errata_message)
 
 
-def load_channels(directory):
+def load_channels(directories):
     channels = {}
     paths = {}
-    for root, _, files in os.walk(directory):
-        for filename in files:
-            if not filename.endswith('.yaml'):
-                continue
-            path = os.path.join(root, filename)
-            with open(path) as f:
-                try:
-                    data = yaml.load(f, Loader=yaml.SafeLoader)
-                except ValueError as error:
-                    raise ValueError('failed to load YAML from {}: {}'.format(path, error))
-            channel = data['name']
-            if channel in channels:
-                raise ValueError('multiple definitions for {}: {} and {}'.format(channel, paths[channel], path))
-            paths[channel] = path
-            channels[channel] = data
+    for directory in directories:
+        for root, _, files in os.walk(directory):
+            for filename in files:
+                if not filename.endswith('.yaml'):
+                    continue
+                path = os.path.join(root, filename)
+                with open(path) as f:
+                    try:
+                        data = yaml.load(f, Loader=yaml.SafeLoader)
+                    except ValueError as error:
+                        raise ValueError('failed to load YAML from {}: {}'.format(path, error))
+                channel = data['name']
+                if channel in channels:
+                    raise ValueError('multiple definitions for {}: {} and {}'.format(channel, paths[channel], path))
+                paths[channel] = path
+                channels[channel] = data
     return channels, paths
 
 
@@ -201,6 +202,9 @@ def public_errata_uri(version, cache=None, **kwargs):
         if not cached:
             return None, None
         return cached['uri'], cached['public']
+    if kwargs.get('channel') == 'candidate':
+        major_minor = '.'.join(version.split('.', 2)[:2])
+        kwargs['channel'] = 'candidate-{}'.format(major_minor)
     cincinnati_uri, cincinnati_data = get_cincinnati_channel(cache=cache, **kwargs)
     canonical_errata_uri = errata_uri_from_cincinnati(version=version, cincinnati_data=cincinnati_data, cincinnati_uri=cincinnati_uri)
     if not canonical_errata_uri:
@@ -374,13 +378,13 @@ def semver_sort_key(version):
     # Precedence is defined in https://semver.org/spec/v2.0.0.html#spec-item-11
     identifiers = _SEMANTIC_VERSION_DELIMITERS.sub(' ', version)
     ids = []
-    for identifier in identifiers.split():
-        try:
-            i = int(identifier)
-        except ValueError:
-            ids.append(identifier)
-        else:
-            ids.append(i)
+    for indx, identifier in enumerate(identifiers.split()):
+        if indx < 3:
+            try:
+                identifier = int(identifier)
+            except ValueError:
+                pass
+        ids.append(identifier)
     return tuple(ids)
 
 
@@ -435,7 +439,7 @@ if __name__ == '__main__':
             subprocess.run(['git', 'fetch', upstream_remote], check=True)
             subprocess.run(['git', 'checkout', '{}/{}'.format(upstream_remote, upstream_branch)], check=True)
         stabilization_changes(
-            directory='channels',
+            directories={'channels', 'internal-channels'},
             github_repo=args.github_repo.strip(),
             github_token=args.github_token.strip(),
             webhook=args.webhook.strip(),

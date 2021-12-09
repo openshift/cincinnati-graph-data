@@ -1,6 +1,7 @@
 feeder:
-  delay: P1W
-  name: fast-4.8
+  delay: PT0H
+  filter: 4\.[78]\.[0-9].*
+  name: stable
 name: stable-4.8
 versions:
 - 4.7.0
