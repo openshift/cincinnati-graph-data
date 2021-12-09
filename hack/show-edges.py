@@ -56,11 +56,11 @@ def walk_yaml(directory, revision=None):
         yield (path, data)
 
 
-def load_channel(channel, revision=None, directory='channels'):
-    channels = {}
-    for path, data in walk_yaml(directory=directory, revision=revision):
-        if channel == data['name']:
-            return data
+def load_channel(channel, revision=None, directories=['channels', 'internal-channels']):
+    for directory in directories:
+        for path, data in walk_yaml(directory=directory, revision=revision):
+            if channel == data['name']:
+                return data
     raise ValueError('no channel named {} found in {}'.format(channel, directory))
 
 
