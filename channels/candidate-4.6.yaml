@@ -24,6 +24,8 @@ tombstones:
 # 4.6.50 lacked some desired updates
 - 4.6.50
 versions:
+- 4.5.666
+
 - 4.5.41
 
 - 4.5.40
