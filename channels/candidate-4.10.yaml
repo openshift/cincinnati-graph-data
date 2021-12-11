@@ -1,0 +1,6 @@
+feeder:
+  delay: PT0H
+  filter: 4[.](9|10)[.][0-9].*
+  name: candidate
+name: candidate-4.10
+versions: []
