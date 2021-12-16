@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import codecs
+import collections
 import io
 import json
 import logging
@@ -262,13 +263,14 @@ def load_blocks(versions, revision=None, directory='blocked-edges'):
 
 
 def get_blocked(edges, blocks, architecture):
-    blocked = set()
+    blocked = collections.defaultdict(set)
     for from_version, to_version in edges:
         for block in blocks:
             if to_version == block['to']:
                 regexp = re.compile(block['from'])
                 if regexp.match('{}+{}'.format(from_version, architecture)):
-                    blocked.add((from_version, to_version))
+                    key = (from_version, to_version)
+                    blocked[key].add(block.get('name'))
     return blocked
 
 
@@ -279,8 +281,10 @@ def show_edges(channel, architecture, repository, revision=None, cache='.metadat
     blocks = load_blocks(versions=[node['version'] for node in nodes.values()], revision=revision)
     blocked = get_blocked(edges=edges, blocks=blocks, architecture=architecture)
     for from_version, to_version in sorted(edges):
-        if (from_version, to_version) in blocked:
-            print('{} -(blocked)-> {}'.format(from_version, to_version))
+        key = (from_version, to_version)
+        if key in blocked:
+            reasons = ', '.join(str(r) for r in sorted(blocked[key]))
+            print('{} -(blocked: {})-> {}'.format(from_version, reasons, to_version))
         else:
             print('{} -> {}'.format(from_version, to_version))
 
