@@ -1,4 +1,5 @@
 mod check_channels;
+mod check_errata_link;
 mod check_releases;
 mod check_signatures;
 mod verify_yaml;
@@ -12,6 +13,7 @@ async fn run_all_tests() -> Fallible<()> {
     check_channels::run(&channels).await?;
     let releases: Vec<Release> = check_releases::run(&found_versions).await?;
     check_signatures::run(&releases, &found_versions).await?;
+    check_errata_link::run(&releases)?;
     Ok(())
 }
 

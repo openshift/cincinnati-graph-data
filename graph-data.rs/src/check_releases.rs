@@ -55,6 +55,7 @@ pub async fn run(found_versions: &HashSet<Version>) -> Fallible<Vec<Release>> {
     return compare_metadata(released_metadata, found_versions);
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
     use cincinnati::ConcreteRelease;
