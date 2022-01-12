@@ -22,7 +22,7 @@ fn compare_metadata(
     let missing_versions: HashSet<&Version> =
         found_versions.difference(&released_versions).collect();
     if missing_versions.is_empty() {
-        Ok(released_metadata.clone())
+        Ok(released_metadata)
     } else {
         Err(anyhow::anyhow!(
             "Missing the following versions in scraped images: {:?}",
@@ -52,9 +52,10 @@ pub async fn run(found_versions: &HashSet<Version>) -> Fallible<Vec<Release>> {
     .into_iter()
     .map(|r| r.into())
     .collect();
-    return compare_metadata(released_metadata, found_versions);
+    compare_metadata(released_metadata, found_versions)
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
     use cincinnati::ConcreteRelease;
