@@ -5,17 +5,15 @@ use std::iter::FromIterator;
 
 use cincinnati::plugins::internal::openshift_secondary_metadata_parser::plugin::graph_data_model::Channel;
 
-static CHANNEL_ORDER: [&'static str; 3] = ["stable", "fast", "candidate"];
+static CHANNEL_ORDER: [&str; 3] = ["stable", "fast", "candidate"];
 
 fn validate_two_channels(
     channels: &HashMap<String, Vec<semver::Version>>,
-    a: &String,
-    b: &String,
+    a: &str,
+    b: &str,
 ) -> Option<String> {
     // Skip test if channel 'a' doesn't exist
-    if channels.get(a).is_none() {
-        return None;
-    }
+    channels.get(a)?;
     // Channel 'b' must be present
     if channels.get(b).is_none() {
         return Some(format!("Channel {} exists, but not {}", a, b));
@@ -24,13 +22,17 @@ fn validate_two_channels(
     let hashset_a: HashSet<_> = HashSet::from_iter(channels[a].iter().cloned());
     let hashset_b: HashSet<_> = HashSet::from_iter(channels[b].iter().cloned());
     let diff = hashset_a.difference(&hashset_b);
-    for r in diff {
-        return Some(format!("Release {} present in {}, but not in {}", r, a, b));
+    let error_message = diff
+        .map(|r| format!("Release {} present in {}, but not in {}", r, a, b))
+        .join("\n");
+    if error_message.is_empty() {
+        None
+    } else {
+        Some(error_message)
     }
-    None
 }
 
-pub async fn run(channels_vec: &Vec<Channel>) -> Fallible<()> {
+pub async fn run(channels_vec: &[Channel]) -> Fallible<()> {
     let mut errors: Vec<String> = vec![];
 
     println!("Verifying all releases are following channel order");
@@ -43,7 +45,7 @@ pub async fn run(channels_vec: &Vec<Channel>) -> Fallible<()> {
     // Collect a list of releases (4.6, 4.5 etc.)
     let releases: Vec<&str> = channels_vec
         .iter()
-        .filter_map(|c| c.name.split("-").last())
+        .filter_map(|c| c.name.split('-').last())
         .unique()
         .collect();
 
@@ -97,7 +99,7 @@ mod tests {
             ],
         );
         let channel_empty = (CHANNEL_EMPTY.to_string(), Vec::<semver::Version>::new());
-        return HashMap::<_, _>::from_iter(vec![channel_a, channel_b, channel_empty].into_iter());
+        HashMap::<_, _>::from_iter(vec![channel_a, channel_b, channel_empty].into_iter())
     }
 
     // Releases from empty channel would always be valid
