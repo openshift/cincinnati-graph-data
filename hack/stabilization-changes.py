@@ -17,6 +17,8 @@ import urllib.request
 import github
 import yaml
 
+import util
+
 
 logging.basicConfig(format='%(levelname)s: %(message)s')
 _LOGGER = logging.getLogger(__name__)
@@ -41,7 +43,7 @@ def parse_iso8601_delay(delay):
 
 
 def stabilization_changes(directories, webhook=None, **kwargs):
-    channels, channel_paths = load_channels(directories=directories)
+    channels, channel_paths = util.load_channels(directories=directories)
     cache = {}
     notifications = []
     for name, channel in sorted(channels.items()):
@@ -139,28 +141,6 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
                 feeder_promotion['committer-time'].date().isoformat(),
                 version_delay,
                 public_errata_message)
-
-
-def load_channels(directories):
-    channels = {}
-    paths = {}
-    for directory in directories:
-        for root, _, files in os.walk(directory):
-            for filename in files:
-                if not filename.endswith('.yaml'):
-                    continue
-                path = os.path.join(root, filename)
-                with open(path) as f:
-                    try:
-                        data = yaml.load(f, Loader=yaml.SafeLoader)
-                    except ValueError as error:
-                        raise ValueError('failed to load YAML from {}: {}'.format(path, error))
-                channel = data['name']
-                if channel in channels:
-                    raise ValueError('multiple definitions for {}: {} and {}'.format(channel, paths[channel], path))
-                paths[channel] = path
-                channels[channel] = data
-    return channels, paths
 
 
 def get_promotions(path):

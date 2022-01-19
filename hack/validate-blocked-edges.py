@@ -2,24 +2,15 @@
 
 import os
 
-import yaml
+import util
 
 
 def validate_blocked_edges(directory):
-    for root, _, files in os.walk(directory):
-        for filename in files:
-            if not filename.endswith('.yaml'):
-                continue
-            path = os.path.join(root, filename)
-            with open(path) as f:
-                try:
-                    data = yaml.load(f, Loader=yaml.SafeLoader)
-                except ValueError as error:
-                    raise ValueError('failed to load YAML from {}: {}'.format(path, error))
-            try:
-                validate_blocked_edge(data=data)
-            except Exception as error:
-                raise ValueError('invalid blocked edge {}: {}'.format(path, error))
+    for path, data in util.walk_yaml(directory=directory):
+        try:
+            validate_blocked_edge(data=data)
+        except Exception as error:
+            raise ValueError('invalid blocked edge {}: {}'.format(path, error))
 
 
 def validate_blocked_edge(data):
