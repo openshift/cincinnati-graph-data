@@ -2,7 +2,7 @@
 # If you specify an arch it must have the full set of values
 ---
 default:
-  minor_min: 4.9.18
+  minor_min: 4.9.19
   minor_max: 4.9.9999
   minor_block_list: []
   z_min: 4.10.0-fc.0
