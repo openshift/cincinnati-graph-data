@@ -12,6 +12,8 @@ import urllib.request
 
 import yaml
 
+import util
+
 
 logging.basicConfig(format='%(levelname)s: %(message)s')
 _LOGGER = logging.getLogger(__name__)
@@ -19,49 +21,11 @@ _LOGGER = logging.getLogger(__name__)
 _VERSION_REGEXP = re.compile('^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
 
 
-def walk_yaml(directory, revision=None):
-    if revision is None:
-        for root, _, files in os.walk(directory):
-            for filename in files:
-                if not filename.endswith('.yaml'):
-                    continue
-                path = os.path.join(root, filename)
-                with open(path) as f:
-                    try:
-                        data = yaml.load(f, Loader=yaml.SafeLoader)
-                    except ValueError as error:
-                        raise ValueError('failed to load YAML from {}: {}'.format(path, error))
-                yield (path, data)
-        return
-
-    list_process = subprocess.run(
-        ['git', 'ls-tree', '-r', '--name-only', revision, directory],
-        capture_output=True,
-        check=True,
-        text=True,
-    )
-    for path in list_process.stdout.splitlines():
-        if not path.endswith('.yaml'):
-            continue
-        process = subprocess.run(
-            ['git', 'cat-file', '-p', '{}:{}'.format(revision, path)],
-            capture_output=True,
-            check=True,
-            text=True,
-        )
-        try:
-            data = yaml.load(io.StringIO(process.stdout), Loader=yaml.SafeLoader)
-        except ValueError as error:
-            raise ValueError('failed to load YAML from {}: {}'.format(path, error))
-        yield (path, data)
-
-
-def load_channel(channel, revision=None, directories=['channels', 'internal-channels']):
-    for directory in directories:
-        for path, data in walk_yaml(directory=directory, revision=revision):
-            if channel == data['name']:
-                return data
-    raise ValueError('no channel named {} found in {}'.format(channel, directory))
+def load_channel(channel, revision=None):
+    channels, _ = util.load_channels(revision=revision)
+    if channel not in channels:
+            raise ValueError('no channel named {}'.format(channel))
+    return channels[channel]
 
 
 def normalize_node(node):
@@ -291,7 +255,7 @@ def get_edges(nodes):
 
 def load_blocks(versions, revision=None, directory='blocked-edges'):
     blocks = []
-    for path, data in walk_yaml(directory=directory, revision=revision):
+    for path, data in util.walk_yaml(directory=directory, revision=revision):
         if data['to'] in versions:
             blocks.append(data)
     return blocks
