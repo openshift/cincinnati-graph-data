@@ -50,6 +50,17 @@ def write_graph_data_changes(initial_commit, final_commit=None):
 def write_update_statistics(uri, total_updates_threshold=20):
     print('<h1><a href="{}">Update status</a> of recent releases (for last week)</h1>'.format(uri))
 
+    print('<dl>')
+    for column_name, definition in [
+            ('slow', 'The cluster update took 8 or more hours.  It may have subsequently completed, or it may still be stuck, or the cluster may have stopped reporting.'),
+            ('gone', 'The cluster stopped reporting Telemetry before completing the update (while it was <code>Progressing=True</code>) or being classified as <em>slow</em>.'),
+            ('progress', 'The cluster update is still progressing, and it has not yet been long enough to count as <em>slow</em>.'),
+            ('success', 'The cluster update completed quickly enough to avoid being classified as <em>slow</em>.'),
+            ]:
+        print('  <dt>{}</dt>'.format(column_name))
+        print('  <dd>{}</dd>'.format(definition))
+    print('</dl>')
+
     # avoid: certificate verify failed: self signed certificate in certificate chain
     context = ssl.create_default_context()
     context.check_hostname = False
@@ -88,7 +99,7 @@ def write_update_statistics(uri, total_updates_threshold=20):
                     continue
                 if '</tbody>' in line:
                     print('<tr><td>More targets with &lt;{} total attempts.</td></tr>'.format(total_updates_threshold))
-                print(line.rstrip())
+                print(line.replace('failed', 'slow').replace('gone[progress]', 'gone').rstrip())
                 if '</table>' in line:
                     return
             elif '<table' in line:
