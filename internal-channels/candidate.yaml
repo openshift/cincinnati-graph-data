@@ -53,8 +53,6 @@ tombstones:
 - 4.8.30
 # 4.9.1 lacked a baked-in update from 4.8.17
 - 4.9.1
-# 4.9.19 lacked a baked-in update from 4.8.31
-- 4.9.19
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
