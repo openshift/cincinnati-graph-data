@@ -55,6 +55,8 @@ tombstones:
 - 4.9.1
 # 4.10.0 had a regression in access to public images https://bugzilla.redhat.com/show_bug.cgi?id=2060605
 - 4.10.0
+# 4.10.1 had a bug in network policies potentially blocking pod egress https://bugzilla.redhat.com/show_bug.cgi?id=2060956
+- 4.10.1
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
