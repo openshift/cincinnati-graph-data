@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+import socket
 import subprocess
 import textwrap
 import time
@@ -29,6 +30,8 @@ _GIT_BLAME_COMMIT_REGEXP = re.compile(r'^(?P<hash>[0-9a-f]{40}) .*')
 _GIT_BLAME_HEADER_REGEXP = re.compile(r'^(?P<key>[^ \t]+) (?P<value>.*)$')
 _GIT_BLAME_LINE_REGEXP = re.compile(r'^\t(?P<value>.*)$')
 _SEMANTIC_VERSION_DELIMITERS = re.compile('[.+-]')
+
+socket.setdefaulttimeout(60)
 
 
 def parse_iso8601_delay(delay):
