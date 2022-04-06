@@ -72,5 +72,7 @@ do
 	EOF
 done
 
+unset GITHUB_TOKEN
+unset WEBHOOK
 DIR="$(dirname "${0}")"
 exec "${DIR}/stabilization-changes.py"

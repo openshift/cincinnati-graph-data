@@ -51,5 +51,7 @@ name: candidate-${MAJOR_MINOR}
 versions: []
 EOF
 
+unset GITHUB_TOKEN
+unset WEBHOOK
 DIR="$(dirname "${0}")"
 exec "${DIR}/stabilization-changes.py"
