@@ -16,8 +16,6 @@ then
 	exit 1
 fi
 
-CHANNELS="$(printf '%s\n%s' fast stable)"
-
 MAJOR="${MAJOR_MINOR%%.*}"
 MINOR="${MAJOR_MINOR##*.}"
 if test "${MAJOR_MINOR}" != "${MAJOR}.${MINOR}"
@@ -30,12 +28,6 @@ then
 		${MAJOR_MINOR} should have a single period.
 	EOF
 	exit 1
-fi
-
-if test "$((MINOR % 2))" -eq 0
-then
-	# 4.even get extended update support: https://access.redhat.com/support/policy/updates/openshift#ocp4_phases
-	CHANNELS="$(printf '%s\n%s' "${CHANNELS}" eus)"
 fi
 
 PREVIOUS_MINOR="$((MINOR - 1))"
