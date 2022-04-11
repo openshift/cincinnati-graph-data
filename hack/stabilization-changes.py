@@ -99,7 +99,7 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
             **kwargs)
 
 
-def stabilize_release(version, channel_name, channel_path, delay, errata, feeder_name, feeder_promotion, cache, waiting_notifications=True, **kwargs):
+def stabilize_release(version, channel_name, channel_path, delay, errata, feeder_name, feeder_promotion, cache, waiting_notifications=True, github_token=None, **kwargs):
     now = datetime.datetime.now()
     version_delay = now - feeder_promotion['committer-time']
     errata_public = False
@@ -126,10 +126,11 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
                 channel_path=channel_path,
                 subject=subject,
                 body=body,
+		github_token=github_token,
                 **kwargs)
         except Exception as error:
-            _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel_name, error))
-            yield 'FAILED {}. {} {}'.format(subject, body, error)
+            _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel_name, sanitize(error, github_token=github_token)))
+            yield 'FAILED {}. {} {}'.format(subject, body, sanitize(error, github_token=github_token))
         else:
             yield '{}. {} {}'.format(subject, body, pull.html_url)
     else:
@@ -355,6 +356,12 @@ def promote(version, channel_name, channel_path, subject, body, github_repo, git
     pull = repo.create_pull(title=subject, body=body, head=branch, base=upstream_branch)
     pull.add_to_labels('lgtm', 'approved')
     return pull
+
+
+def sanitize(error, github_token=None):
+    if github_token is None:
+        return error
+    return str(error).replace(github_token, 'REDACTED')
 
 
 def semver_sort_key(version):
