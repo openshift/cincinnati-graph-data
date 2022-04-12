@@ -29,6 +29,8 @@ _ISO_8601_DELAY_REGEXP = re.compile(r'^P((?P<weeks>\d+)W|((?P<days>\d+)D)?(T(?P<
 _GIT_BLAME_COMMIT_REGEXP = re.compile(r'^(?P<hash>[0-9a-f]{40}) .*')
 _GIT_BLAME_HEADER_REGEXP = re.compile(r'^(?P<key>[^ \t]+) (?P<value>.*)$')
 _GIT_BLAME_LINE_REGEXP = re.compile(r'^\t(?P<value>.*)$')
+_GIT_REMOTE_LINE_REGEXP = re.compile(r'^(?P<remote>[^ ]*)\t(?P<uri>(?P<scheme>[^:]*)://(?P<host>[^/]*)/(?P<org>[^/]*)/(?P<repo>[^/.]*)(.git)?) [(](?P<role>.*)[)]$')
+_REMOTE_CACHE = {}
 _SEMANTIC_VERSION_DELIMITERS = re.compile('[.+-]')
 
 socket.setdefaulttimeout(60)
@@ -307,17 +309,9 @@ def notify(message, webhook=None):
     }).encode('utf-8'))
 
 
-def promote(version, channel_name, channel_path, subject, body, github_repo, github_token, upstream_remote, upstream_branch):
+def promote(version, channel_name, channel_path, subject, body, upstream_github_repo, push_github_repo, github_token, upstream_branch):
     if github_token:
-        process = subprocess.run(['git', 'remote', 'get-url', '--push', upstream_remote], check=True, capture_output=True, text=True)
-        upstream_uri = urllib.parse.urlsplit(process.stdout.strip())
-        if upstream_uri.scheme != 'https':
-            raise ValueError('pushing by token requires HTTPS for security, so cannot use {} scheme {}'.format(upstream_remote, upstream_uri.scheme))
-        _, have_user_info, host_info = upstream_uri.netloc.rpartition('@')
-        if have_user_info:
-            raise ValueError('remote {} configured with user info is not supported, because we expect to authenticate with the configured GitHub token'.format(upstream_remote))
-        upstream_uri_with_token = urllib.parse.urlunsplit(upstream_uri._replace(netloc='{}@{}'.format(github_token, host_info)))
-
+        upstream_remote = get_remote(repo=upstream_github_repo)
         subprocess.run(['git', 'fetch', upstream_remote], check=True)
         branch = 'promote-{}-to-{}'.format(version, channel_name)
         try:
@@ -349,11 +343,14 @@ def promote(version, channel_name, channel_path, subject, body, github_repo, git
         return pull
 
     subprocess.run(['git', 'commit', '--file', '-', channel_path], check=True, encoding='utf-8', input=message)
-    subprocess.run(['git', 'push', '-u', upstream_uri_with_token, branch], check=True)
+    push_uri_with_token = urllib.parse.urlsplit('https://{}@github.com/{}.git'.format(github_token, push_github_repo))
+    subprocess.run(['git', 'push', '-u', push_uri_with_token, branch], check=True)
+
+    owner = push_github_repo.split('/')[0]
 
     github_object = github.Github(github_token)
-    repo = github_object.get_repo(github_repo)
-    pull = repo.create_pull(title=subject, body=body, head=branch, base=upstream_branch)
+    repo = github_object.get_repo(upstream_github_repo)
+    pull = repo.create_pull(title=subject, body=body, head='{}:{}'.format(owner, branch), base=upstream_branch)
     pull.add_to_labels('lgtm', 'approved')
     return pull
 
@@ -378,6 +375,29 @@ def semver_sort_key(version):
     return tuple(ids)
 
 
+def get_remote(repo):
+    remote = _REMOTE_CACHE.get(repo)
+    if remote is not None:
+        return remote
+
+    process = subprocess.run(['git', 'remote', '--verbose'], check=True, capture_output=True, text=True)
+    for line in process.stdout.strip().split('\n'):
+        match = _GIT_REMOTE_LINE_REGEXP.match(line)
+        if not match:
+            _LOGGER.info('ignoring unrecognized remote line syntax: {}'.format(line))
+            continue
+        data = match.groupdict()
+        if data['host'] != 'github.com':
+            _LOGGER.info('ignoring non-GitHub remote host {}: {}'.format(data['host'], line))
+            continue
+        line_repo = '{org}/{repo}'.format(**data)
+        if line_repo not in _REMOTE_CACHE:
+            _REMOTE_CACHE[line_repo] = data['remote']
+            _LOGGER.info('caching remote {} for {}'.format(data['remote'], line_repo))
+
+    return _REMOTE_CACHE[repo]
+
+
 if __name__ == '__main__':
     import argparse
 
@@ -393,11 +413,17 @@ if __name__ == '__main__':
         default=None,
     )
     parser.add_argument(
-        '--github-repo',
-        dest='github_repo',
+        '--upstream-github-repo',
+        dest='upstream_github_repo',
         metavar='REPO',
         help='Automatically create promotion pull requests in the GitHub repository (requires --github-token).',
         default="openshift/cincinnati-graph-data",
+    )
+    parser.add_argument(
+        '--push-github-repo',
+        dest='push_github_repo',
+        metavar='REPO',
+        help='Automatically create promotion branches in the GitHub repository (requires --github-token and --upstream-github-repo).  Defaults to --upstream-github-repo.',
     )
     parser.add_argument(
         '--github-token',
@@ -422,19 +448,20 @@ if __name__ == '__main__':
             waiting_notifications = True
             next_notification += datetime.timedelta(hours=24)  # don't flood notifications
 
-        upstream_remote = 'origin'
         upstream_branch = 'master'
+        upstream_github_repo = args.upstream_github_repo.strip()
 
         if args.poll:
+            upstream_remote = get_remote(repo=upstream_github_repo)
             subprocess.run(['git', 'fetch', upstream_remote], check=True)
             subprocess.run(['git', 'checkout', '{}/{}'.format(upstream_remote, upstream_branch)], check=True)
         stabilization_changes(
             directories={'channels', 'internal-channels'},
-            github_repo=args.github_repo.strip(),
+            upstream_github_repo=upstream_github_repo,
+            push_github_repo=(args.push_github_repo or upstream_github_repo).strip(),
             github_token=args.github_token.strip(),
             webhook=args.webhook.strip(),
             waiting_notifications=waiting_notifications,
-            upstream_remote=upstream_remote,
             upstream_branch=upstream_branch,
         )
         if args.poll:
