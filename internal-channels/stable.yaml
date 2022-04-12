@@ -4,6 +4,7 @@ feeder:
 name: stable
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
+- 4.5.1
 - 4.5.2
 - 4.5.3
 - 4.5.4
