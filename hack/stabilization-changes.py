@@ -345,7 +345,7 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
         return pull
 
     subprocess.run(['git', 'commit', '--file', '-', channel_path], check=True, encoding='utf-8', input=message)
-    push_uri_with_token = urllib.parse.urlsplit('https://{}@github.com/{}.git'.format(github_token, push_github_repo))
+    push_uri_with_token = 'https://{}@github.com/{}.git'.format(github_token, push_github_repo)
     subprocess.run(['git', 'push', '-u', push_uri_with_token, branch], check=True)
 
     owner = push_github_repo.split('/')[0]
