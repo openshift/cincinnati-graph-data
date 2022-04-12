@@ -133,6 +133,7 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
         except Exception as error:
             _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel_name, sanitize(error, github_token=github_token)))
             yield 'FAILED {}. {} {}'.format(subject, body, sanitize(error, github_token=github_token))
+            raise
         else:
             yield '{}. {} {}'.format(subject, body, pull.html_url)
     else:
@@ -321,7 +322,8 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
                 raise
         else:
             raise ValueError('branch {} already exists; possibly waiting for an open pull request to merge'.format(branch))
-        subprocess.run(['git', 'checkout', '-b', branch, '{}/{}'.format(upstream_remote, upstream_branch)], check=True)
+        #subprocess.run(['git', 'checkout', '-b', branch, '{}/{}'.format(upstream_remote, upstream_branch)], check=True)
+        subprocess.run(['git', 'checkout', '-b', branch], check=True)
 
     with open(channel_path) as f:
         try:
