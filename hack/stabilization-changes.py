@@ -309,7 +309,7 @@ def notify(message, webhook=None):
     }).encode('utf-8'))
 
 
-def promote(version, channel_name, channel_path, subject, body, upstream_github_repo, push_github_repo, github_token, upstream_branch):
+def promote(version, channel_name, channel_path, subject, body, upstream_github_repo, push_github_repo, github_token, upstream_branch, labels=None):
     if github_token:
         upstream_remote = get_remote(repo=upstream_github_repo)
         subprocess.run(['git', 'fetch', upstream_remote], check=True)
@@ -351,7 +351,8 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
     github_object = github.Github(github_token)
     repo = github_object.get_repo(upstream_github_repo)
     pull = repo.create_pull(title=subject, body=body, head='{}:{}'.format(owner, branch), base=upstream_branch)
-    pull.add_to_labels('lgtm', 'approved')
+    if labels:
+        pull.add_to_labels(*labels)
     return pull
 
 
@@ -433,6 +434,11 @@ if __name__ == '__main__':
         default=os.environ.get('GITHUB_TOKEN', ''),
     )
     parser.add_argument(
+        '--labels',
+	nargs='*',
+        help='Set these labels on newly created pull request.  For example: "--labels lgtm approved".',
+    )
+    parser.add_argument(
         '--webhook',
         metavar='URI',
         help='Set this to actually push notifications to Slack.  Defaults to the value of the WEBHOOK environment variable.',
@@ -460,6 +466,7 @@ if __name__ == '__main__':
             upstream_github_repo=upstream_github_repo,
             push_github_repo=(args.push_github_repo or upstream_github_repo).strip(),
             github_token=args.github_token.strip(),
+	    labels=args.labels,
             webhook=args.webhook.strip(),
             waiting_notifications=waiting_notifications,
             upstream_branch=upstream_branch,
