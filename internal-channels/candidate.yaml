@@ -51,8 +51,12 @@ tombstones:
 - 4.8.16
 # 4.8.30 lacks a baked-in update from 4.7.43
 - 4.8.30
+# 4.8.38 and 4.9.30 had misaligned kernel and kernel-rt packages
+- 4.8.38
 # 4.9.1 lacked a baked-in update from 4.8.17
 - 4.9.1
+# 4.8.38 and 4.9.30 had misaligned kernel and kernel-rt packages
+- 4.9.30
 # 4.10.0 had a regression in access to public images https://bugzilla.redhat.com/show_bug.cgi?id=2060605
 - 4.10.0
 # 4.10.1 had a bug in network policies potentially blocking pod egress https://bugzilla.redhat.com/show_bug.cgi?id=2060956
