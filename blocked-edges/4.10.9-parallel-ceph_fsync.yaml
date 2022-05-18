@@ -1,0 +1,13 @@
+to: 4.10.9
+from: 4[.]10[.]([0-3]|0-[fr]c[.][0-9])[+].*
+url: https://bugzilla.redhat.com/show_bug.cgi?id=2076312#c9
+name: CephParallelFsync
+message: |-
+  This update would introduce a CephFS kernel driver regression, exposing a kernel panic when workloads make parallel ceph_fsync calls to the same file.  The update also introduces many bug fixes as described in the errata, so weigh those against the risk of Ceph kernel panics when deciding whether to update or wait for an OpenShift release that also fixes the Ceph regression.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      label_replace(ceph_health_status, "ceph", "yes", "", "")
+      or
+      label_replace(0 * group(cluster_version), "ceph", "no", "", "")
