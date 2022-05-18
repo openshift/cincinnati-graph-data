@@ -1,6 +1,6 @@
 feeder:
   delay: PT0H
-  filter: 4[.]10[.][0-9].*
+  filter: 4[.](8|9|10)[.][0-9].*
   name: stable
 name: eus-4.10
 versions:
