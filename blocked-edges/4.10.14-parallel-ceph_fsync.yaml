@@ -8,6 +8,8 @@ matchingRules:
 - type: PromQL
   promql:
     promql: |
-      label_replace(group(ceph_health_status), "ceph", "yes", "", "")
-      or
-      label_replace(0 * group(cluster_version), "ceph", "no", "", "")
+      topk(1,
+        label_replace(group(ceph_health_status), "ceph", "yes", "", "")
+        or
+        label_replace(0 * group(cluster_version), "ceph", "no", "", "")
+      )

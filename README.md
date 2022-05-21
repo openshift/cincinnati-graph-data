@@ -140,8 +140,8 @@ The `[+].*` portion absorbs [the architecture-suffix](#release-names) from the r
 [api-reason]: https://github.com/openshift/api/blob/67c28690af52a69e0b8fa565916fe1b9b7f52f10/config/v1/types_cluster_operator.go#L131-L133
 [channel-semantics]: https://docs.openshift.com/container-platform/4.3/updating/updating-cluster-between-minor.html#understanding-upgrade-channels_updating-cluster-between-minor
 [Cincinnati]: https://github.com/openshift/cincinnati/
-[cluster-condition-type-registry]: https://github.com/openshift/enhancements/pull/821#FIXME
-[cluster-condition-type-registry-promql]: https://github.com/openshift/enhancements/pull/821#FIXME
+[cluster-condition-type-registry]: https://github.com/openshift/enhancements/blob/master/enhancements/update/targeted-update-edge-blocking.md#cluster-condition-type-registry
+[cluster-condition-type-registry-promql]: https://github.com/openshift/enhancements/blob/master/enhancements/update/targeted-update-edge-blocking.md#promql
 [image-arch]: https://github.com/opencontainers/image-spec/blame/v1.0.1/config.md#L103
 [iso-8601-durations]: https://en.wikipedia.org/wiki/ISO_8601#Durations
 [json-array]: https://datatracker.ietf.org/doc/html/rfc8259#section-5
