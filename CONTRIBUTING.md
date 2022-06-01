@@ -5,7 +5,7 @@ This document outlines some of the conventions on development workflow, commit m
 
 ## Security response
 
-If you've found a security issue that you'd like to disclose confidentially, please contact Red Hat's Product Security team.
+If you've found a security issue that you'd like to disclose confidentially, please [contact Red Hat's Product Security team][security].
 
 ## Getting started
 
