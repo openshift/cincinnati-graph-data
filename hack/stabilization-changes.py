@@ -92,7 +92,7 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
         feeder_promotion = feeder_promotions[version]
         yield from stabilize_release(
             version=version,
-            channel_name=name,
+            channel=channel,
             channel_path=channel_paths[name],
             delay=delay,
             errata=errata,
@@ -101,7 +101,7 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
             **kwargs)
 
 
-def stabilize_release(version, channel_name, channel_path, delay, errata, feeder_name, feeder_promotion, cache, waiting_notifications=True, github_token=None, **kwargs):
+def stabilize_release(version, channel, channel_path, delay, errata, feeder_name, feeder_promotion, cache, waiting_notifications=True, github_token=None, **kwargs):
     now = datetime.datetime.now()
     version_delay = now - feeder_promotion['committer-time']
     errata_public = False
@@ -110,7 +110,8 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
         errata_uri, errata_public = public_errata_uri(version=version, channel=feeder_name, cache=cache)
         if errata_uri:
             public_errata_message = ' {} is{} public.'.format(errata_uri, '' if errata_public else ' not')
-    if (delay is not None and version_delay > delay) or errata_public:
+    concerns_about_updating_out = get_concerns_about_updating_out(version=version, channel=channel, cache=cache) or ''
+    if not concerns_about_updating_out and ((delay is not None and version_delay > delay) or errata_public):
         path_without_extension, _ = os.path.splitext(channel_path)
         subject = '{}: Promote {}'.format(path_without_extension, version)
         body = 'It was promoted to the feeder {} by {} ({}, {}) {} ago.{}'.format(
@@ -124,29 +125,30 @@ def stabilize_release(version, channel_name, channel_path, delay, errata, feeder
         try:
             pull = promote(
                 version=version,
-                channel_name=channel_name,
+                channel_name=channel['name'],
                 channel_path=channel_path,
                 subject=subject,
                 body=body,
 		github_token=github_token,
                 **kwargs)
         except Exception as error:
-            _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel_name, sanitize(error, github_token=github_token)))
+            _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel['name'], sanitize(error, github_token=github_token)))
             yield 'FAILED {}. {} {}'.format(subject, body, sanitize(error, github_token=github_token))
         else:
             yield '{}. {} {}'.format(subject, body, pull.html_url)
     else:
-        _LOGGER.info('  waiting: {} ({}){}'.format(version, version_delay, public_errata_message))
+        _LOGGER.info('  waiting: {} ({}){}{}'.format(version, version_delay, public_errata_message, concerns_about_updating_out))
         if waiting_notifications:
-            yield 'Recommend waiting to promote {} to {}; it was promoted the feeder {} by {} ({}, {}, {}){}'.format(
+            yield 'Recommend waiting to promote {} to {}; it was promoted the feeder {} by {} ({}, {}, {}){}{}'.format(
                 version,
-                channel_name,
+                channel['name'],
                 feeder_name,
                 feeder_promotion['hash'][:10],
                 feeder_promotion['summary'],
                 feeder_promotion['committer-time'].date().isoformat(),
                 version_delay,
-                public_errata_message)
+                public_errata_message,
+                concerns_about_updating_out)
 
 
 def get_promotions(path):
@@ -208,6 +210,53 @@ def public_errata_uri(version, cache=None, **kwargs):
             'public': public,
         }
     return errata_uri, public
+
+
+def get_concerns_about_updating_out(version, channel, cache=None):
+    release_major_minor = '.'.join(version.split('.', 2)[:2])
+    try:
+        phase, channel_major_minor = channel['name'].rsplit('-', 1)
+    except ValueError:
+        return  # 'fast' and similar version-agnostic channels do not need updating-out concerns
+    if phase == 'candidate':
+        return  # we need ungated candidate-4.y admission to bootstrap using candidate-4.y update recommendations for gating later phases.
+    if release_major_minor == channel_major_minor:
+        return  # we are concerned about getting from 4.(y-1) and earlier into 4.y, not about movement within 4.y.
+    updates = {}
+    channel_versions = set(channel.get('versions', set()))
+    cincinnati_uris = []
+
+    # work around 4.(y-1) limit for today's candidate-4.y channels by iterating over multiple candidate channels
+    release_major, release_minor = (int(x) for x in release_major_minor.split('.'))
+    channel_major, channel_minor = (int(x) for x in channel_major_minor.split('.'))
+    if release_major != channel_major:
+        raise ValueError('unclear which candidate channels to pull for update information between {} and {}'.format(release_major_minor, channel_major_minor))
+    candidate_minor = channel_minor
+    while candidate_minor > release_minor:
+        cincinnati_uri, cincinnati_data = get_cincinnati_channel(cache=cache, channel='candidate-{}.{}'.format(channel_major, candidate_minor))
+        nodes = cincinnati_data.get('nodes', [])
+        for edge in cincinnati_data.get('edges', []):
+            source = nodes[edge[0]]['version']
+            target = nodes[edge[1]]['version']
+            if target not in channel_versions or (source != version and source not in channel_versions):
+                continue  # even if we promote version, this edge will not be in the target channel
+            if source not in updates:
+                updates[source] = set()
+            updates[source].add(target)
+        cincinnati_uris.append(cincinnati_uri)
+        candidate_minor -= 1
+
+    reachable = set([version])
+    while reachable:
+        source = reachable.pop()
+        targets = updates.get(source, set())
+        for target in targets:
+            target_major_minor = '.'.join(target.split('.', 2)[:2])
+            if target_major_minor == channel_major_minor:
+                return  # we have an unconditional update path to the target major.minor.
+        reachable.update(targets)  # maybe additional hops will get us to the target major.minor.
+
+    return ' No unconditional paths from {} to {} in {}'.format(version, channel_major_minor, ' '.join(cincinnati_uris))
 
 
 def get_cincinnati_channel(arch='amd64', channel='', update_service='https://api.openshift.com/api/upgrades_info/v1/graph', cache=None):
