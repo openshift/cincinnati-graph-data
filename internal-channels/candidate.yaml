@@ -61,6 +61,8 @@ tombstones:
 - 4.9.30
 # 4.9.34 had IPI installation Bootstrap failiure, https://bugzilla.redhat.com/show_bug.cgi?id=2088196
 - 4.9.34
+# 4.9.39 will not have an errata published because of OVN static IP issues https://bugzilla.redhat.com/show_bug.cgi?id=2098099#c1
+- 4.9.39
 # 4.10.0 had a regression in access to public images https://bugzilla.redhat.com/show_bug.cgi?id=2060605
 - 4.10.0
 # 4.10.1 had a bug in network policies potentially blocking pod egress https://bugzilla.redhat.com/show_bug.cgi?id=2060956
