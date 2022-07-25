@@ -1,6 +1,6 @@
 feeder:
   delay: PT0H
-  filter: 4\.[78]\.[0-9].*
+  filter: 4\.[8]\.[0-9].*
   name: stable
 name: stable-4.8
 versions:
@@ -54,7 +54,6 @@ versions:
 - 4.7.51
 - 4.7.52
 - 4.7.53
-- 4.7.54
 - 4.8.2
 - 4.8.3
 - 4.8.4
