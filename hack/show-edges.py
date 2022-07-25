@@ -58,17 +58,25 @@ def manifest_uri(node):
 
 def get_release_metadata(node):
     pullspec = node['payload']
-    name = pullspec.split('@', 1)[0]
+    repository = pullspec.split('@', 1)[0]
     prefix = 'quay.io/'
-    if not name.startswith(prefix):
+    if not repository.startswith(prefix):
         raise ValueError('non-Quay pullspec: {}'.format(pullspec))
-    name = name[len(prefix):]
+    name = repository[len(prefix):]
 
     with urllib.request.urlopen(manifest_uri(node=node)) as f:
         data = json.load(codecs.getreader('utf-8')(f))
 
     manifest = json.loads(data['manifest_data'])
     if 'mediaType' in manifest:
+        if manifest['mediaType'] == 'application/vnd.docker.distribution.manifest.list.v2+json':
+            per_arch_manifest = manifest['manifests'][0]
+            digest = per_arch_manifest['digest']
+            _LOGGER.debug('using {} for manifest-list {}'.format(per_arch_manifest, pullspec))
+            meta = get_release_metadata(node={'payload': '{}@{}'.format(repository, digest)})
+            meta['image-config-data']['architecture'] = 'multi'
+            return meta
+
         if manifest['mediaType'] != 'application/vnd.docker.distribution.manifest.v2+json':
             raise ValueError('unsupported media type for {} manifest: {}'.format(node['payload'], manifest['mediaType']))
 
