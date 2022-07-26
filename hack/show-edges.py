@@ -248,7 +248,7 @@ def load_nodes(versions, architecture, repository, directory='.nodes'):
         break
 
     if versions_remaining:
-        _LOGGER.warning('walked all tag pages, but did not find releases for: {}'.format(join(', ', sorted(versions_remaining))))
+        _LOGGER.warning('walked all tag pages, but did not find releases for: {}'.format(', '.join(sorted(versions_remaining))))
 
     return nodes
 
