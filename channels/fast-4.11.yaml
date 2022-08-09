@@ -1,0 +1,6 @@
+feeder:
+  delay: PT0H
+  filter: 4[.](10|11)[.][0-9].*
+  name: fast
+name: fast-4.11
+versions: []
