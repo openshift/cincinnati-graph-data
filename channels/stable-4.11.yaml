@@ -3,4 +3,5 @@ feeder:
   filter: 4[.]11[.][0-9].*
   name: stable
 name: stable-4.11
-versions: []
+versions:
+- 4.11.0
