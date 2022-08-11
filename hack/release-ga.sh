@@ -38,7 +38,7 @@ then
 	CHANNELS="$(printf '%s\n%s' "${CHANNELS}" eus)"
 fi
 
-RELEASES="$(grep "^- ${MAJOR}[.]${MINOR}[.][0-9]" internal-channels/fast.yaml)"
+RELEASES="$(grep "^- ${MAJOR}[.]${MINOR}[.][0-9]" internal-channels/fast.yaml || (echo "failed to find ${MAJOR_MINOR} releases in internal-channels/fast.yaml" >&2; exit 1))"
 if test -z "${RELEASES}"
 then
 	VERSIONS='versions: []'
