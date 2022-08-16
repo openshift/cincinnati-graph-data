@@ -1,5 +1,5 @@
 to: 4.11.0-fc.0
-from: 4.10.14
+from: 4[.]10[.]14
 url: https://bugzilla.redhat.com/show_bug.cgi?id=2072389#c11
 name: ClusterVersionPreconditionCheck
 message: |-
