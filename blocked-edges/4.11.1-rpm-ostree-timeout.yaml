@@ -1,0 +1,8 @@
+to: 4.11.1
+from: 4\.10\..*
+url: https://access.redhat.com/solutions/6972394
+name: RPMOSTreeTimeout
+message: |-
+  Nodes with substantial numbers of containers and CPU contention may not reconcile machine configuration
+matchingRules:
+- type: Always
