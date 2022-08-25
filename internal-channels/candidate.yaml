@@ -75,6 +75,8 @@ tombstones:
 - 4.9.44
 # 4.10.27 fails to install, and as an update target, on AWS C2S/SC2S: https://bugzilla.redhat.com/show_bug.cgi?id=2115267
 - 4.10.27
+# 4.10.29 was rebuilt as 4.10.30 to pick up an additional fix
+- 4.10.29
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
