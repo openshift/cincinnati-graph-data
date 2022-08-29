@@ -1,0 +1,4 @@
+to: 4.11.2
+from: 4[.]10[.].*|4[.]11[.]{0,1}(-[rf]c-[0-9]+)?
+url: https://issues.redhat.com/browse/OCPBUGS-631
+name: PodmanStorageCorrupted
