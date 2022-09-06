@@ -20,6 +20,7 @@ logging.basicConfig(format='%(levelname)s: %(message)s')
 _LOGGER = logging.getLogger(__name__)
 #_LOGGER.setLevel(logging.DEBUG)
 _VERSION_REGEXP = re.compile('^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
+_CHANNEL_REGEXP = re.compile('^(?P<stream>.*)-(?P<major_minor>[1-9]\d*[.][1-9]\d*)$')
 
 
 def load_channel(channel, revision=None):
@@ -34,6 +35,13 @@ def normalize_node(node):
     if not match:
         raise ValueError('invalid node version: {!r}'.format(node['version']))
     return node
+
+
+def version_major_minor(version):
+    match = _VERSION_REGEXP.match(version)
+    if not match:
+        raise ValueError('invalid version: {!r}'.format(version))
+    return '{major}.{minor}'.format(**match.groupdict())
 
 
 def get_architecture(meta):
@@ -282,7 +290,7 @@ def get_blocked(edges, blocks, architecture):
     return blocked
 
 
-def show_edges(channel, architecture, repository, revision=None, cache='.metadata.json'):
+def show_edges(channel, architecture, repository, revision=None, cache='.metadata.json', list_unable_to_reach_target_minor_version=False):
     channel = load_channel(channel=channel, revision=revision)
     nodes = load_nodes(versions=channel.get('versions', []), architecture=architecture, repository=repository)
     edges = get_edges(nodes=nodes)
@@ -295,6 +303,39 @@ def show_edges(channel, architecture, repository, revision=None, cache='.metadat
             print('{} -(blocked: {})-> {}'.format(from_version, reasons, to_version))
         else:
             print('{} -> {}'.format(from_version, to_version))
+
+    if list_unable_to_reach_target_minor_version:
+        match = _CHANNEL_REGEXP.match(channel['name'])
+        if not match:
+            raise ValueError('unable to extract major.minor version from channel {!r}'.format(channel['name']))
+        channel_major_minor = match.groupdict()['major_minor']
+
+        for version in channel.get('versions', []):
+            try:
+                assert_path_to_minor(version=version, edges=edges, blocked=blocked, target_major_minor=channel_major_minor)
+            except ValueError as error:
+                print(error)
+
+
+def assert_path_to_minor(version, edges, blocked, target_major_minor):
+    if version_major_minor(version=version) == target_major_minor:
+        return  # already on the target minor version
+
+    all_reachable = set()
+    reachable = set([version])
+    while reachable:
+        source = reachable.pop()
+        targets = set(target for s,target in edges if s == source and (s, target) not in blocked)
+        for target in targets:
+            if version_major_minor(version=target) == target_major_minor:
+                return  # hooray, we made it
+            reachable.update(targets)  # maybe additional hops will get us to the target major.minor.
+            all_reachable.update(targets)
+
+    err = 'No unconditional paths from {} to {}'.format(version, target_major_minor)
+    if all_reachable:
+        raise ValueError('{}.  Reachable targets are: {}'.format(err, ', '.join(sorted(all_reachable))))
+    raise ValueError(err)
 
 
 if __name__ == '__main__':
@@ -322,6 +363,12 @@ if __name__ == '__main__':
         help='Git revision for loading graph-data configuration (see gitrevisions(7) for syntax).',
     )
     parser.add_argument(
+        '--list-unable-to-reach-target-minor-version',
+        dest='list_unable_to_reach_target_minor_version',
+        action='store_true',
+        help="In addition to showing edges, list releases that cannot update to the channel's target 4.y minor version.",
+    )
+    parser.add_argument(
         'channel',
         metavar='CHANNEL',
         help='Cincinnati channel to load.',
@@ -333,5 +380,6 @@ if __name__ == '__main__':
         channel=args.channel,
         architecture=args.architecture,
         repository=args.repository,
-        revision=args.revision
+        revision=args.revision,
+        list_unable_to_reach_target_minor_version=args.list_unable_to_reach_target_minor_version,
     )
