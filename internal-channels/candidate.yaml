@@ -39,6 +39,8 @@ tombstones:
 - 4.7.26
 # 4.7.35 lacks metadata errata URIs for s390x and ppc64le
 - 4.7.35
+# 4.7.58 was rerolled as 4.7.59
+- 4.7.58
 # 4.8.0 unspecified behavior change
 - 4.8.0
 # 4.8.1 s390x missed a kernel bump that went into the other platforms; rerolling as 4.8.2
