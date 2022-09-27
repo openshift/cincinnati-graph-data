@@ -6,7 +6,7 @@ import util
 
 
 def validate_blocked_edges(directory):
-    for path, data in util.walk_yaml(directory=directory):
+    for path, data in util.walk_yaml(directory=directory, allowed_extensions=('.yaml',)):
         try:
             validate_blocked_edge(data=data)
         except Exception as error:
