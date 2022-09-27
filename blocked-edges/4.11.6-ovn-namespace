@@ -1,0 +1,13 @@
+to: 4.11.6
+from: .*
+url: https://issues.redhat.com/browse/OCPBUGS-1705
+name: OVNNetworkPolicyLongName
+message: |-
+  A regression introduced in 4.11.6 may lead to OVN control plane failure and workload disruption.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group(max_over_time(cluster:usage:resources:sum{resource="egressips.k8s.ovn.org"}[1h]))
+      or
+      0 * group(max_over_time(cluster:usage:resources:sum[1h]))
