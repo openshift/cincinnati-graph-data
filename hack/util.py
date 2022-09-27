@@ -7,11 +7,15 @@ import subprocess
 import yaml
 
 
-def walk_yaml(directory, revision=None):
+def walk_yaml(directory, revision=None, allowed_extensions=None):
     if revision is None:
         for root, _, files in os.walk(directory):
             for filename in files:
                 if not filename.endswith('.yaml'):
+                    if allowed_extensions:
+                        _, ext = os.path.splitext(filename)
+                        if ext not in allowed_extensions:
+                            raise ValueError('invalid filename: {!r} (allowed extensions: {})'.format(os.path.join(root, filename), allowed_extensions))
                     continue
                 path = os.path.join(root, filename)
                 with open(path) as f:
