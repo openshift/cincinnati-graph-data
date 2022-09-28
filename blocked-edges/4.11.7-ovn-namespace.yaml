@@ -1,9 +1,9 @@
-to: 4.11.6
+to: 4.11.7
 from: .*
 url: https://issues.redhat.com/browse/OCPBUGS-1705
 name: OVNNetworkPolicyLongName
 message: |-
-  A regression may lead to OVN control plane failure and workload disruption when updating to 4.11.6.
+  A regression may lead to OVN control plane failure and workload disruption when updating to 4.11.7.
 matchingRules:
 - type: PromQL
   promql:
