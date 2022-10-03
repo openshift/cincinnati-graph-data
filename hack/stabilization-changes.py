@@ -243,6 +243,9 @@ def get_concerns_about_updating_out(version, channel, cache=None):
             if source not in updates:
                 updates[source] = set()
             updates[source].add(target)
+        for conditional in cincinnati_data.get('conditionalEdges', []):
+            for edge in conditional.get('edges', []):
+                updates[edge['from']] = edge['to']
         cincinnati_uris.append(cincinnati_uri)
         candidate_minor -= 1
 
@@ -253,10 +256,10 @@ def get_concerns_about_updating_out(version, channel, cache=None):
         for target in targets:
             target_major_minor = '.'.join(target.split('.', 2)[:2])
             if target_major_minor == channel_major_minor:
-                return  # we have an unconditional update path to the target major.minor.
+                return  # we have update path to the target major.minor.
         reachable.update(targets)  # maybe additional hops will get us to the target major.minor.
 
-    return ' No unconditional paths from {} to {} in {}'.format(version, channel_major_minor, ' '.join(cincinnati_uris))
+    return ' No paths from {} to {} in {}'.format(version, channel_major_minor, ' '.join(cincinnati_uris))
 
 
 def get_cincinnati_channel(arch='amd64', channel='', update_service='https://api.openshift.com/api/upgrades_info/v1/graph', cache=None):
