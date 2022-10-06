@@ -245,7 +245,9 @@ def get_concerns_about_updating_out(version, channel, cache=None):
             updates[source].add(target)
         for conditional in cincinnati_data.get('conditionalEdges', []):
             for edge in conditional.get('edges', []):
-                updates[edge['from']] = edge['to']
+                if edge['from'] not in updates:
+                    updates[edge['from']] = set()
+                updates[edge['from']].add(edge['to'])
         cincinnati_uris.append(cincinnati_uri)
         candidate_minor -= 1
 
