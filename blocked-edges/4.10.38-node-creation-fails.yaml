@@ -1,0 +1,13 @@
+to: 4.10.38
+from: .*
+url: https://issues.redhat.com/browse/OCPBUGS-2628
+name: OpenStackNodeCreationFails
+message: |-
+  Adding new nodes to the exsiting cluster on OpenStack will fail.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      cluster_infrastructure_provider{type="OpenStack"}
+      or
+      0 * cluster_infrastructure_provider
