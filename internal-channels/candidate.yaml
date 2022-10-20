@@ -79,6 +79,8 @@ tombstones:
 - 4.10.27
 # 4.10.29 was rebuilt as 4.10.30 to pick up an additional fix
 - 4.10.29
+# 4.11.10 has an incomplete fix for https://issues.redhat.com/browse/OCPBUGS-2160 which makes it a regression
+- 4.11.10
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
@@ -619,5 +621,7 @@ versions:
 - 4.9.50
 
 - 4.11.9
+
+- 4.11.10
 
 - 4.8.52
