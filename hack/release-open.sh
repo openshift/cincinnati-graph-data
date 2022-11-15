@@ -7,7 +7,7 @@ MAJOR_MINOR="${1}"
 if test -z "${MAJOR_MINOR}"
 then
 	cat <<-EOF >&2
-		This script creates the necessary files for for a new x.y minor release feature freeze.
+		This script creates the necessary files for for a new x.y minor release.
 		Usage:
 		  ${0} MAJOR_MINOR
 		For example:
@@ -34,10 +34,10 @@ PREVIOUS_MINOR="$((MINOR - 1))"
 
 cat <<EOF > "build-suggestions/${MAJOR_MINOR}.yaml"
 default:
-  minor_min: ${MAJOR}.${PREVIOUS_MINOR}.0
+  minor_min: ${MAJOR}.${PREVIOUS_MINOR}.0-rc.0
   minor_max: ${MAJOR}.${PREVIOUS_MINOR}.9999
   minor_block_list: []
-  z_min: ${MAJOR_MINOR}.0-fc.0
+  z_min: ${MAJOR_MINOR}.0-ec.0
   z_max: ${MAJOR_MINOR}.9999
   z_block_list: []
 EOF
