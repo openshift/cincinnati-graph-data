@@ -1,0 +1,7 @@
+feeder:
+  delay: PT0H
+  filter: 4[.](12|13)[.][0-9].*
+  name: candidate
+name: candidate-4.13
+versions:
+- 4.12.0-rc.0
