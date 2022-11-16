@@ -83,6 +83,9 @@ tombstones:
 - 4.11.10
 # 4.11.11 had inconsitencies with 4.10.39 (fixes got in 4.10.39 and not in 4.11.11). succeeded by 4.11.12
 - 4.11.11
+# kernel-rt and kernel versions do not match, dtk and rhcos kernel versions do not match
+- 4.11.14
+- 4.11.15
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
