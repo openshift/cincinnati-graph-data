@@ -79,6 +79,8 @@ tombstones:
 - 4.10.27
 # 4.10.29 was rebuilt as 4.10.30 to pick up an additional fix
 - 4.10.29
+# 4.10.44: kernel-rt and kernel versions do not match in driver-toolkit and machine-os-contents images
+- 4.10.44
 # 4.11.10 has an incomplete fix for https://issues.redhat.com/browse/OCPBUGS-2160 which makes it a regression
 - 4.11.10
 # 4.11.11 had inconsitencies with 4.10.39 (fixes got in 4.10.39 and not in 4.11.11). succeeded by 4.11.12
