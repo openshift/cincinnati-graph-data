@@ -5,9 +5,9 @@ authors = ["Vadim Rutkovsky <vrutkovs@redhat.com>"]
 edition = "2018"
 
 [dependencies]
-cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "2531d409911d0c110de562100ff68159305b6c3c"}
-actix-http = "=3.0.0-beta.5"
-actix-service = "=2.0.0-beta.5"
+cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "a2974db3bf585296dafe23b1f4b734ce7217fa45"}
+actix-http = "=3.0.0"
+actix-service = "=2.0.2"
 tokio = { version = "^1.14", features = [ "fs", "rt-multi-thread" ] }
 serde = "^1.0.150"
 serde_yaml = "^0.8.26"
