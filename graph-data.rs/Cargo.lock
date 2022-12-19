@@ -132,11 +132,12 @@ dependencies = [
 
 [[package]]
 name = "actix-service"
-version = "2.0.0-beta.5"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf82340ad9f4e4caf43737fd3bbc999778a268015cdc54675f60af6240bd2b05"
+checksum = "3b894941f818cfdc7ccc4b9e60fa7e53b5042a2e8567270f9147d5591893373a"
 dependencies = [
  "futures-core",
+ "paste",
  "pin-project-lite",
 ]
 
@@ -1760,6 +1761,12 @@ dependencies = [
  "smallvec",
  "winapi",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d01a5bd0424d00070b0098dd17ebca6f961a959dead1dbcbbbc1d1cd8d3deeba"
 
 [[package]]
 name = "pem"
