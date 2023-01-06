@@ -13,9 +13,4 @@ message: |-
 
   This will not cause issues updating between 4.10 releases.  This conditional update is just a demonstration of the conditional update system.
 matchingRules:
-- type: PromQL
-  promql:
-    promql: |
-      cluster_infrastructure_provider{type="AWS"}
-      or
-      0 * cluster_infrastructure_provider
+- type: Always
