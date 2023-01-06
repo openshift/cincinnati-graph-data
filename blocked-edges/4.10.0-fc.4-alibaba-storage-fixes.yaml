@@ -1,8 +1,0 @@
-to: 4.10.0-fc.4
-from: 4[.]10[.].*
-url: https://bugzilla.redhat.com/show_bug.cgi?id=2047190
-name: AlibabaStorageDriverDemo
-message: |-
-  The Alibaba storage driver was updated from a patched 1.1.4 to a patched 1.1.6 in 4.10.0-rc.0.  That is unlikely to fix anything that regressed in this provider from fc.3 to fc.4, but this conditional update is pretending it does, as a demonstration of the conditional update system.
-matchingRules:
-- type: Always
