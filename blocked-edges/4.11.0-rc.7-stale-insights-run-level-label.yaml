@@ -5,9 +5,4 @@ name: StaleInsightsRunLevelLabel
 message: |-
   An 'openshift.io/run-level: 1' annotation on the openshift-insights namespace may cause "container has runAsNonRoot" for the insights operator when updating to 4.11.0-rc.7.
 matchingRules:
-- type: PromQL
-  promql:
-    promql: |
-      kube_namespace_labels{namespace="openshift-insights",label_openshift_io_run_level="1"}
-      or
-      0 * kube_namespace_labels{namespace="openshift-insights",label_openshift_io_run_level=""}
+- type: Always

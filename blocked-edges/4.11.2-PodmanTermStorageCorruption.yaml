@@ -5,9 +5,4 @@ name: PodmanTermStorageCorruption
 message: |-
   BareMetal, Nutanix, OpenStack, oVirt, and VSphere platforms may fail to update nodes in environments where it takes over 20 seconds to retrieve the Machine Config Daemon image.
 matchingRules:
-- type: PromQL
-  promql:
-    promql: |
-      cluster_infrastructure_provider{type=~"BareMetal|Nutanix|OpenStack|oVirt|VSphere"}
-      or
-      0 * cluster_infrastructure_provider
+- type: Always

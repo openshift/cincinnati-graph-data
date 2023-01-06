@@ -5,9 +5,4 @@ name: OVNNetworkPolicyLongName
 message: |-
   A regression may lead to OVN control plane failure and workload disruption when updating to 4.11.7.
 matchingRules:
-- type: PromQL
-  promql:
-    promql: |
-      group(max_over_time(cluster:usage:resources:sum{resource="egressips.k8s.ovn.org"}[1h]))
-      or
-      0 * group(max_over_time(cluster:usage:resources:sum[1h]))
+- type: Always

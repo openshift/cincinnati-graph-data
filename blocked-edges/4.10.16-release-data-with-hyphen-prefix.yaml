@@ -5,11 +5,4 @@ name: ReleaseDataWithHyphenPrefix
 message: |-
   Clusters updating out of 4.10.16 may, depending on their past history, fail to initiate the update to any later release.  In order to avoid this trouble, we recommend avoiding updates to this release.  The linked solution includes steps to avoid the issue if you do decide to update to 4.10.16.
 matchingRules:
-- type: PromQL
-  promql:
-    promql: |
-      topk(1,
-        label_replace(group(cluster_version{type="initial",version=~"4[.][0-9][.].*"}),"born_by_4_9", "yes, so possibly touched a hyphen-hashing version", "", "")
-        or
-        label_replace(0 * group(cluster_version{type="initial",version!~"4[.][0-9][.].*"}),"born_by_4_9", "no, so will not have touched a hyphen-hashing version", "", "")
-      )
+- type: Always

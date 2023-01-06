@@ -5,9 +5,4 @@ name: StaleSELinuxPolicies
 message: |-
   Custom SELinux policies, such as those installed by OpenShift Virtualization, may result in kubelet issues when updating to 4.11.0-rc.7.
 matchingRules:
-- type: PromQL
-  promql:
-    promql: |
-      group(csv_succeeded{name=~"kubevirt-hyperconverged-operator[.].*"})
-      or
-      0 * group(csv_count)
+- type: Always
