@@ -12,7 +12,7 @@ tokio = { version = "^1.14", features = [ "fs", "rt-multi-thread" ] }
 serde = "^1.0.152"
 serde_yaml = "^0.8.26"
 anyhow = "1.0"
-regex = "^1.7.0"
+regex = "^1.7.1"
 semver = { version = "^0.11", features = [ "serde" ] }
 toml = "^0.5.10"
 lazy_static = "^1.4.0"
