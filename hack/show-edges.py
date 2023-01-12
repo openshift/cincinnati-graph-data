@@ -290,13 +290,29 @@ def get_blocked(edges, blocks, architecture):
     return blocked
 
 
-def show_edges(channel, architecture, repository, revision=None, cache='.metadata.json', list_unable_to_reach_target_minor_version=False):
+def show_edges(channel, architecture, repository, revision=None, cache='.metadata.json', root_version=None, list_unable_to_reach_target_minor_version=False):
     channel = load_channel(channel=channel, revision=revision)
     nodes = load_nodes(versions=channel.get('versions', []), architecture=architecture, repository=repository)
     edges = get_edges(nodes=nodes)
     blocks = load_blocks(versions=[node['version'] for node in nodes.values()], revision=revision)
     blocked = get_blocked(edges=edges, blocks=blocks, architecture=architecture)
+
+    reachable = set()
+    if root_version is None:
+        reachable = set(nodes.keys())
+    else:
+        reachable.add(root_version)
+        extended = True
+        while extended:
+            extended = False
+            for from_version, to_version in sorted(edges):
+                if from_version in reachable and to_version not in reachable:
+                    reachable.add(to_version)
+                    extended = True
+
     for from_version, to_version in sorted(edges):
+        if from_version not in reachable:
+            continue
         key = (from_version, to_version)
         if key in blocked:
             reasons = ', '.join(str(r) for r in sorted(blocked[key]))
@@ -363,6 +379,12 @@ if __name__ == '__main__':
         help='Git revision for loading graph-data configuration (see gitrevisions(7) for syntax).',
     )
     parser.add_argument(
+        '--root-version',
+        dest='root_version',
+        metavar='VERSION',
+        help='Only show the graph downstream of a given version.',
+    )
+    parser.add_argument(
         '--list-unable-to-reach-target-minor-version',
         dest='list_unable_to_reach_target_minor_version',
         action='store_true',
@@ -381,5 +403,6 @@ if __name__ == '__main__':
         architecture=args.architecture,
         repository=args.repository,
         revision=args.revision,
+        root_version=args.root_version,
         list_unable_to_reach_target_minor_version=args.list_unable_to_reach_target_minor_version,
     )
