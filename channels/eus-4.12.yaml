@@ -1,0 +1,7 @@
+feeder:
+  delay: PT0H
+  filter: 4[.]12[.][0-9].*
+  name: stable
+name: eus-4.12
+versions:
+- 4.12.0
