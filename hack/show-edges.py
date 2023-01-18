@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import tarfile
+import urllib.parse
 import urllib.request
 
 import yaml
@@ -290,16 +291,42 @@ def get_blocked(edges, blocks, architecture):
     return blocked
 
 
-def show_edges(channel, architecture, repository, revision=None, cache='.metadata.json', root_version=None, list_unable_to_reach_target_minor_version=False):
-    channel = load_channel(channel=channel, revision=revision)
-    nodes = load_nodes(versions=channel.get('versions', []), architecture=architecture, repository=repository)
-    edges = get_edges(nodes=nodes)
-    blocks = load_blocks(versions=[node['version'] for node in nodes.values()], revision=revision)
-    blocked = get_blocked(edges=edges, blocks=blocks, architecture=architecture)
+def show_edges(channel, architecture, repository, revision=None, cache='.metadata.json', root_version=None, cincinnati=None, list_unable_to_reach_target_minor_version=False):
+    if not repository and not cincinnati:
+        raise ValueError('either an image registry repository or a Cincinnati URI must be configured to retrieve node metadata.')
+    if revision and cincinnati:
+        raise ValueError('cannot specify both revision (for loading from graph-data) and a Cincinnati URI (for loading from Cincinnati).')
+
+    if cincinnati:
+        split_uri = urllib.parse.urlsplit(cincinnati)
+        query = urllib.parse.parse_qs(split_uri.query)
+        query['channel'] = channel
+        uri = urllib.parse.urlunsplit((split_uri.scheme, split_uri.netloc, split_uri.path, urllib.parse.urlencode(query, doseq=True), split_uri.fragment))
+        with urllib.request.urlopen(uri) as f:
+            data = json.load(codecs.getreader('utf-8')(f))
+        channel = {
+            'name': channel,
+            'versions': [node['version'] for node in data.get('nodes', [])],
+        }
+        edges = []
+        for from_index, to_index in data.get('edges', []):
+            edges.append((data['nodes'][from_index]['version'], data['nodes'][to_index]['version']))
+        blocked = {}
+        for conditional_edge in data.get('conditionalEdges', []):
+            for edge in conditional_edge['edges']:
+                key = (edge['from'], edge['to'])
+                edges.append(key)
+                blocked[key] = set(risk['name'] for risk in conditional_edge['risks'])
+    else:
+        channel = load_channel(channel=channel, revision=revision)
+        nodes = load_nodes(versions=channel.get('versions', []), architecture=architecture, repository=repository)
+        edges = get_edges(nodes=nodes)
+        blocks = load_blocks(versions=[node['version'] for node in nodes.values()], revision=revision)
+        blocked = get_blocked(edges=edges, blocks=blocks, architecture=architecture)
 
     reachable = set()
     if root_version is None:
-        reachable = set(nodes.keys())
+        reachable = set(channel['versions'])
     else:
         reachable.add(root_version)
         extended = True
@@ -385,6 +412,11 @@ if __name__ == '__main__':
         help='Only show the graph downstream of a given version.',
     )
     parser.add_argument(
+        '--cincinnati',
+        metavar='URI',
+        help='Instead of loading graph-data, retrieve channel information from Cincinnati.  This makes it harder to see historical or still-unmerged data, but avoids the time spend building a cache of node metadata with image registry repository scraping.',
+    )
+    parser.add_argument(
         '--list-unable-to-reach-target-minor-version',
         dest='list_unable_to_reach_target_minor_version',
         action='store_true',
@@ -404,5 +436,6 @@ if __name__ == '__main__':
         repository=args.repository,
         revision=args.revision,
         root_version=args.root_version,
+        cincinnati=args.cincinnati,
         list_unable_to_reach_target_minor_version=args.list_unable_to_reach_target_minor_version,
     )
