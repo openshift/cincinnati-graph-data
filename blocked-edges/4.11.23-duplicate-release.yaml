@@ -1,0 +1,8 @@
+to: 4.11.23
+from: .*
+url:  https://access.redhat.com/errata/RHSA-2023:0069
+name: DuplicateRelease
+message: |-
+  4.11.23 was replaced with 4.11.24. Please update to 4.11.24, it is an identical release except for the errata link.
+matchingRules:
+  - type: Always
