@@ -1,5 +1,5 @@
 feeder:
-  delay: PT0H
+  delay: P1W
   filter: 4\.[68]\.[0-9].*|4\.7\.(3[4-9]|[4-9][0-9])
   name: stable
 name: eus-4.8
