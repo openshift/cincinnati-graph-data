@@ -30,6 +30,7 @@ _GIT_BLAME_COMMIT_REGEXP = re.compile(r'^(?P<hash>[0-9a-f]{40}) .*')
 _GIT_BLAME_HEADER_REGEXP = re.compile(r'^(?P<key>[^ \t]+) (?P<value>.*)$')
 _GIT_BLAME_LINE_REGEXP = re.compile(r'^\t(?P<value>.*)$')
 _GIT_REMOTE_LINE_REGEXP = re.compile(r'^(?P<remote>[^ ]*)\t(?P<uri>(?P<scheme>[^:]*)://(?P<host>[^/]*)/(?P<org>[^/]*)/(?P<repo>[^/.]*)(.git)?) [(](?P<role>.*)[)]$')
+_SEM_VER_REGEXP = re.compile(r'^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
 _REMOTE_CACHE = {}
 _SEMANTIC_VERSION_DELIMITERS = re.compile('[.+-]')
 
@@ -47,12 +48,52 @@ def parse_iso8601_delay(delay):
     return datetime.timedelta(weeks=weeks, days=days, hours=hours)
 
 
+def sem_ver_less_than(a, b):
+    "Returns true if a is less than b, per https://semver.org/spec/v2.0.0.html#spec-item-11"
+    a_match = _SEM_VER_REGEXP.match(a)
+    if not a_match:
+        raise ValueError('invalid semantic version {!r}'.format(a_match))
+    b_match = _SEM_VER_REGEXP.match(b)
+    if not b_match:
+        raise ValueError('invalid semantic version {!r}'.format(b_match))
+    a_groups = a_match.groupdict()
+    b_groups = b_match.groupdict()
+
+    if (int(a_groups['major']) < int(b_groups['major'])):
+        return True
+    if (int(a_groups['major']) > int(b_groups['major'])):
+        return False
+
+    if (int(a_groups['minor']) < int(b_groups['minor'])):
+        return True
+    if (int(a_groups['minor']) > int(b_groups['minor'])):
+        return False
+
+    if (int(a_groups['patch']) < int(b_groups['patch'])):
+        return True
+    if (int(a_groups['patch']) > int(b_groups['patch'])):
+        return False
+
+    if a_groups['prerelease'] and not b_groups['prerelease']:
+        return True
+    if b_groups['prerelease'] and not a_groups['prerelease']:
+        return False
+
+    # cheating vs. the SemVer spec.
+    return a_groups['prerelease'] < b_groups['prerelease']
+
+
 def stabilization_changes(directories, webhook=None, **kwargs):
     channels, channel_paths = util.load_channels(directories=directories)
+
+    update_risks = {}
+    for path, data in util.walk_yaml(directory='blocked-edges'):
+        update_risks[path] = data
+
     cache = {}
     notifications = []
     for name, channel in sorted(channels.items()):
-        notifications.extend(stabilize_channel(name=name, channel=channel, channels=channels, channel_paths=channel_paths, cache=cache, **kwargs))
+        notifications.extend(stabilize_channel(name=name, channel=channel, channels=channels, channel_paths=channel_paths, update_risks=update_risks, cache=cache, **kwargs))
     if notifications:
         notify(message='* ' + ('\n* '.join(notifications)), webhook=webhook)
 
@@ -101,7 +142,7 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
             **kwargs)
 
 
-def stabilize_release(version, channel, channel_path, delay, errata, feeder_name, feeder_promotion, cache, waiting_notifications=True, github_token=None, **kwargs):
+def stabilize_release(version, channel, channel_path, delay, errata, feeder_name, feeder_promotion, cache, update_risks=None, waiting_notifications=True, github_token=None, **kwargs):
     now = datetime.datetime.now()
     version_delay = now - feeder_promotion['committer-time']
     errata_public = False
@@ -110,8 +151,18 @@ def stabilize_release(version, channel, channel_path, delay, errata, feeder_name
         errata_uri, errata_public = public_errata_uri(version=version, channel=feeder_name, cache=cache)
         if errata_uri:
             public_errata_message = ' {} is{} public.'.format(errata_uri, '' if errata_public else ' not')
-    concerns_about_updating_out = get_concerns_about_updating_out(version=version, channel=channel, cache=cache) or ''
-    if not concerns_about_updating_out and ((delay is not None and version_delay > delay) or errata_public):
+
+    concerns = []
+    concerns_about_risk_extensions = get_concerns_about_risk_extensions(version=version, channel=channel, update_risks=update_risks)
+    if concerns_about_risk_extensions:
+        _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel['name'], concerns_about_risk_extensions))
+        yield 'FAILED {}'.format(concerns_about_risk_extensions)
+        return
+    concerns_about_updating_out = get_concerns_about_updating_out(version=version, channel=channel, cache=cache)
+    if concerns_about_updating_out:
+        concerns.append(concerns_about_updating_out)
+
+    if not concerns and ((delay is not None and version_delay > delay) or errata_public):
         path_without_extension, _ = os.path.splitext(channel_path)
         subject = '{}: Promote {}'.format(path_without_extension, version)
         body = 'It was promoted to the feeder {} by {} ({}, {}) {} ago.{}'.format(
@@ -137,7 +188,9 @@ def stabilize_release(version, channel, channel_path, delay, errata, feeder_name
         else:
             yield '{}. {} {}'.format(subject, body, pull.html_url)
     else:
-        _LOGGER.info('  waiting: {} ({}){}{}'.format(version, version_delay, public_errata_message, concerns_about_updating_out))
+        if concerns:
+            concerns.insert(0, '')  # when joined with the whitespace delimiter, this will add leading space to offset from the rest of the message
+        _LOGGER.info('  waiting: {} ({}){}{}'.format(version, version_delay, public_errata_message, '  '.join(concerns)))
         if waiting_notifications:
             yield 'Recommend waiting to promote {} to {}; it was promoted the feeder {} by {} ({}, {}, {}){}{}'.format(
                 version,
@@ -148,7 +201,7 @@ def stabilize_release(version, channel, channel_path, delay, errata, feeder_name
                 feeder_promotion['committer-time'].date().isoformat(),
                 version_delay,
                 public_errata_message,
-                concerns_about_updating_out)
+                '  '.join(concerns))
 
 
 def get_promotions(path):
@@ -212,6 +265,46 @@ def public_errata_uri(version, cache=None, **kwargs):
     return errata_uri, public
 
 
+def get_concerns_about_risk_extensions(version, channel, update_risks=None):
+    if update_risks is None:
+        return
+
+    release_major_minor = '.'.join(version.split('.', 2)[:2])
+    previous_version = None
+    for target in channel.get('versions', []):
+        target_major_minor = '.'.join(target.split('.', 2)[:2])
+        if target_major_minor != release_major_minor:
+            continue  # we're only looking at earlier patch releases in the same 4.y
+        if sem_ver_less_than(target, version) and (previous_version is None or sem_ver_less_than(previous_version, target)):
+            previous_version = target
+    if previous_version is None:
+        return
+
+    risks = set()
+    previous_risks = {}
+    for path, risk in sorted(update_risks.items()):
+        key = risk.get('name', path)
+        if risk['to'] == version:
+            risks.add(key)
+        if risk['to'] == previous_version:
+            fixed_in = risk.get('fixedIn', None)
+            if fixed_in is None or (version != fixed_in and sem_ver_less_than(version, fixed_in)):
+                previous_risks[key] = fixed_in
+
+    unfixed = []
+    for key, fixed_in in sorted(previous_risks.items()):
+        if key in risks:
+            continue
+        if fixed_in:
+            unfixed.append('{} affects {} and is not fixed until {}.  Extend the risk to {}.'.format(key, previous_version, fixed_in, version))
+        else:
+            unfixed.append('{} affects {}.  Either declare a fix version or extend the risk to {}.'.format(key, previous_version, version))
+
+    if unfixed:
+        return ' '.join(unfixed)
+    return
+
+
 def get_concerns_about_updating_out(version, channel, cache=None):
     release_major_minor = '.'.join(version.split('.', 2)[:2])
     try:
@@ -263,7 +356,7 @@ def get_concerns_about_updating_out(version, channel, cache=None):
                 return  # we have update path to the target major.minor.
         reachable.update(targets)  # maybe additional hops will get us to the target major.minor.
 
-    return ' No paths from {} to {} in {}'.format(version, channel_major_minor, ' '.join(cincinnati_uris))
+    return 'No paths from {} to {} in {}'.format(version, channel_major_minor, ' '.join(cincinnati_uris))
 
 
 def get_cincinnati_channel(arch='amd64', channel='', update_service='https://api.openshift.com/api/upgrades_info/v1/graph', cache=None):
