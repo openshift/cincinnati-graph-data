@@ -1,6 +1,6 @@
 to: 4.11.18
 from: 4[.]10[.].*
-url:  https://issues.redhat.com/browse/MCO-457
+url: https://access.redhat.com/solutions/6984140
 name: MachineConfigRenderingChurn
 message: |-
   Clusters with KubletConfigs that do not set 'CSIMigrationOpenStack: true' should remain on 4.10 until they can update to a 4.11 that contains a fix.  Clusters that do not contain any KubeletConfigs are unlikely to be exposed.
