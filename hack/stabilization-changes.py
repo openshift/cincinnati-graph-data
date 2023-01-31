@@ -245,7 +245,7 @@ def get_concerns_about_updating_out(version, channel, cache=None):
             updates[source].add(target)
         for conditional in cincinnati_data.get('conditionalEdges', []):
             for edge in conditional.get('edges', []):
-                if edge['from'] not in channel_versions or (edge['to'] != version and edge['to'] not in channel_versions):
+                if edge['to'] not in channel_versions or (edge['from'] != version and edge['from'] not in channel_versions):
                     continue  # even if we promote version, this edge will not be in the target channel
                 if edge['from'] not in updates:
                     updates[edge['from']] = set()
