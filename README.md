@@ -106,6 +106,8 @@ Create/edit an appropriate file in `blocked_edges/`.
 * `url` (optional, [string][json-string]), with a URI documenting the blocking reason.
     For example, this could link to a bug's impact statement or knowledge-base article.
 * `name` (optional, [string][json-string]), with a CamelCase reason suitable for [a `ClusterOperatorStatusCondition` `reason` property][api-reason].
+* `fixedIn` (optional, [string][json-string]), with the update-target release where the exposure was fixed, either directly, or because that target is newer than the 4.(y-1).z release where the exposure was fixed.
+    This feeds risk-extension guards that require either a `fixedIn` declaration or an extension of unfixed risks to later releases to avoid shipping a release that is still exposed to a risk without declaring that risk.
 * `message` (optional, [string][json-string]), with a human-oriented message describing the blocking reason, suitable for [a `ClusterOperatorStatusCondition` `message` property][api-message].
 * `matchingRules` (optional, [array][json-array]), defining conditions for deciding which clusters have the update recommended and which do not.
     The array is ordered by decreasing precedence.
