@@ -95,7 +95,11 @@ def stabilization_changes(directories, webhook=None, **kwargs):
     for name, channel in sorted(channels.items()):
         notifications.extend(stabilize_channel(name=name, channel=channel, channels=channels, channel_paths=channel_paths, update_risks=update_risks, cache=cache, **kwargs))
     if notifications:
-        notify(message='* ' + ('\n* '.join(notifications)), webhook=webhook)
+        deduped_notifications = []
+        for notification in notifications:
+            if notification not in deduped_notifications:
+                deduped_notifications.append(notification)
+        notify(message='* ' + ('\n* '.join(deduped_notifications)), webhook=webhook)
 
 
 def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
