@@ -2,6 +2,7 @@ to: 4.13.0-ec.2
 from: .*
 url: https://issues.redhat.com/browse/CONSOLE-3428
 name: ConsoleAvailableUpdatesNull
+fixedIn: 4.13.0-ec.3
 message: |-
   An administrator console regression breaks the cluster settings page when 'availableUpdates' is null and 'Upgradeable' is 'False'.  You can still use 'oc adm upgrade', address the 'Upgradeable' issues, or wait for a fixed release.
 matchingRules:
