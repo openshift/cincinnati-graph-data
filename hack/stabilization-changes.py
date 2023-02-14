@@ -15,7 +15,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-import github
+try:
+    import github
+except ModuleNotFoundError as error:
+    github_import_error = error
+    github = None
+
 import yaml
 
 import util
@@ -35,6 +40,12 @@ _REMOTE_CACHE = {}
 _SEMANTIC_VERSION_DELIMITERS = re.compile('[.+-]')
 
 socket.setdefaulttimeout(60)
+
+
+class PullRequest(object):
+    """Drop-in stub for github.PullRequest when we fail to import 'github'."""
+    def __init__(self, html_url):
+        self.html_url = html_url
 
 
 def parse_iso8601_delay(delay):
@@ -487,9 +498,11 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
     message = '{}\n\n{}\n'.format(subject, textwrap.fill(body, width=76))
 
     if not github_token:
-        pull = github.PullRequest
-        pull.html_url = 'data://no-token-so-no-pull'
+        pull = PullRequest(html_url='data://no-token-so-no-pull')
         return pull
+
+    if github is None:
+        raise github_import_error
 
     subprocess.run(['git', 'commit', '--file', '-', channel_path], check=True, encoding='utf-8', input=message)
     push_uri_with_token = 'https://{}@github.com/{}.git'.format(github_token, push_github_repo)
@@ -614,7 +627,7 @@ if __name__ == '__main__':
             directories={'channels', 'internal-channels'},
             upstream_github_repo=upstream_github_repo,
             push_github_repo=(args.push_github_repo or upstream_github_repo).strip(),
-            github_token=args.github_token.strip(),
+            github_token=args.github_token.strip() or None,
 	    labels=args.labels,
             webhook=args.webhook.strip(),
             waiting_notifications=waiting_notifications,
