@@ -8,15 +8,20 @@ import util
 def validate_blocked_edges(directory):
     for path, data in util.walk_yaml(directory=directory, allowed_extensions=('.yaml',)):
         try:
-            validate_blocked_edge(data=data)
+            validate_blocked_edge(data=data, path=path)
         except Exception as error:
-            raise ValueError('invalid blocked edge {}: {}'.format(path, error))
+            raise ValueError('invalid blocked edge {}: {}'.format(path, error)) from None
 
 
-def validate_blocked_edge(data):
+def validate_blocked_edge(data, path):
     for prop in ['to', 'from']:
         if prop not in data:
             raise ValueError('{!r} is a required property'.format(prop))
+
+    to = str(data['to'])
+    if 'name' in data and not os.path.basename(path).startswith(to):
+        raise ValueError(f"conditional risk to version {to} should be declared in a {to}-<...>.yaml file")
+
     if 'url' in data and not data['url'].startswith('https://'):
         raise ValueError('url must be an https:// URI, not {!r}'.format(data['url']))
     if 'name' in data and (not isinstance(data['name'], str) or ' ' in data['name']):
@@ -57,7 +62,7 @@ def validate_promql_rule(rule):
 
     extra_keys = set(rule['promql'].keys()) - {'promql'}
     if extra_keys:
-        raise ValueError("unrecognized keys in promql property: {}".format(', '.join(sorted(extra_keys))))    
+        raise ValueError("unrecognized keys in promql property: {}".format(', '.join(sorted(extra_keys))))
     if 'promql' not in rule['promql']:
         raise ValueError("promql.promql must be set for 'PromQL' rules")
     if not isinstance(rule['promql']['promql'], str):
