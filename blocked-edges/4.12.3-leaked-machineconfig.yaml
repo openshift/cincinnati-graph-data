@@ -1,4 +1,4 @@
-to: 4.12.2
+to: 4.12.3
 from: .*
 url: https://issues.redhat.com/browse/OCPNODE-1502
 name: LeakedMachineConfigBlocksMCO
