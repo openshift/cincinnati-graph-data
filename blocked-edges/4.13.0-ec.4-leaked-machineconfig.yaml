@@ -3,7 +3,7 @@ from: .*
 url: https://issues.redhat.com/browse/OCPNODE-1502
 name: LeakedMachineConfigBlocksMCO
 message: |-
-  Machine Config Operator stalls when encountering orphaned KubeletConfig or ContainerRuntimeConfi  g resources.
+  Machine Config Operator stalls when encountering orphaned KubeletConfig or ContainerRuntimeConfig resources.
 matchingRules:
 - type: PromQL
   promql:
