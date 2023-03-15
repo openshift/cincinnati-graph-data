@@ -1,0 +1,21 @@
+to: 4.12.0
+from: 4[.]11[.].*
+url: https://issues.redhat.com/browse/MCO-540
+name: OldBootImagesPodmanMissingAuthFlag
+message: |-
+  OCP 4.12 started using --authfile flag with podman to perform in-place upgrade on nodes and it does not work with nodes installed with OCP 4.1 version. This risk does not apply if a cluster was installed with version 4.2 or later.
+matchingRules:
+- type: PromQL
+  promql:
+    promql:
+      topk(1,
+        label_replace(group(cluster_version{type="initial",version=~"4[.][0-9][.].*"}),"born_by_4_9", "yes, so possibly actually born in 4.1", "", "")
+        or
+        label_replace(0 * group(cluster_version{type="initial",version!~"4[.][0-9][.].*"}),"born_by_4_9", "no, born in 4.10 or later", "", "")
+      )
+      * on () group_left (type)
+      (
+        cluster_infrastructure_provider{type=~"AWS|VSphere|None"}
+        or
+        0 * cluster_infrastructure_provider
+      )
