@@ -1,0 +1,21 @@
+to: 4.13.0-rc.0
+from: 4[.]12[.].*
+url: https://issues.redhat.com/browse/SPLAT-984
+name: NutanixCCMNeedsConfigMap
+message: |-
+  Cloud Controller Manager needs a ConfigMap with user-provided information on Nutanix in OCP 4.13 and upgrades hang when it does not exist.
+matchingRules:
+- type: PromQL
+  promql:
+    promql:
+      topk(1,
+        label_replace(absent(kube_configmap_info{namespace="openshift-cloud-controller-manager", configmap="cloud-conf"}),  "has_cm", "no", "", "")
+        or
+        label_replace(0 * kube_configmap_info{namespace="openshift-cloud-controller-manager", configmap="cloud-conf"},  "has_cm", "yes", "", "")
+      )
+      * on () group_left(type)
+      (
+        cluster_infrastructure_provider{type=~"Nutanix"}
+        or
+        0  * cluster_infrastructure_provider
+      )
