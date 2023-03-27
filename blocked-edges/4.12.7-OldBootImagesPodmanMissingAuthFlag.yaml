@@ -2,6 +2,7 @@ to: 4.12.7
 from: 4[.]11[.].*
 url: https://issues.redhat.com/browse/MCO-540
 name: OldBootImagesPodmanMissingAuthFlag
+fixedIn: 4.12.9
 message: |-
   OCP 4.12 started using --authfile flag with podman to perform in-place upgrade on nodes and it does not work with nodes installed with OCP 4.1 version. This risk does not apply if a cluster was installed with version 4.2 or later.
 matchingRules:
