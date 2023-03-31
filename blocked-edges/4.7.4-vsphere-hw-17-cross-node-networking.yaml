@@ -7,6 +7,6 @@ matchingRules:
 - type: PromQL
   promql:
     promql: |
-      cluster_infrastructure_provider{type=~"VSphere|None"}
+      group(cluster_infrastructure_provider{type=~"VSphere|None"})
       or
-      0 * cluster_infrastructure_provider
+      0 * group(cluster_infrastructure_provider)
