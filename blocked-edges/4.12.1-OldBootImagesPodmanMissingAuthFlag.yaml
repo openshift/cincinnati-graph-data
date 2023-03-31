@@ -15,7 +15,7 @@ matchingRules:
       )
       * on () group_left (type)
       (
-        cluster_infrastructure_provider{type=~"AWS|VSphere|None"}
+        group(cluster_infrastructure_provider{type=~"AWS|VSphere|None"})
         or
-        0 * cluster_infrastructure_provider
+        0 * group(cluster_infrastructure_provider)
       )
