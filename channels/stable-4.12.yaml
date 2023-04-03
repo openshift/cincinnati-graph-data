@@ -4,6 +4,7 @@ feeder:
   name: stable
 name: stable-4.12
 versions:
+- 4.11.1
 - 4.11.12
 - 4.11.13
 - 4.11.16
