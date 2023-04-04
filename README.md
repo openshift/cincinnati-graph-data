@@ -80,6 +80,14 @@ To see recommended feeder promotions, run:
 $ hack/stabilization-change.py
 ```
 
+##### Promoting edges from previous minor to latest minor version in stable channel
+
+To promote edges from the previous minor version to the latest minor version in the stable channel, run the following script at least 3 times when it is time and then send the pull request.
+
+```console
+$ hack/release-stable-minor.sh
+```
+
 ##### Tombstones
 
 Removing a node from a channel can strand existing clusters with a `VersionNotFound` error.
