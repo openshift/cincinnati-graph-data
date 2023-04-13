@@ -4,6 +4,6 @@ fixedIn: 4.12.13
 url: https://access.redhat.com/solutions/7007136
 name: PatchesOlderRelease
 message: |-
-  4.12.12 patches 4.12.10 to fix https://issues.redhat.com//browse/OCPBUGS-11662 , which is an installer issue, and not and issue with running clusters.  A number of other changes had landed since 4.12.10 and were shipped in 4.12.11.  We expect those fixes to be useful, but they might also introduce regressions, and because they have not soaked for as long, we did not include them in 4.12.12.  But that means we know 4.12.12 has regressed on all of those bugs compared to 4.12.10, and possibly also its weekly sibling 4.11.25, so we do not recommend updating 4.11.35 or 4.12.11 clusters to 4.12.12.  Later 4.12.z will include both 4.12.12's installer fix and 4.12.11's fixes, and be recommended update targets for 4.11.35 and 4.12.11.
+  The 4.12.12 release only resolves an installation issue https://issues.redhat.com//browse/OCPBUGS-11662 , which does not affect already running clusters. 4.12.12 does not include fixes delivered in recent 4.11.z and 4.12.z releases and therefore upgrading from these versions would cause fixed bugs to reappear. Red Hat does not recommend upgrading clusters to 4.12.12 version for this reason.
 matchingRules:
 - type: Always
