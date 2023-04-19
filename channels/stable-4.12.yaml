@@ -1,5 +1,5 @@
 feeder:
-  delay: PT0H
+  delay: P1W
   filter: 4[.](11|12)[.][0-9].*
   name: stable
 name: stable-4.12
