@@ -1,5 +1,5 @@
 to: 4.12.12
-from: 4[.](11[.]35|12[.]11)
+from: .*
 fixedIn: 4.12.13
 url: https://access.redhat.com/solutions/7007136
 name: PatchesOlderRelease
