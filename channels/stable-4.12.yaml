@@ -1,5 +1,5 @@
 feeder:
-  delay: P1W
+  delay: PT0H
   filter: 4[.](11|12)[.][0-9].*
   name: stable
 name: stable-4.12
@@ -47,3 +47,5 @@ versions:
 - 4.12.9
 - 4.12.10
 - 4.12.11
+- 4.12.12
+- 4.12.13
