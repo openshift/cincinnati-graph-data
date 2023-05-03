@@ -1,0 +1,21 @@
+to: 4.11.0
+from: 4[.]10[.].*
+url: https://access.redhat.com/solutions/7007826
+name: KeepalivedMulticastSkew
+message: |-
+  On OpenStack, oVirt, and vSphere infrastructure, updates to 4.11 can cause degraded cluster operators as a result of a multicast-to-unicast keepalived transition, until all nodes have updated to 4.11.
+matchingRules:
+- type: PromQL
+  promql:
+    promql:
+      max(
+        cluster_infrastructure_provider{type=~"OpenStack|oVirt|VSphere"}
+        or
+        0 * cluster_infrastructure_provider
+      )
+      *
+      (
+        group(topk by (node) (1, mcd_update_state{config!~"|rendered-master-.*"}))
+        or
+        0 * group(mcd_update_state)
+      )
