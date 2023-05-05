@@ -1,5 +1,5 @@
 default:
-  minor_min: 4.12.15
+  minor_min: 4.12.16
   minor_max: 4.12.9999
   minor_block_list: []
   z_min: 4.13.0-rc.3
