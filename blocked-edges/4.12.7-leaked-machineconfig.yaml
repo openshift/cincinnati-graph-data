@@ -6,9 +6,5 @@ fixedIn: 4.12.8
 message: |-
   Machine Config Operator stalls when encountering orphaned KubeletConfig or ContainerRuntimeConfig resources.
 matchingRules:
-- type: PromQL
-  promql:
-    promql:
-      group(cluster:usage:resources:sum{resource=~"(containerruntimeconfigs|kubeletconfigs)[.]machineconfiguration[.]openshift[.]io"} > 0)
-      or
-      0 * group(cluster:usage:resources:sum)
+- type: Always
+
