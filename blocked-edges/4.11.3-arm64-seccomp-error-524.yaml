@@ -5,9 +5,5 @@ name: ARM64SecCompError524
 message: |-
   4.11.3 arm64 nodes may expose container creation to seccomp error 524.
 matchingRules:
-- type: PromQL
-  promql:
-    promql:
-      group(max_over_time(kube_node_labels{label_beta_kubernetes_io_arch="arm64"}[1h]))
-      or
-      0 * group(max_over_time(kube_node_labels[1h]))
+- type: Always
+
