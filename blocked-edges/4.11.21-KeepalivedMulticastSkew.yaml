@@ -9,13 +9,13 @@ matchingRules:
   promql:
     promql:
       max(
-        cluster_infrastructure_provider{type=~"OpenStack|oVirt|VSphere"}
+        cluster_infrastructure_provider{_id="",type=~"OpenStack|oVirt|VSphere"}
         or
-        0 * cluster_infrastructure_provider
+        0 * cluster_infrastructure_provider{_id=""}
       )
       *
       (
-        group(topk by (node) (1, mcd_update_state{config!~"|rendered-master-.*"}))
+        group(topk by (node) (1, mcd_update_state{_id="",config!~"|rendered-master-.*"}))
         or
-        0 * group(mcd_update_state)
+        0 * group(mcd_update_state{_id=""})
       )
