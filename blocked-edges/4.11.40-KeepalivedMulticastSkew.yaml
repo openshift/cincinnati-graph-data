@@ -1,5 +1,6 @@
 to: 4.11.40
 from: 4[.]10[.].*
+fixedIn: 4.11.41
 url: https://access.redhat.com/solutions/7007826
 name: KeepalivedMulticastSkew
 message: |-
