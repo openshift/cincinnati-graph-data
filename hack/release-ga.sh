@@ -72,6 +72,9 @@ do
 	EOF
 done
 
+# Bump minimal target version to GA one
+sed -i -e "s|z_min: .*|z_min: ${MAJOR}.${MINOR}.0|" "build-suggestions/${MAJOR}.${MINOR}.yaml"
+
 unset GITHUB_TOKEN
 unset WEBHOOK
 DIR="$(dirname "${0}")"
