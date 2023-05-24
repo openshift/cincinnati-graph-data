@@ -230,7 +230,7 @@ def get_promotions(path):
     process = subprocess.run(['git', 'blame', '--first-parent', '--porcelain', path], check=True, capture_output=True, text=True)
     commits = {}
     lines = {}
-    for line in process.stdout.strip().split('\n'):
+    for i, line in enumerate(process.stdout.strip().split('\n')):
         match = _GIT_BLAME_COMMIT_REGEXP.match(line)
         if match:
             commit = match.group('hash')
@@ -248,7 +248,7 @@ def get_promotions(path):
             continue
         match = _GIT_BLAME_LINE_REGEXP.match(line)
         if not match:
-            raise ValueError('unrecognized blame output for {} (blame line {}): {}'.format(path, i, line))
+            raise ValueError('unrecognized blame output for {} (blame line {}): {}'.format(path, i+1, line))
         lines[match.group('value')] = commit
     promotions = {}
     for line, commit in lines.items():
