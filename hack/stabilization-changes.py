@@ -572,9 +572,8 @@ def get_remote(repo):
     return _REMOTE_CACHE[repo]
 
 
-if __name__ == '__main__':
+def main():
     import argparse
-
     parser = argparse.ArgumentParser(
         description='Check for stabilization changes as versions are promoted from feeder channels.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -649,3 +648,7 @@ if __name__ == '__main__':
             time.sleep(args.poll)
         else:
             break
+
+
+if __name__ == '__main__':
+    main()
