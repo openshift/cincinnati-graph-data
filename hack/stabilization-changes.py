@@ -501,7 +501,7 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
             raise ValueError('failed to load YAML from {}: {}'.format(channel_path, error))
     versions = set(data['versions'])
     if version in versions:
-        raise ValueError('version {} has already been promoted to {} in {}/{}'.format(version, channel_name, upstream_remote, upstream_branch))
+        raise ValueError('version {} has already been promoted to {} in upstream branch {}'.format(version, channel_name, upstream_branch))
     versions.add(version)
     data['versions'] = list(sorted(versions, key=semver_sort_key))
     with open(channel_path, 'w') as f:
