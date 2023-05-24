@@ -368,7 +368,7 @@ def get_concerns_about_updating_out(version, channel, cache=None):
         cincinnati_uris.append(cincinnati_uri)
         candidate_minor -= 1
 
-    reachable = set([version])
+    reachable = {version}
     while reachable:
         source = reachable.pop()
         targets = updates.get(source, set())
