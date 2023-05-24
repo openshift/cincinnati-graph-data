@@ -60,7 +60,7 @@ def parse_iso8601_delay(delay):
 
 
 def sem_ver_less_than(a, b):
-    "Returns true if a is less than b, per https://semver.org/spec/v2.0.0.html#spec-item-11"
+    """Returns true if a is less than b, per https://semver.org/spec/v2.0.0.html#spec-item-11"""
     a_match = _SEM_VER_REGEXP.match(a)
     if not a_match:
         raise ValueError('invalid semantic version {!r}'.format(a_match))
