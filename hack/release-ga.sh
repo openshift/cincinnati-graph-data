@@ -1,6 +1,11 @@
 #!/bin/sh
 
 set -e
+if ! git diff-index --exit-code --quiet HEAD --
+then
+  echo "This script must be run with clean git state" >&2
+  exit 1
+fi
 
 MAJOR_MINOR="${1}"
 
@@ -72,10 +77,17 @@ do
 	EOF
 done
 
-# Bump minimal target version to GA one
-sed -i -e "s|z_min: .*|z_min: ${MAJOR}.${MINOR}.0|" "build-suggestions/${MAJOR}.${MINOR}.yaml"
-
 unset GITHUB_TOKEN
 unset WEBHOOK
 DIR="$(dirname "${0}")"
-exec "${DIR}/stabilization-changes.py"
+
+# Execute stabilization-changes.py until it stops making changes
+while "${DIR}/stabilization-changes.py" && ! git diff-files --exit-code --quiet; do
+    git add .
+done
+git restore --staged .
+
+# Extract the smallest (we assume it is listed first) version from the stable channel (the GA version) and bump the z_min to that version
+LATEST=$(python -c "import sys, yaml; data = yaml.safe_load(sys.stdin); print(data['versions'][0])" < "channels/stable-${MAJOR_MINOR}.yaml")
+# Use sed instead of doing this in python above to avoid clobbering the nice semantic ordering
+sed -i -e "s|z_min: .*|z_min: ${LATEST}|" "build-suggestions/${MAJOR_MINOR}.yaml"
