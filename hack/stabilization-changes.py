@@ -70,19 +70,19 @@ def sem_ver_less_than(a, b):
     a_groups = a_match.groupdict()
     b_groups = b_match.groupdict()
 
-    if (int(a_groups['major']) < int(b_groups['major'])):
+    if int(a_groups['major']) < int(b_groups['major']):
         return True
-    if (int(a_groups['major']) > int(b_groups['major'])):
+    if int(a_groups['major']) > int(b_groups['major']):
         return False
 
-    if (int(a_groups['minor']) < int(b_groups['minor'])):
+    if int(a_groups['minor']) < int(b_groups['minor']):
         return True
-    if (int(a_groups['minor']) > int(b_groups['minor'])):
+    if int(a_groups['minor']) > int(b_groups['minor']):
         return False
 
-    if (int(a_groups['patch']) < int(b_groups['patch'])):
+    if int(a_groups['patch']) < int(b_groups['patch']):
         return True
-    if (int(a_groups['patch']) > int(b_groups['patch'])):
+    if int(a_groups['patch']) > int(b_groups['patch']):
         return False
 
     if a_groups['prerelease'] and not b_groups['prerelease']:
