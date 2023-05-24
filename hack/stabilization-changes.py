@@ -203,9 +203,9 @@ def stabilize_release(version, channel, channel_path, delay, errata, feeder_name
                 body=body,
                 github_token=github_token,
                 **kwargs)
-        except Exception as error:
-            _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel['name'], sanitize(error, github_token=github_token)))
-            yield 'FAILED {}. {} {}'.format(subject, body, sanitize(error, github_token=github_token))
+        except Exception as exc:
+            _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel['name'], sanitize(exc, github_token=github_token)))
+            yield 'FAILED {}. {} {}'.format(subject, body, sanitize(exc, github_token=github_token))
         else:
             yield '{}. {} {}'.format(subject, body, pull.html_url)
     else:
@@ -402,8 +402,8 @@ def get_cincinnati_channel(arch='amd64', channel='', update_service='https://api
         try:
             with urllib.request.urlopen(request) as f:
                 data = json.load(codecs.getreader('utf-8')(f))  # hack: should actually respect Content-Type
-        except Exception as error:
-            _LOGGER.error('{}: {}'.format(uri, error))
+        except Exception as exc:
+            _LOGGER.error('{}: {}'.format(uri, exc))
             time.sleep(10)
             continue
         break
@@ -442,15 +442,15 @@ def _public_errata_uri(uri):
             try:
                 with urllib.request.urlopen(request):
                     pass
-            except urllib.error.HTTPError as error:
-                if error.code == http.HTTPStatus.FORBIDDEN or error.code == http.HTTPStatus.NOT_FOUND:
-                    _LOGGER.debug('{}: {}'.format(potential_errata_uri, error))
+            except urllib.error.HTTPError as exc:
+                if exc.code == http.HTTPStatus.FORBIDDEN or exc.code == http.HTTPStatus.NOT_FOUND:
+                    _LOGGER.debug('{}: {}'.format(potential_errata_uri, exc))
                     break
-                _LOGGER.error('{}: {}'.format(potential_errata_uri, error))
+                _LOGGER.error('{}: {}'.format(potential_errata_uri, exc))
                 time.sleep(10)
                 continue
-            except Exception as error:
-                _LOGGER.error('{}: {}'.format(potential_errata_uri, error))
+            except Exception as exc:
+                _LOGGER.error('{}: {}'.format(potential_errata_uri, exc))
                 time.sleep(10)
                 continue
             return potential_errata_uri, True
@@ -487,8 +487,8 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
         branch = 'promote-{}-to-{}'.format(version, channel_name)
         try:
             subprocess.run(['git', 'show', branch], check=True, capture_output=True, text=True)
-        except subprocess.CalledProcessError as error:
-            if 'unknown revision or path not in the working tree' not in error.stderr:
+        except subprocess.CalledProcessError as exc:
+            if 'unknown revision or path not in the working tree' not in exc.stderr:
                 raise
         else:
             raise ValueError('branch {} already exists; possibly waiting for an open pull request to merge'.format(branch))
@@ -497,8 +497,8 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
     with open(channel_path) as f:
         try:
             data = yaml.load(f, Loader=yaml.SafeLoader)
-        except ValueError as error:
-            raise ValueError('failed to load YAML from {}: {}'.format(channel_path, error))
+        except ValueError as exc:
+            raise ValueError('failed to load YAML from {}: {}'.format(channel_path, exc))
     versions = set(data['versions'])
     if version in versions:
         raise ValueError('version {} has already been promoted to {} in upstream branch {}'.format(version, channel_name, upstream_branch))
@@ -529,10 +529,10 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
     return pull
 
 
-def sanitize(error, github_token=None):
+def sanitize(err, github_token=None):
     if github_token is None:
-        return error
-    return str(error).replace(github_token, 'REDACTED')
+        return err
+    return str(err).replace(github_token, 'REDACTED')
 
 
 def semver_sort_key(version):
