@@ -201,7 +201,7 @@ def stabilize_release(version, channel, channel_path, delay, errata, feeder_name
                 channel_path=channel_path,
                 subject=subject,
                 body=body,
-		github_token=github_token,
+                github_token=github_token,
                 **kwargs)
         except Exception as error:
             _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel['name'], sanitize(error, github_token=github_token)))
@@ -608,7 +608,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--labels',
-	nargs='*',
+        nargs='*',
         help='Set these labels on newly created pull request.  For example: "--labels lgtm approved".',
     )
     parser.add_argument(
@@ -639,7 +639,7 @@ if __name__ == '__main__':
             upstream_github_repo=upstream_github_repo,
             push_github_repo=(args.push_github_repo or upstream_github_repo).strip(),
             github_token=args.github_token.strip() or None,
-	    labels=args.labels,
+            labels=args.labels,
             webhook=args.webhook.strip(),
             waiting_notifications=waiting_notifications,
             upstream_branch=upstream_branch,
