@@ -1,0 +1,10 @@
+to: 4.12.17
+from: .*
+fixedIn: 4.12.18
+url: https://issues.redhat.com/browse/OCPCLOUD-2067
+name: SpuriousCCMOUpgradeableCond
+message: |-
+  Cloud Controller Manager Operator can falsely report a Upgradeable=False
+  condition that prevents the cluster from being upgraded to 4.13.
+matchingRules:
+- type: Always
