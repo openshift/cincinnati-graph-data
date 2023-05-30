@@ -90,6 +90,11 @@ def sem_ver_less_than(a, b):
     if b_groups['prerelease'] and not a_groups['prerelease']:
         return False
 
+    # Reaching here means releases are equal unless both sides
+    # have a prerelease segment
+    if not (a_groups['prerelease'] or b_groups['prerelease']):
+        return False
+
     # cheating vs. the SemVer spec.
     return a_groups['prerelease'] < b_groups['prerelease']
 
@@ -154,10 +159,11 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
             errata=errata,
             feeder_name=feeder,
             feeder_promotion=feeder_promotion,
+            candidates=candidates,
             **kwargs)
 
 
-def stabilize_release(version, channel, channel_path, delay, errata, feeder_name, feeder_promotion, cache, update_risks=None, waiting_notifications=True, github_token=None, **kwargs):
+def stabilize_release(version, channel, channel_path, delay, errata, feeder_name, feeder_promotion, candidates, cache, update_risks=None, waiting_notifications=True, github_token=None, **kwargs):
     now = datetime.datetime.now()
     version_delay = now - feeder_promotion['committer-time']
     errata_public = False
@@ -168,7 +174,7 @@ def stabilize_release(version, channel, channel_path, delay, errata, feeder_name
             public_errata_message = ' {} is{} public.'.format(errata_uri, '' if errata_public else ' not')
 
     concerns = []
-    concerns_about_risk_extensions = get_concerns_about_risk_extensions(version=version, channel=channel, update_risks=update_risks)
+    concerns_about_risk_extensions = get_concerns_about_risk_extensions(version=version, channel=channel, candidates=candidates, update_risks=update_risks)
     if concerns_about_risk_extensions:
         _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel['name'], concerns_about_risk_extensions))
         yield 'FAILED {}'.format(concerns_about_risk_extensions)
@@ -280,13 +286,14 @@ def public_errata_uri(version, cache=None, **kwargs):
     return errata_uri, public
 
 
-def get_concerns_about_risk_extensions(version, channel, update_risks=None):
+def get_concerns_about_risk_extensions(version, channel, candidates, update_risks=None):
     if update_risks is None:
         return
 
     release_major_minor = '.'.join(version.split('.', 2)[:2])
     previous_version = None
-    for target in channel.get('versions', []):
+    candidate_previous_versions = set(channel.get('versions', [])).union(candidates)
+    for target in candidate_previous_versions:
         target_major_minor = '.'.join(target.split('.', 2)[:2])
         if target_major_minor != release_major_minor:
             continue  # we're only looking at earlier patch releases in the same 4.y
