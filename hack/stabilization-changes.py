@@ -60,7 +60,7 @@ def parse_iso8601_delay(delay):
 
 
 def sem_ver_less_than(a, b):
-    "Returns true if a is less than b, per https://semver.org/spec/v2.0.0.html#spec-item-11"
+    """Returns true if a is less than b, per https://semver.org/spec/v2.0.0.html#spec-item-11"""
     a_match = _SEM_VER_REGEXP.match(a)
     if not a_match:
         raise ValueError('invalid semantic version {!r}'.format(a_match))
@@ -70,19 +70,19 @@ def sem_ver_less_than(a, b):
     a_groups = a_match.groupdict()
     b_groups = b_match.groupdict()
 
-    if (int(a_groups['major']) < int(b_groups['major'])):
+    if int(a_groups['major']) < int(b_groups['major']):
         return True
-    if (int(a_groups['major']) > int(b_groups['major'])):
+    if int(a_groups['major']) > int(b_groups['major']):
         return False
 
-    if (int(a_groups['minor']) < int(b_groups['minor'])):
+    if int(a_groups['minor']) < int(b_groups['minor']):
         return True
-    if (int(a_groups['minor']) > int(b_groups['minor'])):
+    if int(a_groups['minor']) > int(b_groups['minor']):
         return False
 
-    if (int(a_groups['patch']) < int(b_groups['patch'])):
+    if int(a_groups['patch']) < int(b_groups['patch']):
         return True
-    if (int(a_groups['patch']) > int(b_groups['patch'])):
+    if int(a_groups['patch']) > int(b_groups['patch']):
         return False
 
     if a_groups['prerelease'] and not b_groups['prerelease']:
@@ -201,11 +201,11 @@ def stabilize_release(version, channel, channel_path, delay, errata, feeder_name
                 channel_path=channel_path,
                 subject=subject,
                 body=body,
-		github_token=github_token,
+                github_token=github_token,
                 **kwargs)
-        except Exception as error:
-            _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel['name'], sanitize(error, github_token=github_token)))
-            yield 'FAILED {}. {} {}'.format(subject, body, sanitize(error, github_token=github_token))
+        except Exception as exc:
+            _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel['name'], sanitize(exc, github_token=github_token)))
+            yield 'FAILED {}. {} {}'.format(subject, body, sanitize(exc, github_token=github_token))
         else:
             yield '{}. {} {}'.format(subject, body, pull.html_url)
     else:
@@ -230,7 +230,7 @@ def get_promotions(path):
     process = subprocess.run(['git', 'blame', '--first-parent', '--porcelain', path], check=True, capture_output=True, text=True)
     commits = {}
     lines = {}
-    for line in process.stdout.strip().split('\n'):
+    for i, line in enumerate(process.stdout.strip().split('\n')):
         match = _GIT_BLAME_COMMIT_REGEXP.match(line)
         if match:
             commit = match.group('hash')
@@ -248,7 +248,7 @@ def get_promotions(path):
             continue
         match = _GIT_BLAME_LINE_REGEXP.match(line)
         if not match:
-            raise ValueError('unrecognized blame output for {} (blame line {}): {}'.format(path, i, line))
+            raise ValueError('unrecognized blame output for {} (blame line {}): {}'.format(path, i+1, line))
         lines[match.group('value')] = commit
     promotions = {}
     for line, commit in lines.items():
@@ -368,7 +368,7 @@ def get_concerns_about_updating_out(version, channel, cache=None):
         cincinnati_uris.append(cincinnati_uri)
         candidate_minor -= 1
 
-    reachable = set([version])
+    reachable = {version}
     while reachable:
         source = reachable.pop()
         targets = updates.get(source, set())
@@ -402,8 +402,8 @@ def get_cincinnati_channel(arch='amd64', channel='', update_service='https://api
         try:
             with urllib.request.urlopen(request) as f:
                 data = json.load(codecs.getreader('utf-8')(f))  # hack: should actually respect Content-Type
-        except Exception as error:
-            _LOGGER.error('{}: {}'.format(uri, error))
+        except Exception as exc:
+            _LOGGER.error('{}: {}'.format(uri, exc))
             time.sleep(10)
             continue
         break
@@ -442,15 +442,15 @@ def _public_errata_uri(uri):
             try:
                 with urllib.request.urlopen(request):
                     pass
-            except urllib.error.HTTPError as error:
-                if error.code == http.HTTPStatus.FORBIDDEN or error.code == http.HTTPStatus.NOT_FOUND:
-                    _LOGGER.debug('{}: {}'.format(potential_errata_uri, error))
+            except urllib.error.HTTPError as exc:
+                if exc.code == http.HTTPStatus.FORBIDDEN or exc.code == http.HTTPStatus.NOT_FOUND:
+                    _LOGGER.debug('{}: {}'.format(potential_errata_uri, exc))
                     break
-                _LOGGER.error('{}: {}'.format(potential_errata_uri, error))
+                _LOGGER.error('{}: {}'.format(potential_errata_uri, exc))
                 time.sleep(10)
                 continue
-            except Exception as error:
-                _LOGGER.error('{}: {}'.format(potential_errata_uri, error))
+            except Exception as exc:
+                _LOGGER.error('{}: {}'.format(potential_errata_uri, exc))
                 time.sleep(10)
                 continue
             return potential_errata_uri, True
@@ -487,8 +487,8 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
         branch = 'promote-{}-to-{}'.format(version, channel_name)
         try:
             subprocess.run(['git', 'show', branch], check=True, capture_output=True, text=True)
-        except subprocess.CalledProcessError as error:
-            if 'unknown revision or path not in the working tree' not in error.stderr:
+        except subprocess.CalledProcessError as exc:
+            if 'unknown revision or path not in the working tree' not in exc.stderr:
                 raise
         else:
             raise ValueError('branch {} already exists; possibly waiting for an open pull request to merge'.format(branch))
@@ -497,11 +497,11 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
     with open(channel_path) as f:
         try:
             data = yaml.load(f, Loader=yaml.SafeLoader)
-        except ValueError as error:
-            raise ValueError('failed to load YAML from {}: {}'.format(channel_path, error))
+        except ValueError as exc:
+            raise ValueError('failed to load YAML from {}: {}'.format(channel_path, exc))
     versions = set(data['versions'])
     if version in versions:
-        raise ValueError('version {} has already been promoted to {} in {}/{}'.format(version, channel_name, upstream_remote, upstream_branch))
+        raise ValueError('version {} has already been promoted to {} in upstream branch {}'.format(version, channel_name, upstream_branch))
     versions.add(version)
     data['versions'] = list(sorted(versions, key=semver_sort_key))
     with open(channel_path, 'w') as f:
@@ -529,10 +529,10 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
     return pull
 
 
-def sanitize(error, github_token=None):
+def sanitize(err, github_token=None):
     if github_token is None:
-        return error
-    return str(error).replace(github_token, 'REDACTED')
+        return err
+    return str(err).replace(github_token, 'REDACTED')
 
 
 def semver_sort_key(version):
@@ -572,9 +572,8 @@ def get_remote(repo):
     return _REMOTE_CACHE[repo]
 
 
-if __name__ == '__main__':
+def main():
     import argparse
-
     parser = argparse.ArgumentParser(
         description='Check for stabilization changes as versions are promoted from feeder channels.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -608,7 +607,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--labels',
-	nargs='*',
+        nargs='*',
         help='Set these labels on newly created pull request.  For example: "--labels lgtm approved".',
     )
     parser.add_argument(
@@ -639,7 +638,7 @@ if __name__ == '__main__':
             upstream_github_repo=upstream_github_repo,
             push_github_repo=(args.push_github_repo or upstream_github_repo).strip(),
             github_token=args.github_token.strip() or None,
-	    labels=args.labels,
+            labels=args.labels,
             webhook=args.webhook.strip(),
             waiting_notifications=waiting_notifications,
             upstream_branch=upstream_branch,
@@ -649,3 +648,7 @@ if __name__ == '__main__':
             time.sleep(args.poll)
         else:
             break
+
+
+if __name__ == '__main__':
+    main()
