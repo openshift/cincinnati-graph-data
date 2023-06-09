@@ -343,7 +343,7 @@ def show_edges(channel, architecture, repository, revision=None, cache='.metadat
         key = (from_version, to_version)
         if key in blocked:
             reasons = ', '.join(str(r) for r in sorted(blocked[key]))
-            print('{} -(blocked: {})-> {}'.format(from_version, reasons, to_version))
+            print('{} -(risks: {})-> {}'.format(from_version, reasons, to_version))
         else:
             print('{} -> {}'.format(from_version, to_version))
 
