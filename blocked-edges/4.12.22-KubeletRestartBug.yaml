@@ -1,0 +1,13 @@
+to: 4.12.22
+from: .*
+url: https://issues.redhat.com/browse/OCPNODE-1687
+name: KubeletRestartBug
+message: |-
+  Kubelet restart will restart all containers, pods and other resources (e.g. virtual machines) associated with it.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group(csv_succeeded{name=~"kubevirt-hyperconverged-operator[.].*"})
+      or
+      0 * group(csv_count)
