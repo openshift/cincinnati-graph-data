@@ -1,0 +1,8 @@
+to: 4.12.18
+from: .*
+url: https://issues.redhat.com/browse/SDN-3996
+name: DualStackNeedsController
+message: |-
+  Upgrade can get stuck on clusters that use multiple networks together with dual stack.
+matchingRules:
+- type: Always
