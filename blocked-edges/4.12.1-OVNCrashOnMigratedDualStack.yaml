@@ -1,0 +1,8 @@
+to: 4.12.1
+from: .*
+url: https://issues.redhat.com/browse/SDN-4013
+name: OVNCrashOnMigratedDualStack
+fixedIn: 4.12.5
+message: OVN-K8S will keep crashing on clusters that were migrated to dual-stack in their lifetime
+matchingRules:
+- type: Always
