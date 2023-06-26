@@ -14,7 +14,7 @@ serde_yaml = "^0.8.26"
 anyhow = "1.0"
 regex = "^1.8.4"
 semver = { version = "^0.11", features = [ "serde" ] }
-toml = "^0.5.11"
+toml = "^0.7.5"
 lazy_static = "^1.4.0"
 url = "^2.4.0"
 reqwest = { version = "^0.11", features = ["gzip"] }
