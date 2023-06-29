@@ -1,0 +1,13 @@
+to: 4.13.4
+from: 4[.]12[.].*
+url: https://issues.redhat.com/browse/OCPNODE-1705
+name: PerformanceProfilesCPUQuota
+message: |-
+  Pods may not execute properly because of CPU quota issues on clusters using PerformanceProfiles.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group(max_over_time(apiserver_storage_objects{resource="performanceprofiles.performance.openshift.io"}[1h]) > 0)
+      or
+      0 * group(max_over_time(apiserver_storage_objects[1h]))
