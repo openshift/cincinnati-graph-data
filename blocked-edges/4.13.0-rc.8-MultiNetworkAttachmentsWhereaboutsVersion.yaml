@@ -1,0 +1,13 @@
+to: 4.13.0-rc.8
+from: .*
+url: https://issues.redhat.com/browse/SDN-4019
+name: MultiNetworkAttachmentsWhereaboutsVersion
+message: |-
+  Upgrade can get stuck on clusters that have multiple network attachments.
+matchingRules:
+- type: PromQL
+  promql:
+    promql:
+      group(network_attachment_definition_instances > 0)
+      or
+      0 * group(network_attachment_definition_instances)
