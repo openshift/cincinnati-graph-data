@@ -1,5 +1,6 @@
 to: 4.13.4
 from: 4[.]12[.].*
+fixedIn: 4.13.5
 url: https://issues.redhat.com/browse/OCPNODE-1705
 name: PerformanceProfilesCPUQuota
 message: |-
