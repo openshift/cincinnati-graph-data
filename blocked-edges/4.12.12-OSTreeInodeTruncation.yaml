@@ -1,0 +1,13 @@
+to: 4.12.12
+from: .*
+url: https://access.redhat.com/solutions/7025186
+name: OSTreeInodeTruncation
+message: |-
+  Cluster components may degrade when reading incorrect filesystem content produced by OSTree improperly handling inodes on large XFS filesystems.
+matchingRules:
+- type: PromQL
+  promql:
+    promql:
+      group(node_filesystem_size_bytes{fstype="xfs", mountpoint="/"} > 2000000000000)
+      or
+      0 * group(node_filesystem_size_bytes)
