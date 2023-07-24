@@ -1,0 +1,8 @@
+to: 4.13.2
+from: 4[.]12[.](2[3-9]|3[0-9]) # 4.12.23+
+url: https://issues.redhat.com/browse/OTA-1000
+name: RHSB2023001
+message: |-
+  OCP 4.12 clusters in FIPS mode where CVE-2023-3089 (see RHSB-2023-001) was remedied should not update to OCP 4.13 versions where CVE-2023-3089 is not yet fully resolved.
+matchingRules:
+- type: Always
