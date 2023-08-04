@@ -92,6 +92,7 @@ tombstones:
 - 4.11.15
 # 4.11.19 has baked in advisory URL which got invalidated when advisory later was converted from RHBA -> RHSA
 - 4.11.19
+- 4.13.7 # had a regression, see https://issues.redhat.com//browse/OCPBUGS-17120
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
