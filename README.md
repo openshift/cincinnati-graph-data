@@ -138,6 +138,39 @@ from: ^4\.1\.(18|20)[+].*$
 
 The `[+].*` portion absorbs [the architecture-suffix](#release-names) from the release name that consumers will use for comparisons.
 
+#### Risks for managed clusters
+
+If site reliability engineers want to declare a risk for managed clusters updating into a release:
+
+1. Pick an impacted target release for `to`, e.g. `4.13.4`.
+2. Build a regular expression for relevant source releases (which would pick up the risk by updating into `to`), e.g. `.*` for "all releases", for `from`.
+3. Find (or create) a URI documenting the risk, e.g. https://access.redhat.com/solutions/7024726 or similar KCS, for `url`.
+4. Create a PascalCaseSlug for the risk, e.g. `MultiNetworkAttachmentsWhereaboutsVersion` for `name`.
+5. Create a sentance or two summarizing the risk for `message`.
+
+And then create a file `blocked-edges/${TO}-${NAME}.yaml`, e.g. `blocked-edges/4.13.4-MultiNetworkAttachmentsWhereaboutsVersion.yaml` with the following content:
+
+```yaml
+to: FIXME
+from: FIXME
+url: FIXME
+name: FIXME
+message: |-
+  FIXME
+matchingRules:
+- type: PromQL
+  promql:
+    promql:
+      group(sre:telemetry:managed_labels{sre="true"})
+      or
+      0 * group(cluster_version)
+```
+
+to declare that risk only for managed clusters.
+See [here](blocked-edges/4.13.4-MultiNetworkAttachmentsWhereaboutsVersion.yaml) for an example where the values are filled in, although that is using different PromQL, and not the managed-cluster selecting PromQL from the above template.
+
+If the risk applies to multiple target releases, create multiple files with different `to`.
+
 ### Signatures
 
 Add release signatures under `signatures/{algorithm}/{digest}/signature-{number}` (1.2.0).
