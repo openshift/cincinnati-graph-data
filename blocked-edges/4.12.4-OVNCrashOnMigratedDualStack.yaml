@@ -1,4 +1,5 @@
 to: 4.12.4
+fixedIn: 4.12.5
 from: .*
 url: https://issues.redhat.com/browse/SDN-4013
 name: OVNCrashOnMigratedDualStack
