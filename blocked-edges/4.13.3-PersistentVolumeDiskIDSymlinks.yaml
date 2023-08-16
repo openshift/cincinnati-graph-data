@@ -6,9 +6,4 @@ name: PersistentVolumeDiskIDSymlinks
 message: |-
   New PersistentVolumes are created bound to an invalid symlink instead of the correct one and thus fail once updated to 4.13.4 or later as the invalid symlink dispears.
 matchingRules:
-- type: PromQL
-  promql:
-    promql: |
-      group(csv_succeeded{name=~"local-storage-operator[.].*"})
-      or
-      0 * group(csv_count)
+- type: Always
