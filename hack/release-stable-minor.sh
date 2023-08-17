@@ -2,6 +2,12 @@
 
 set -e
 
+if ! git diff-index --exit-code --quiet HEAD --
+then
+	echo "This script must be run with clean git state" >&2
+	exit 1
+fi
+
 MAJOR_MINOR="${1}"
 
 if test -z "${MAJOR_MINOR}"
@@ -32,17 +38,20 @@ then
 	exit 1
 fi
 
+# 4.even get extended update support: https://access.redhat.com/support/policy/updates/openshift#ocp4_phases
 if test "$((MINOR % 2))" -eq 0
 then
-	# 4.even get extended update support: https://access.redhat.com/support/policy/updates/openshift#ocp4_phases
+	echo "${MAJOR_MINOR} is an EUS release, will update stable and eus channels"
 	CHANNELS="$(printf '%s\n%s' "${CHANNELS}" eus)"
+else
+	echo "${MAJOR_MINOR} is not an EUS release, will update stable channel only (there is no eus channel to update)"
 fi
 
 echo "${CHANNELS}" | while read CHANNEL
 do
 	PREVIOUS_MINORS="$((MINOR - 1))"
-       	case "${CHANNEL}" in
-	eus) PREVIOUS_MINORS="$((MINOR - 2))|${PREVIOUS_MINORS}"
+	case "${CHANNEL}" in
+		eus) PREVIOUS_MINORS="$((MINOR - 2))|${PREVIOUS_MINORS}"
 	esac
 
 	FILTER="${MAJOR}[.](${PREVIOUS_MINORS}|${MINOR})[.][0-9].*"
@@ -52,4 +61,24 @@ done
 unset GITHUB_TOKEN
 unset WEBHOOK
 DIR="$(dirname "${0}")"
-exec "${DIR}/stabilization-changes.py"
+I=1
+STABILIZATION_LOG="$(mktemp)"
+touch "${STABILIZATION_LOG}"
+
+# Execute stabilization-changes.py until it stops making changes
+while true; do
+	echo "Running stabilization-changes.py: iteration ${I}" | tee -a "${STABILIZATION_LOG}"
+	if ! "${DIR}"/stabilization-changes.py &>> "${STABILIZATION_LOG}"; then
+		echo "FAIL: stabilization-changes.py output tail: (see full log in ${STABILIZATION_LOG})"
+		tail "${STABILIZATION_LOG}"
+		break
+	fi
+	if git diff-files --exit-code --quiet; then
+		break
+	fi
+	git add .
+	I=$((I + 1))
+done
+git restore --staged .
+
+echo "See ${STABILIZATION_LOG} for stabilization-changes.py output if needed"
