@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 
 import os
-
+import re
 import util
+
+# Risk names must be CamelCase to be assignable to condition.Reason
+# https://github.com/openshift/api/blob/8891815aa476232109dccf6c11b8611d209445d9/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/types.go#L1519-L1520C3
+# Note that our regex is stricter, we should never need names more complicated than this.
+NAME_RE = re.compile(r'^[A-Z][A-Za-z0-9_]*$')
 
 
 def validate_blocked_edges(directory):
@@ -24,8 +29,8 @@ def validate_blocked_edge(data, path):
 
     if 'url' in data and not data['url'].startswith('https://'):
         raise ValueError('url must be an https:// URI, not {!r}'.format(data['url']))
-    if 'name' in data and (not isinstance(data['name'], str) or ' ' in data['name']):
-        raise ValueError('name must be a CamelCase reason, not {!r}'.format(data['name']))
+    if 'name' in data and not (isinstance(data['name'], str) and NAME_RE.match(data['name'])):
+        raise ValueError('name must be a CamelCase reason, not {!r} (must match {!r}'.format(data['name'], NAME_RE.pattern))
     if 'message' in data and not isinstance(data['message'], str):
         raise ValueError('message must be a string, not {!r}'.format(data['message']))
     if 'matchingRules' in data:
