@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi:latest as builder
+FROM registry.access.redhat.com/ubi9/ubi:latest as builder
 
 WORKDIR /opt/app-root/src/
 COPY . .
@@ -10,7 +10,7 @@ RUN dnf update -y \
 RUN cargo test --manifest-path graph-data.rs/Cargo.toml \
     && cargo install --locked --path graph-data.rs
 
-FROM registry.access.redhat.com/ubi8/ubi:latest
+FROM registry.access.redhat.com/ubi9/ubi:latest
 
 ENV RUST_LOG=actix_web=error,dkregistry=error
 
