@@ -1,0 +1,8 @@
+to: 4.13.4
+from: 4[.]12[.].*
+url: https://issues.redhat.com/browse/COS-2437
+name: SeccompFilterErrno524
+message: |-
+  Pods scheduled to nodes running a RHCOS/kernel version with a known defect may fail to start with a CreateContainerError.
+matchingRules:
+- type: Always
