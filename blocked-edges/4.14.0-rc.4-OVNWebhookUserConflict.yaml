@@ -1,0 +1,21 @@
+to: 4.14.0-rc.4
+from: .*
+url: https://issues.redhat.com/browse/SDN-4160
+name: OVNCrashOnMigratedDualStack
+message: Possible webhook user conflicts when updating standalone (not Hosted/HyperShift) OVN clusters out of the target release and into one with a fix for the https://issues.redhat.com/browse/OCPBUGS-20104 series.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      (
+        group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="egressips.k8s.ovn.org"}[1h]))
+        or on ()
+        0 * group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
+      ) * on () group_left (invoker)
+      (
+        0 * group by (invoker) (cluster_installer{_id="",invoker="hypershift"})
+        or on ()
+        group by (invoker) (cluster_installer{_id=""})
+        or on ()
+        group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
+      )
