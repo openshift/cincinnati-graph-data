@@ -1,7 +1,7 @@
 to: 4.14.0-rc.3
 from: .*
 url: https://issues.redhat.com/browse/SDN-4160
-name: OVNCrashOnMigratedDualStack
+name: OVNWebhookUserConflict
 message: Possible webhook user conflicts when updating standalone (not Hosted/HyperShift) OVN clusters out of the target release and into one with a fix for the https://issues.redhat.com/browse/OCPBUGS-20104 series.
 matchingRules:
 - type: PromQL
