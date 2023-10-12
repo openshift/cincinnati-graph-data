@@ -1,0 +1,13 @@
+to: 4.11.51
+from: .*
+url: https://issues.redhat.com/browse/METAL-739
+name: BrokenBaremetalProvisioning
+message: The target release fails to provision and de-provision new baremetal machines required for scaling of a cluster.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group(cluster_infrastructure_provider{type="BareMetal"})
+      or
+      0 * group(cluster_infrastructure_provider)
+
