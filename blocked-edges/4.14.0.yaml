@@ -1,3 +1,4 @@
 to: 4.14.0
 from: 4[.]13[.]1[78]
+fixedIn: 4.14.1
 # We want folks to pick up 4.13.19's https://issues.redhat.com/browse/OCPBUGS-19472 to avoid being surprised by SecurityContextConstraint stomping
