@@ -342,8 +342,14 @@ def show_edges(channel, architecture, repository, revision=None, cache='.metadat
             continue
         key = (from_version, to_version)
         if key in blocked:
-            reasons = ', '.join(str(r) for r in sorted(blocked[key]))
-            print('{} -(risks: {})-> {}'.format(from_version, reasons, to_version))
+            if None not in blocked[key]:
+                reasons = ', '.join(sorted(blocked[key]))
+                print('{} -(risks: {})-> {}'.format(from_version, reasons, to_version))
+            elif len([name for name in blocked[key] if name != None]) > 0:
+                reasons = ', '.join(sorted([r or 'SILENT-BLOCK-CINCINNATI-WILL-IGNORE' for r in blocked[key]]))  # https://issues.redhat.com/browse/OTA-1043
+                print('{} -(risks: {})-> {}'.format(from_version, reasons, to_version))
+            else:  # None is the only entry
+                print('{} -(SILENT-BLOCK)-> {}'.format(from_version, to_version))
         else:
             print('{} -> {}'.format(from_version, to_version))
 
