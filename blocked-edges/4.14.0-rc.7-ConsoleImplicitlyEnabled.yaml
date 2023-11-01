@@ -1,5 +1,5 @@
 to: 4.14.0-rc.7
-from: .*
+from: 4[.](13[.].*|14[.]0-(ec[.].*|rc[.][01]))
 url: https://issues.redhat.com/browse/OTA-1031
 name: ConsoleImplicitlyEnabled
 message: Clusters with the Console capability disabled will have it implicitly enabled by updating to the target release, and once enabled, capabilities cannot be disabled.
