@@ -1,5 +1,6 @@
 to: 4.11.52
 from: .*
+fixedIn: 4.11.53
 url: https://issues.redhat.com/browse/METAL-739
 name: BrokenBaremetalProvisioning
 message: The target release fails to provision and de-provision new baremetal machines required for scaling of a cluster.
