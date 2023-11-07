@@ -9,7 +9,7 @@ cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "a2974db3b
 actix-http = "=3.3.1"
 actix-service = "=2.0.2"
 tokio = { version = "^1.14", features = [ "fs", "rt-multi-thread" ] }
-serde = "^1.0.190"
+serde = "^1.0.191"
 serde_yaml = "^0.9.27"
 anyhow = "1.0"
 regex = "^1.10.2"
