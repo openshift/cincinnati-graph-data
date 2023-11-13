@@ -1,5 +1,5 @@
 to: 4.12.41
-from: .*
+from: 4[.](11[.].*|12[.]([0-9]|[1-3][0-9]|40)[+].*)
 url: https://issues.redhat.com/browse/SDN-4196
 name: OVNKubeMasterDSPrestop
 message: |-
