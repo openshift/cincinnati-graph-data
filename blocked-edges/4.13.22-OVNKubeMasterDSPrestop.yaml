@@ -1,0 +1,21 @@
+to: 4.13.22
+from: .*
+url: https://issues.redhat.com/browse/SDN-4196
+name: OVNKubeMasterDSPrestop
+message: |-
+  Upgrades can get stuck on OVN clusters that were installed as 4.10 or earlier.
+matchingRules:
+- type: PromQL
+  promql:
+    promql:
+      topk(1,
+        label_replace(group(cluster_version{type="initial",version=~"4[.]([0-9]|10)[.].*"}),"born_by_4_10", "yes, born in 4.10 or earlier", "", "")
+        or
+        label_replace(0 * group(cluster_version{type="initial",version!~"4[.]([0-9]|10)[.].*"}),"born_by_4_10", "no, born in 4.11 or later", "", "")
+      )
+      * on () group_left(resource)
+      (
+        group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="egressips.k8s.ovn.org"}[1h]))
+        or on ()
+        0 * group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
+      )
