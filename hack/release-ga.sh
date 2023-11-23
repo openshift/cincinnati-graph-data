@@ -91,3 +91,4 @@ git restore --staged .
 LATEST=$(python -c "import sys, yaml; data = yaml.safe_load(sys.stdin); print(data['versions'][0])" < "channels/stable-${MAJOR_MINOR}.yaml")
 # Use sed instead of doing this in python above to avoid clobbering the nice semantic ordering
 sed -i -e "s|z_min: .*|z_min: ${LATEST}|" "build-suggestions/${MAJOR_MINOR}.yaml"
+sed -i -e "s|minor_min: .*|minor_min: ${LATEST}|" "build-suggestions/${MAJOR}.$((MINOR + 1)).yaml"
