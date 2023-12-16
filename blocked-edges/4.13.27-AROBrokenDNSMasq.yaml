@@ -1,9 +1,9 @@
-to: 4.14.3
+to: 4.13.27
 from: .*
 url: https://issues.redhat.com/browse/MCO-958
 name: AROBrokenDNSMasq
 message: |-
-  Adding a new worker node will fail for clusters running on ARO
+  Adding a new worker node will fail for clusters running on ARO.
 matchingRules:
 - type: PromQL
   promql:
