@@ -18,9 +18,9 @@ matchingRules:
         or
         0 * cluster_infrastructure_provider{_id=""}
       )
-      * on () group_left()(
+      * on () group_left (namespace, pod, container, image)
       topk(1,
-        group(kube_pod_container_info{_id="",image=~".*[.]dkr[.]ecr(?:-fips)?[.].*[.]amazonaws[.]com(?:[.]cn)?|.*[.]dkr[.]ecr[.]us-isob?-east-1[.](?:c2s[.]ic|sc2s[.]sgov)[.]gov"})
+        kube_pod_container_info{_id="",image=~".*(?:[.]dkr[.]ecr(?:-fips)?[.].*[.]amazonaws[.]com(?:[.]cn)?|[.]dkr[.]ecr[.]us-isob?-east-1[.](?:c2s[.]ic|sc2s[.]sgov)[.]gov)[/@:].*"}
         or on ()
-        0 * group(kube_pod_container_info{_id=""})
-      ))
+        0 * topk(1, kube_pod_container_info{_id=""})
+      )
