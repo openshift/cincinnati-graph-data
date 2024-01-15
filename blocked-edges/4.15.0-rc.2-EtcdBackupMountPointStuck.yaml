@@ -1,0 +1,7 @@
+to: 4.15.0-rc.2
+from: 4[.]14[.].[3-8]
+url: https://issues.redhat.com/browse/ETCD-511
+name: EtcdBackupMountPointStuck
+message: Etcd backup mount point sometimes cannot be deleted causing EtcdRecentBackup precondition to fail and block the upgrade.
+matchingRules:
+- type: Always
