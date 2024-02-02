@@ -3,6 +3,7 @@
 
 approvers:
   - cincinnati-graph-data-approvers
-  - sre-approvers
 reviewers:
   - cincinnati-graph-data-approvers
+options:
+  no_parent_owners: true
