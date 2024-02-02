@@ -1,5 +1,6 @@
 to: 4.14.10
 from: 4[.]13[.].*
+fixedIn: 4.14.11
 url: https://issues.redhat.com/browse/OCPCLOUD-2434
 name: AWSECRLegacyCredProvider
 message: AWS clusters that use AmazonEC2ContainerRegistryReadOnly node policies to access ECR are unable to pull images from ECR after updating to exposed 4.14.z.
