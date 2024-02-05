@@ -1,0 +1,14 @@
+to: 4.14.0-rc.3
+from: 4[.]13[.].*
+url: https://issues.redhat.com/browse/IR-461
+name: AzureRegistryImagePreservation
+message: In Azure clusters, the in-cluster image registry may fail to preserve images on update.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk(1,
+        cluster_infrastructure_provider{_id="",type="Azure"}
+        or
+        0 * cluster_infrastructure_provider{_id=""}
+      )
