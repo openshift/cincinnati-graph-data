@@ -7,9 +7,17 @@ message: |-
   Clusters where Ingress Controller uses HostNetwork endpoint publishing strategy and certain NetworkPolicy configurations
   may experience network traffic disruptions in namespaces that allowed traffic before the upgrade.
 matchingRules:
-- type: PromQL
-  promql:
-    promql: |
-      group(max_over_time(apiserver_storage_objects{resource="networkpolicies.networking.k8s.io"}[1h]) > 0)
-      or
-      0 * group(max_over_time(apiserver_storage_objects[1h]))
+  - type: PromQL
+    promql:
+      promql: |
+        topk by (_id) (1,
+          group by (_id, type) (cluster_infrastructure_provider{_id="",type=~"None|BareMetal|VSphere|OpenStack|Nutanix|Libvirt|KubeVirt|EquinixMetal|External"})
+          or
+          0 * group by (_id, type) (cluster_infrastructure_provider{_id=""})
+        )
+        * on (_id) group_left (resource)
+        topk by (_id) (1,
+          group(max_over_time(apiserver_storage_objects{_id="",resource="networkpolicies.networking.k8s.io"}[1h]) > 0)
+          or
+          0 * group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
+        )
