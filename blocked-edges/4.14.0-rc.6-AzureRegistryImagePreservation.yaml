@@ -8,7 +8,15 @@ matchingRules:
   promql:
     promql: |
       topk(1,
-        cluster_infrastructure_provider{_id="",type="Azure"}
+        group by (type) (cluster_infrastructure_provider{_id="",type="Azure"})
         or
-        0 * cluster_infrastructure_provider{_id=""}
+        0 * group by (type) (cluster_infrastructure_provider{_id=""})
+      )
+      * on () group_left (name, operation, method)
+      topk(1,
+        group by (name) (cluster_operator_conditions{_id="",name="aro"})
+        or
+        group by (operation) (max by (operation) (max_over_time(imageregistry_request_duration_seconds_count{_id=""}[1h])))
+        or
+        0 * group by (method) (max by (method) (imageregistry_http_request_duration_seconds_count{_id=""}))
       )
