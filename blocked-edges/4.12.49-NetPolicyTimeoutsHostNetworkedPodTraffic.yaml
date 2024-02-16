@@ -1,6 +1,7 @@
 to: 4.12.49
 # 4.12 before 4.12.48 and 4.11
 from: 4[.](12[.]([0-9]|[1-3][0-9]|4[0-7])|11[.].*)[+].*
+fixedIn: 4.12.50
 url: https://issues.redhat.com/browse/SDN-4481
 name: NetPolicyTimeoutsHostNetworkedPodTraffic
 message: |-
