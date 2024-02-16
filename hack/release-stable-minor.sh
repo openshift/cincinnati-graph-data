@@ -22,7 +22,7 @@ then
 	exit 1
 fi
 
-CHANNELS="stable"
+CHANNELS="$(printf '%s\n%s' fleet-approved stable)"
 
 MAJOR="${MAJOR_MINOR%%.*}"
 MINOR="${MAJOR_MINOR##*.}"
@@ -41,10 +41,10 @@ fi
 # 4.even get extended update support: https://access.redhat.com/support/policy/updates/openshift#ocp4_phases
 if test "$((MINOR % 2))" -eq 0
 then
-	echo "${MAJOR_MINOR} is an EUS release, will update stable and eus channels"
 	CHANNELS="$(printf '%s\n%s' "${CHANNELS}" eus)"
+	printf "%s is an EUS release, will update the following channels:\n%s\n" "${MAJOR_MINOR}" "${CHANNELS}"
 else
-	echo "${MAJOR_MINOR} is not an EUS release, will update stable channel only (there is no eus channel to update)"
+	printf "%s is not an EUS release, will update the following channels:\n%s\n" "${MAJOR_MINOR}" "${CHANNELS}"
 fi
 
 echo "${CHANNELS}" | while read CHANNEL
