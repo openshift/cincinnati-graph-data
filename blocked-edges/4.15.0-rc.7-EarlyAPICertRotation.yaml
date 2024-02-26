@@ -1,4 +1,4 @@
-to: 4.15.0-rc.0
+to: 4.15.0-rc.7
 from: .*
 url: https://issues.redhat.com/browse/API-1687
 name: EarlyAPICertRotation
