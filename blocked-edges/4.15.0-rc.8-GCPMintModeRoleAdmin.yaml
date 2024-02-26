@@ -2,6 +2,7 @@ to: 4.15.0-rc.8
 from: 4[.](14|15[.]0-ec)[.].*
 url: https://issues.redhat.com/browse/CCO-522
 name: GCPMintModeRoleAdmin
+fixedIn: 4.15.0
 message: |-
   GCP clusters in Mint mode may need additional permissions to provision 4.15 CredentialsRequests.
 matchingRules:
