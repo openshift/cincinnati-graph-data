@@ -12,7 +12,7 @@ MAJOR_MINOR="${1}"
 if test -z "${MAJOR_MINOR}"
 then
 	cat <<-EOF >&2
-		This script creates the necessary files for for a new x.y minor release which includes fast, stable and, when appropriate, EUS channel files with required metadata for automation.
+		This script creates the necessary files for a new x.y minor release which includes fast, fleet-approved, ga, stable and, when appropriate, EUS channel files with required metadata for automation.
 		Usage:
 		  ${0} MAJOR_MINOR
 		For example:
@@ -21,7 +21,7 @@ then
 	exit 1
 fi
 
-CHANNELS="$(printf '%s\n%s' fast stable)"
+CHANNELS="$(printf '%s\n%s\n%s\n%s' fast fleet-approved ga stable)"
 
 MAJOR="${MAJOR_MINOR%%.*}"
 MINOR="${MAJOR_MINOR##*.}"
@@ -55,12 +55,12 @@ fi
 echo "${CHANNELS}" | while read CHANNEL
 do
 	case "${CHANNEL}" in
-	eus) FEEDER=stable;;
-	*) FEEDER="${CHANNEL}";;
+	eus|fleet-approved|stable) FEEDER=stable;;
+	*) FEEDER=fast;
 	esac
 
 	case "${CHANNEL}" in
-	fast)
+	fast|ga)
 		PREVIOUS_MINOR="$((MINOR - 1))"
 		FILTER="${MAJOR}[.](${PREVIOUS_MINOR=}|${MINOR})[.][0-9].*"
 		;;
