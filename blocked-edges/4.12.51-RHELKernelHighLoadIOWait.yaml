@@ -1,0 +1,7 @@
+to: 4.12.51
+from: .*
+url: https://issues.redhat.com/browse/COS-2705
+name: RHELKernelHighLoadIOWait
+message: "After rebooting into kernel-4.18.0-372.88.1.el8_6 or later, kernel nodes experience high load average and io_wait times. The nodes might fail to start or stop pods and probes may fail. Workload and host processes may become unresponsive and workload may be disrupted."
+matchingRules:
+  - type: Always
