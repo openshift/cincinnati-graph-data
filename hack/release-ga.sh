@@ -43,6 +43,7 @@ then
 	CHANNELS="$(printf '%s\n%s' "${CHANNELS}" eus)"
 fi
 
+PREVIOUS_MINOR="$((MINOR - 1))"
 RELEASES="$(grep "^- ${MAJOR}[.]${MINOR}[.][0-9]" internal-channels/fast.yaml || (echo "failed to find ${MAJOR_MINOR} releases in internal-channels/fast.yaml" >&2; exit 1))"
 if test -z "${RELEASES}"
 then
@@ -61,7 +62,6 @@ do
 
 	case "${CHANNEL}" in
 	fast)
-		PREVIOUS_MINOR="$((MINOR - 1))"
 		FILTER="${MAJOR}[.](${PREVIOUS_MINOR=}|${MINOR})[.][0-9].*"
 		;;
 	*) FILTER="${MAJOR}[.]${MINOR}[.][0-9].*";;
@@ -92,3 +92,17 @@ LATEST=$(python -c "import sys, yaml; data = yaml.safe_load(sys.stdin); print(da
 # Use sed instead of doing this in python above to avoid clobbering the nice semantic ordering
 sed -i -e "s|z_min: .*|z_min: ${LATEST}|" "build-suggestions/${MAJOR_MINOR}.yaml"
 sed -i -e "s|minor_min: .*|minor_min: ${LATEST}|" "build-suggestions/${MAJOR}.$((MINOR + 1)).yaml"
+
+grep "^- ${MAJOR}[.]${MINOR}[.]0-" "channels/candidate-${MAJOR_MINOR}.yaml" | sed 's/^- //' | while read VERSION
+do
+	cat <<-EOF > "blocked-edges/${VERSION}-PreRelease.yaml"
+		to: ${VERSION}
+		from: .*
+		url: https://docs.openshift.com/container-platform/${MAJOR_MINOR}/release_notes/ocp-${MAJOR}-${MINOR}-release-notes.html
+		name: PreRelease
+		message: |-
+		  This is a prerelease version, and you should update to ${LATEST} or later releases, even if that means updating to a newer ${MAJOR}.${PREVIOUS_MINOR} first.
+		matchingRules:
+		- type: Always
+	EOF
+done
