@@ -1,0 +1,15 @@
+to: 4.13.18
+from: .*
+url: https://issues.redhat.com/browse/OCPBUGS-30256
+name: AROBrokenAcceleratedNetworking
+message: |-
+  Adding a new worker node will fail for clusters running on ARO with Azure Accelerated Networking.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      (
+        group(cluster_operator_conditions{name="aro"})
+        or
+        0 * group(cluster_operator_conditions)
+      )
