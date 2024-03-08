@@ -1,0 +1,15 @@
+to: 4.13.0-ec.4
+from:  4[.]12[.].*
+url: https://issues.redhat.com/browse/OPNET-479
+name: AzureBrokenAcceleratedNetworking
+message: |-
+  Adding a new worker node will fail for clusters running on Azure with Accelerated Networking.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk(1,
+        group by (type) (cluster_infrastructure_provider{_id="",type="Azure"})
+        or
+        0 * group by (type) (cluster_infrastructure_provider{_id=""})
+      )
