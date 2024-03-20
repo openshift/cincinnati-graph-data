@@ -5,3 +5,4 @@ feeder:
 name: stable-4.15
 versions:
 - 4.15.0
+- 4.15.2
