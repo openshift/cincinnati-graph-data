@@ -1,0 +1,8 @@
+to: 4.14.13
+from: 4[.](14[.]([0-9]|1[01])|13[.]([0-9]|[1-2][0-9]|3[0-2]))[+].*
+fixedIn: 4.14.16
+url: https://issues.redhat.com/browse/MCO-1094
+name: HighNodeStatusReportFrequency
+message: An unintended reversion to the default kubelet nodeStatusReportFrequency can cause significant load on the control plane.
+matchingRules:
+- type: Always
