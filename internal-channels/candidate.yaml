@@ -1153,3 +1153,6 @@ versions:
 - 4.14.18
 
 - 4.13.38
+
+# oc-mirror image was run on wrong rhel base image
+- 4.15.4
