@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import codecs
+import collections
 import datetime
 import http
 import json
@@ -118,7 +119,7 @@ def stabilization_changes(directories, webhook=None, **kwargs):
         notify(message='* ' + ('\n* '.join(deduped_notifications)), webhook=webhook)
 
 
-def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
+def stabilize_channel(name, channel, channels, channel_paths, cache=None, **kwargs):
     if not channel.get('feeder'):
         return
     feeder = channel['feeder']['name']
@@ -160,7 +161,11 @@ def stabilize_channel(name, channel, channels, channel_paths, **kwargs):
             feeder_name=feeder,
             feeder_promotion=feeder_promotion,
             candidates=candidates,
+            cache=cache,
             **kwargs)
+    yield from get_concerns_about_patch_updates(
+        channel=channel,
+        cache=cache)
 
 
 def stabilize_release(version, channel, channel_path, delay, errata, feeder_name, feeder_promotion, candidates, cache, update_risks=None, waiting_notifications=True, github_token=None, **kwargs):
@@ -379,6 +384,37 @@ def get_concerns_about_updating_out(version, channel, cache=None):
         reachable.update(targets)  # maybe additional hops will get us to the target major.minor.
 
     return 'No paths from {} to {} in {}'.format(version, channel_major_minor, ' '.join(cincinnati_uris))
+
+
+def get_concerns_about_patch_updates(channel, cache=None):
+    if len(channel['versions']) > 1:
+        patch_updates = collections.defaultdict(dict)
+        largest_version = list(sorted(channel['versions'], key=semver_sort_key))[-1]
+        release_major, release_minor = (int(x) for x in largest_version.split('.')[:2])
+        major_minor_prefix = '{}.{}.'.format(release_major, release_minor)
+        cincinnati_uri, cincinnati_data = get_cincinnati_channel(cache=cache, channel='candidate-{}.{}'.format(release_major, release_minor))
+        nodes = cincinnati_data.get('nodes', [])
+        for edge in cincinnati_data.get('edges', []):
+            source = nodes[edge[0]]['version']
+            target = nodes[edge[1]]['version']
+            if target in channel['versions']:
+                patch_updates[source][None] = target
+        for conditional in cincinnati_data.get('conditionalEdges', []):
+            for edge in conditional.get('edges', []):
+                for risk in conditional.get('risks', []):
+                    patch_updates[edge['from']][risk['name']] = edge['to']
+        for version in sorted(channel['versions'], key=semver_sort_key):
+            if not version.startswith(major_minor_prefix):
+                continue  # older major.minor will have patch updates checked in channels capped at that major.minor
+            if version == largest_version:
+                continue  # there can be no updates from the largest release in the channel, that will need future releases
+            if None in patch_updates.get(version, {}):
+                continue  # unconditional patch update exists
+            if version in patch_updates:
+                risks = set(patch_updates[version].keys()) - {None}
+                yield '{} has patch updates in {}, but they are exposed to risks: {}'.format(version, channel['name'], ', '.join(sorted(risks)))
+                continue
+            yield '{} has no patch updates in {}'.format(version, channel['name'])
 
 
 def get_cincinnati_channel(arch='amd64', channel='', update_service='https://api.openshift.com/api/upgrades_info/v1/graph', cache=None):
