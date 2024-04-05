@@ -1,0 +1,14 @@
+to: 4.16.0-ec.4
+from: .*
+url: https://issues.redhat.com/browse/MCO-1091
+name: CSRNotApprovedBadCerts
+message: Clusters born in 4.13 and earlier may not have CSRs automatically approved because of missing groups in installer client certificates.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk(1,
+        label_replace(group by (version) (cluster_version{_id="",type="initial",version=~"4[.]([0-9]|1[0-3])[.].*"}),"born_by_4_13", "yes, so possibly actually born in 4.13 or earlier", "", "")
+        or
+        label_replace(0 * group by (version) (cluster_version{_id="",type="initial",version!~"4[.]([0-9]|1[0-3])[.].*"}),"born_by_4_13", "no, born in 4.13 or later", "", "")
+      )
