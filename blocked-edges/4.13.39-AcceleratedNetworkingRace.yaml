@@ -1,0 +1,14 @@
+to: 4.13.39
+from: 4[.]12[.].*
+url: https://issues.redhat.com/browse/OPNET-479
+name: AcceleratedNetworkingRace
+message: Adding a new worker node may fail for clusters running on Azure with Accelerated Networking.
+matchingRules:
+    - type: PromQL
+      promql:
+        promql: |
+            (
+              group(cluster_operator_conditions{name="aro"})
+              or
+              0 * group(cluster_operator_conditions)
+            )
