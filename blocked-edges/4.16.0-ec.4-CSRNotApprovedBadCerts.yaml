@@ -1,5 +1,6 @@
 to: 4.16.0-ec.4
 from: .*
+fixedIn: 4.16.0-ec.5
 url: https://issues.redhat.com/browse/MCO-1091
 name: CSRNotApprovedBadCerts
 message: Clusters born in 4.13 and earlier may not have CSRs automatically approved because of missing groups in installer client certificates.
