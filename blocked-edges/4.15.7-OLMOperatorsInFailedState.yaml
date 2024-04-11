@@ -1,0 +1,15 @@
+to: 4.15.7
+from: 4[.]14[.]*
+url: https://issues.redhat.com/browse/OPRUN-3267
+name: OLMOperatorsInFailedState
+message: |-
+  The Operator Lifecycle Manager (OLM) based operators going to failed state after updating to 4.15.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      (
+        group(csv_succeeded{_id=""})
+        or
+        0 * group(csv_count{_id=""})
+      )
