@@ -1,0 +1,15 @@
+to: 4.12.49
+from: 4[.](11[.].*|12[.]([0-9]|[1-3][0-9]|4[0-4])[+].*)
+url: https://issues.redhat.com/browse/COS-2747
+name: AMD19hFirmware
+message: |-
+  Nodes with AMD 19h family CPUs  (Bergamo, Milan, etc.) can fail to boot after applying operating system updates.
+matchingRules:
+- type: PromQL
+  promql:
+    promql:
+      topk(1,
+        group by (vendor, family) (node_cpu_info{_id="",vendor="AuthenticAMD",family="25"})
+        or
+        0 * group by (vendor, family) (node_cpu_info{_id=""})
+      )
