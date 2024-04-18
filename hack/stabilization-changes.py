@@ -146,23 +146,22 @@ def stabilize_channel(name, channel, channels, channel_paths, cache=None, **kwar
         _LOGGER.warning('some versions in {} despite tombstones in {}: {}'.format(name, feeder, ', '.join(sorted(zombies))))
     unpromoted = set(feeder_data['versions']) - set(channel['versions']) - tombstones
     candidates = set(v for v in unpromoted if version_filter.match(v))
-    if not candidates:
-        return
-    feeder_promotions = get_promotions(channel_paths[feeder])
-    _LOGGER.info('considering promotions from {} to {} after {}'.format(feeder, name, ' or '.join(conditions)))
-    for version in sorted(candidates):
-        feeder_promotion = feeder_promotions[version]
-        yield from stabilize_release(
-            version=version,
-            channel=channel,
-            channel_path=channel_paths[name],
-            delay=delay,
-            errata=errata,
-            feeder_name=feeder,
-            feeder_promotion=feeder_promotion,
-            candidates=candidates,
-            cache=cache,
-            **kwargs)
+    if candidates:
+        feeder_promotions = get_promotions(channel_paths[feeder])
+        _LOGGER.info('considering promotions from {} to {} after {}'.format(feeder, name, ' or '.join(conditions)))
+        for version in sorted(candidates):
+            feeder_promotion = feeder_promotions[version]
+            yield from stabilize_release(
+                version=version,
+                channel=channel,
+                channel_path=channel_paths[name],
+                delay=delay,
+                errata=errata,
+                feeder_name=feeder,
+                feeder_promotion=feeder_promotion,
+                candidates=candidates,
+                cache=cache,
+                **kwargs)
     yield from get_concerns_about_patch_updates(
         channel=channel,
         cache=cache)
@@ -388,21 +387,31 @@ def get_concerns_about_updating_out(version, channel, cache=None):
 
 def get_concerns_about_patch_updates(channel, cache=None):
     if len(channel['versions']) > 1:
-        patch_updates = collections.defaultdict(dict)
+        patch_updates = collections.defaultdict(lambda: collections.defaultdict(set))
         largest_version = list(sorted(channel['versions'], key=semver_sort_key))[-1]
         release_major, release_minor = (int(x) for x in largest_version.split('.')[:2])
         major_minor_prefix = '{}.{}.'.format(release_major, release_minor)
-        cincinnati_uri, cincinnati_data = get_cincinnati_channel(cache=cache, channel='candidate-{}.{}'.format(release_major, release_minor))
+        early_channel = 'candidate-{}.{}'.format(release_major, release_minor)
+        if major_minor_prefix == '4.1.':
+            early_channel = 'prerelease-{}.{}'.format(release_major, release_minor)
+        cincinnati_uri, cincinnati_data = get_cincinnati_channel(cache=cache, channel=early_channel)
         nodes = cincinnati_data.get('nodes', [])
         for edge in cincinnati_data.get('edges', []):
             source = nodes[edge[0]]['version']
             target = nodes[edge[1]]['version']
             if target in channel['versions']:
-                patch_updates[source][None] = target
+                patch_updates[source][None].add(target)
         for conditional in cincinnati_data.get('conditionalEdges', []):
             for edge in conditional.get('edges', []):
+                if edge['to'] in patch_updates[edge['from']].get(None, {}):  # work around https://issues.redhat.com/browse/OCPBUGS-25833
+                    patch_updates[edge['from']][None].remove(edge['to'])
+                    if len(patch_updates[edge['from']][None]) == 0:
+                        del patch_updates[edge['from']][None]
+                    if len(patch_updates[edge['from']]) == 0:
+                        del patch_updates[edge['from']]
                 for risk in conditional.get('risks', []):
-                    patch_updates[edge['from']][risk['name']] = edge['to']
+                    patch_updates[edge['from']][risk['name']].add(edge['to'])
+        warnings = {}
         for version in sorted(channel['versions'], key=semver_sort_key):
             if not version.startswith(major_minor_prefix):
                 continue  # older major.minor will have patch updates checked in channels capped at that major.minor
@@ -411,10 +420,31 @@ def get_concerns_about_patch_updates(channel, cache=None):
             if None in patch_updates.get(version, {}):
                 continue  # unconditional patch update exists
             if version in patch_updates:
-                risks = set(patch_updates[version].keys()) - {None}
-                yield '{} has patch updates in {}, but they are exposed to risks: {}'.format(version, channel['name'], ', '.join(sorted(risks)))
+                risks = sorted(set(patch_updates[version].keys()))
+                warnings[version] = '{} has patch updates in {}, but they are exposed to risks: {}'.format(version, channel['name'], ', '.join(risks))
                 continue
-            yield '{} has no patch updates in {}'.format(version, channel['name'])
+            warnings[version] = '{} has no patch updates in {}'.format(version, channel['name'])
+        for version, warning in sorted(warnings.items()):
+            will_complain_about_later_release = False
+            for risk, targets in patch_updates[version].items():
+                for target in targets:
+                    if target in warnings:
+                        will_complain_about_later_release = True
+                        _LOGGER.debug('ignore {} ({}), because it can update to {}, and we will complain about {} ({})'.format(version, warning, target, target, warnings[target]))
+                        break
+                if will_complain_about_later_release:
+                    break
+            if not will_complain_about_later_release:
+                sem_ver = _SEM_VER_REGEXP.match(version)
+                if sem_ver and sem_ver.group('prerelease'):
+                    _LOGGER.debug('ignore patch connectivity for prerelease {}'.format(warning))
+                    continue  # do not worry about connectivity among prereleases
+                if version in {
+                        '4.1.38',  # has no patch updates in stable-4.1, but nothing we can do about that now
+                        '4.2.14+amd64',  # has no patch updates in fast-4.2, because this function doesn't understand graph-data's arch suffixes
+                    }:
+                    continue
+                yield warning
 
 
 def get_cincinnati_channel(arch='amd64', channel='', update_service='https://api.openshift.com/api/upgrades_info/v1/graph', cache=None):
