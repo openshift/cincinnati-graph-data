@@ -119,7 +119,7 @@ def stabilization_changes(directories, webhook=None, **kwargs):
         notify(message='* ' + ('\n* '.join(deduped_notifications)), webhook=webhook)
 
 
-def stabilize_channel(name, channel, channels, channel_paths, cache=None, **kwargs):
+def stabilize_channel(name, channel, channels, channel_paths, cache=None, waiting_notifications=True, **kwargs):
     if not channel.get('feeder'):
         return
     feeder = channel['feeder']['name']
@@ -162,9 +162,10 @@ def stabilize_channel(name, channel, channels, channel_paths, cache=None, **kwar
                 candidates=candidates,
                 cache=cache,
                 **kwargs)
-    yield from get_concerns_about_patch_updates(
-        channel=channel,
-        cache=cache)
+    if waiting_notifications:
+        yield from get_concerns_about_patch_updates(
+            channel=channel,
+            cache=cache)
 
 
 def stabilize_release(version, channel, channel_path, delay, errata, feeder_name, feeder_promotion, candidates, cache, update_risks=None, waiting_notifications=True, github_token=None, **kwargs):
