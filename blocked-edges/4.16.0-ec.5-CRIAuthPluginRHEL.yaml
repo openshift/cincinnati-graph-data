@@ -1,0 +1,20 @@
+to: 4.16.0-ec.5
+from: 4[.]15[.].*
+url: https://issues.redhat.com/browse/OCPCLOUD-2582
+name: CRIAuthPluginRHEL
+message: Azure and GCP clusters with RHEL nodes may fail to start the kubelet until the operating system has been updated.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk(1,
+        group by (type) (cluster_infrastructure_provider{_id="",type=~"Azure|GCP"})
+        or
+        0 * group by (type) (cluster_infrastructure_provider{_id=""})
+      )
+      * on () group_left (label_node_openshift_io_os_id)
+      topk(1,
+        group by (label_node_openshift_io_os_id) (kube_node_labels{_id="",label_node_openshift_io_os_id="rhel"})
+        or
+        0 * group by (label_node_openshift_io_os_id) (kube_node_labels{_id=""})
+      )
