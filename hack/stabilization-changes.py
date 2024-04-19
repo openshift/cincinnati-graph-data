@@ -161,6 +161,7 @@ def stabilize_channel(name, channel, channels, channel_paths, cache=None, waitin
                 feeder_promotion=feeder_promotion,
                 candidates=candidates,
                 cache=cache,
+                waiting_notifications=waiting_notifications,
                 **kwargs)
     if waiting_notifications:
         yield from get_concerns_about_patch_updates(
