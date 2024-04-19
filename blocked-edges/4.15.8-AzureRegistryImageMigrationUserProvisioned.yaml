@@ -15,7 +15,7 @@ matchingRules:
       )
       * on () group_left (secret)
       topk(1,
-        group by (secret) (kube_secret_info{_id="",namespace="openshift-image-registry",name="image-registry-private-configuration-user"})
+        group by (secret) (kube_secret_info{_id="",namespace="openshift-image-registry",secret="image-registry-private-configuration-user"})
         or
         0 * group by (secret) (kube_secret_info{_id="",namespace="openshift-image-registry"})
       )
