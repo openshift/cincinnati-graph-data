@@ -1,5 +1,6 @@
 to: 4.15.9
 from: 4[.]14[.].*
+fixedIn: 4.15.10
 url: https://issues.redhat.com/browse/API-1687
 name: EarlyAPICertRotation
 message: Clusters born in 4.7 and earlier will trigger an api-int certificate authority rollout, and bugs in that rollout may break kubelet access to the Kubernetes API service.
