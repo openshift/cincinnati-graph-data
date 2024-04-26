@@ -1,5 +1,6 @@
 to: 4.14.22
 from: 4[.](13[.].*|14[.]([0-9]|1[0-4]))[+].*
+fixedIn: 4.14.23
 url: https://issues.redhat.com/browse/IR-468
 name: AzureRegistryImageMigrationUserProvisioned
 message: In Azure clusters with the user-provisioned registry storage, the in-cluster image registry component may struggle to complete the cluster update.
