@@ -96,6 +96,8 @@ tombstones:
 - 4.11.51 # respun for additional fixes
 - 4.12.38 # respun for additional fixes
 - 4.13.16 # respun for additional fixes
+- 4.15.1
+- 4.15.4
 - 4.15.7  # respun for additional fixes
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
