@@ -1,0 +1,15 @@
+to: 4.15.8
+# 4.14 before 4.14.14
+from: 4[.]14[.](1[0-3]|[0-9])[+].*
+url: https://issues.redhat.com/browse/COS-2781
+name: CephCapDropPanic
+message: Nodes in clusters running workloads that mount Ceph volumes may experience kernel panics due to a CephFS client bug.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk(1,
+        label_replace(group(ceph_health_status{_id=""}), "ceph", "yes", "", "")
+        or
+        label_replace(0 * group(cluster_version{_id=""}), "ceph", "no", "", "")
+      )
