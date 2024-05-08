@@ -1,0 +1,20 @@
+to: 4.14.0
+from: 4[.]13[.].*
+url: https://issues.redhat.com/browse/OCPCLOUD-2434
+name: AWSECRLegacyCredProvider
+message: AWS clusters that use AmazonEC2ContainerRegistryReadOnly node policies to access ECR are unable to pull images from ECR after updating to exposed 4.14.z.
+matchingRules:
+    - type: PromQL
+      promql:
+        promql: |
+            topk(1,
+              cluster_infrastructure_provider{_id="",type="AWS"}
+              or
+              0 * cluster_infrastructure_provider{_id=""}
+            )
+            * on () group_left (namespace, pod, container, image)
+            topk(1,
+              kube_pod_container_info{_id="",image=~".*(?:[.]dkr[.]ecr(?:-fips)?[.].*[.]amazonaws[.]com(?:[.]cn)?|[.]dkr[.]ecr[.]us-isob?-east-1[.](?:c2s[.]ic|sc2s[.]sgov)[.]gov)[/@:].*"}
+              or on ()
+              0 * topk(1, kube_pod_container_info{_id=""})
+            )
