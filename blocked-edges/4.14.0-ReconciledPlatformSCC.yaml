@@ -1,0 +1,9 @@
+to: 4.14.0
+from: 4[.]13[.](17|18)[+].*
+fixedIn: 4.14.1
+url: https://access.redhat.com/solutions/7033949
+name: ReconciledPlatformSCC
+message: |-
+  User changes of platform SecurityContextConstraints (SCCs) would be removed in 4.14, we recommend to update from a more recent 4.13 version that contains appropriate warnings and gates.
+matchingRules:
+- type: Always
