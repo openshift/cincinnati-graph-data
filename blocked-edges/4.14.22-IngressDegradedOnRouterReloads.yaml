@@ -1,5 +1,6 @@
 to: 4.14.22
 from: 4[.]13[.].*
+fixedIn: 4.14.23
 url: https://issues.redhat.com/browse/NE-1689
 name: IngressDegradedOnRouterReloads
 message: Incoming HTTP requests to services exposed by Routes may fail while routers reload their configuration, especially when made with Apache HTTPClient versions before 5.0. The problem is more likely to occur in clusters with higher number of Routes and corresponding endpoints.
