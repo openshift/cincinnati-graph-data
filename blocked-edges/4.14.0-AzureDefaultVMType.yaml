@@ -1,0 +1,28 @@
+to: 4.14.0
+from: 4[.]13[.].*
+url: https://issues.redhat.com/browse/OCPCLOUD-2409
+name: AzureDefaultVMType
+message: Azure clusters created by openshift-installer prior to 4.9 are unable to add load balancers to new machines after updating to exposed 4.14.z.
+matchingRules:
+    - type: PromQL
+      promql:
+        promql: |
+            topk(1,
+              group by (name) (cluster_operator_conditions{_id="",name="aro"})
+              or
+              (
+                0 * group(cluster_operator_conditions{_id=""})
+                + on () group_left (born_by_4_9)
+                topk(1,
+                  label_replace(group(cluster_version{_id="",type="initial",version=~"4[.][0-9][.].*"}),"born_by_4_9", "yes, so possibly actually born in 4.8 or earlier", "", "")
+                  or
+                  label_replace(0 * group(cluster_version{_id="",type="initial",version!~"4[.][0-9][.].*"}),"born_by_4_9", "no, born in 4.10 or later", "", "")
+                )
+              )
+            )
+            * on () group_left (type)
+            topk(1,
+              cluster_infrastructure_provider{_id="",type="Azure"}
+              or
+              0 * cluster_infrastructure_provider{_id=""}
+            )
