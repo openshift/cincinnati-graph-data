@@ -3,6 +3,7 @@ to: 4.12.56
 from: 4[.](11[.].*|12[.]([1-4]?[0-9]|5[0123]))[+].*
 url: https://issues.redhat.com/browse/COS-2781
 name: CephCapDropPanic
+fixedIn: 4.12.57
 message: Nodes in clusters running workloads that mount Ceph volumes may experience kernel panics due to a CephFS client bug.
 matchingRules:
 - type: PromQL
