@@ -1,5 +1,6 @@
 to: 4.16.0-rc.0
 from: ^4[.]15[.]([0-9]|10)[+].*$
+fixedIn: 4.16.0-rc.1
 url: https://issues.redhat.com/browse/OCPCLOUD-2582
 name: CRIAuthPluginRHEL
 message: Azure and GCP clusters with RHEL nodes may fail to start the kubelet until the operating system has been updated.
