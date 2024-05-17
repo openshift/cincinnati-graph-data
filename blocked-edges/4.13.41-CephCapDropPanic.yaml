@@ -1,6 +1,7 @@
 to: 4.13.41
 # 4.12 before 4.12.54 and 4.13 before 4.13.36
 from: 4[.](12[.](5[0-3]|[1-4]?[0-9])|13[.](3[0-5]|[0-2]?[0-9]))[+].*
+fixedIn: 4.13.42
 url: https://issues.redhat.com/browse/COS-2781
 name: CephCapDropPanic
 message: Nodes in clusters running workloads that mount Ceph volumes may experience kernel panics due to a CephFS client bug.
