@@ -1,0 +1,16 @@
+to: 4.14.18
+from: 4[.]13[.].*
+url: https://issues.redhat.com/browse/SDN-4871
+name: OVNInterConnectTransitionIPsec
+message: OVN clusters with IPsec enabled may have a window during the update to 4.14 where pod-to-node and node-to-node traffic is not encrypted.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group by (ipsec) (label_replace(max_over_time(ovnkube_master_ipsec_enabled{_id=""}[1h]), "ipsec", "enabled", "", "") == 1)
+      or on (_id)
+      0 * group by (ipsec) (label_replace(max_over_time(ovnkube_master_ipsec_enabled{_id=""}[1h]), "ipsec", "disabled", "", ""))
+      or on (_id)
+      -1 * group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="egressips.k8s.ovn.org"}[1h]))
+      or on (_id)
+      0 * group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
