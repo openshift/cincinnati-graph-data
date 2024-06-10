@@ -1,0 +1,14 @@
+to: 4.17.0-ec.0
+from: .*
+name: TechPreviewSignatureStoresInDefault
+url: https://issues.redhat.com/browse/OTA-1297
+message: Standalone clusters in the default feature set will fail to verify signatures when asked to update out to later releases.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      0 * group by (invoker) (cluster_installer{_id="",invoker="hypershift"})
+      or on (_id)
+      group by (name) (cluster_feature_set{_id="",name=""})
+      or on (_id)
+      0 * group by (name) (cluster_feature_set{_id=""})
