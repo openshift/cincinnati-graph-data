@@ -1,0 +1,12 @@
+to: 4.16.0-ec.4
+from: 4[.]15[.].*
+name: FlowControlV1Beta3Migration
+url: https://issues.redhat.com/browse/API-1813
+message: Clusters installed in 4.8 or earlier can wedge updating into 4.16 unless they have had flowcontrol.apiserver.k8s.io storage version migrations.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      label_replace(group by (_id, version) (cluster_version{_id="",type="initial",version=~"4[.][0-9][.].*"}),"born_by_4_9", "yes, so possibly actually born in 4.8 or earlier", "", "")
+      or on (_id)
+      label_replace(0 * group by (_id, version) (cluster_version{_id="",type="initial",version!~"4[.][0-9][.].*"}),"born_by_4_9", "no, born in 4.10 or later", "", "")
