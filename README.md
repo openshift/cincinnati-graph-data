@@ -155,7 +155,7 @@ If you want to declare your own risk in the meantime (or instead, if generic ris
 4. Create a PascalCaseSlug for the risk, e.g. `MultiNetworkAttachmentsWhereaboutsVersion` for `name`.
     See existing names for inspiration; you want something that is unique to the issue, and unlikely to overlap with future issues.
     Again, avoid giving the impression that you are talking to customer-managed cluster administrators, e.g. `ARO...` instead of `Azure...` for a declaration aimed at the ARO fleet (one managed subset of the Azure fleet).
-5. Create a sentance or two summarizing the risk for `message`.
+5. Create a sentence or two summarizing the risk for `message`.
     An English version of the PromQL filter is a good start, e.g. "All GCP OSD clusters...", and then finish with a quick summary of the impact.
     Again, avoid giving the impression that you are talking to customer-managed cluster administrators.
 
