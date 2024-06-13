@@ -1,0 +1,12 @@
+to: 4.16.0-ec.6
+from: .*
+url: https://issues.redhat.com/browse/OSASINFRA-3500
+name: OpenStackAvailabilityZoneOutOfRange
+message: OpenStack clusters with more compute availability zones than storage availability zones can lose the ability to provision or deprovision Cinder CSI volumes.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group by (_id, type) (cluster_infrastructure_provider{_id="",type="OpenStack"})
+      or on (_id)
+      0 * group by (_id, type) (cluster_infrastructure_provider{_id=""})
