@@ -1,6 +1,7 @@
 to: 4.16.0-rc.4
 from: .*
 name: TechPreviewSignatureStoresInDefault
+fixedIn: 4.16.0-rc.5
 url: https://issues.redhat.com/browse/OTA-1297
 message: Standalone clusters in the default feature set will fail to verify signatures when asked to update out to later releases.
 matchingRules:
