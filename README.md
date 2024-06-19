@@ -5,7 +5,7 @@ This repository manages the Cincinnati graph for OpenShift.
 
 All of this data feeds the OpenShift Update Service, and describes the schema and APIs that graph-data administrators can use to configure that service.
 Nothing in this repository sets policy on which updates are supported for which clusters (which is downstream of the update service).
-Nothing in this repository sets policy for how graph-data administorators decide to use the available graph-data (that policy is internal, but the public commitments are covered in product docs like [these][openshift-channel-docs].
+Nothing in this repository sets policy for how graph-data administrators decide to use the available graph-data (that policy is internal, but the public commitments are covered in product docs like [these][openshift-channel-docs].
 
 ## Workflow
 
