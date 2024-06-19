@@ -3,6 +3,10 @@
 [Cincinnati][] is an update protocol designed to facilitate automatic updates.
 This repository manages the Cincinnati graph for OpenShift.
 
+All of this data feeds the OpenShift Update Service, and describes the schema and APIs that graph-data administrators can use to configure that service.
+Nothing in this repository sets policy on which updates are supported for which clusters (which is downstream of the update service).
+Nothing in this repository sets policy for how graph-data administrators decide to use the available graph-data (that policy is internal, but the public commitments are covered in product docs like [these][openshift-channel-docs].
+
 ## Workflow
 
 The [contributing documentation](CONTRIBUTING.md) covers licencing and the usual Git flow.
@@ -97,7 +101,8 @@ declaring that, while 4.1.18 and 4.1.20 are in `candidate-4.2`, they should not 
 
 ### Block Edges
 
-Create/edit an appropriate file in `blocked_edges/`, since version 1.0.0.
+Create/edit an appropriate file in `blocked_edges/`, since version 1.0.0, to drop update edges.
+Since version 1.1.0, additional properties are available to declare an update conditional, and express any known risks, instead of dropping it completely.
 
 * `to` (1.0.0, required, [string][json-string]) is the release which has the existing incoming edges.
 * `from` (1.0.0, required, [string][json-string]) is a regex for the previous release versions.
@@ -214,6 +219,7 @@ For example, the [`amd64` 4.12.0 is `sha256:4c5a7e26d707780be6466ddc9591865beb2e
 [json-object]: https://datatracker.ietf.org/doc/html/rfc8259#section-4
 [json-string]: https://datatracker.ietf.org/doc/html/rfc8259#section-7
 [OCPBUGS]: https://issues.redhat.com/projects/OCPBUGS/issues
+[openshift-channel-docs]: https://docs.openshift.com/container-platform/4.15/updating/understanding_updates/understanding-update-channels-release.html
 [risk-assessment]: https://github.com/openshift/enhancements/blob/master/enhancements/update/update-blocker-lifecycle/README.md
 [rfc-3339-p13]: https://tools.ietf.org/html/rfc3339#page-13
 [semver]: https://semver.org/spec/v2.0.0.html
