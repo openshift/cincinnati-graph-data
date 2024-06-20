@@ -1,5 +1,6 @@
 to: 4.14.30
 from: .*
+fixedIn: 4.14.31
 url: https://issues.redhat.com/browse/OSASINFRA-3500
 name: OpenStackAvailabilityZoneOutOfRange
 message: OpenStack clusters with more compute availability zones than storage availability zones can lose the ability to provision or deprovision Cinder CSI volumes.
