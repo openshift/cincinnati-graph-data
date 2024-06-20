@@ -1,0 +1,12 @@
+to: 4.16.0-rc.6
+from: 4[.]15[.].*
+url: https://issues.redhat.com/browse/SDN-5055
+name: OVNMulticastPacketLoss
+message: Multicast communication fails when multicast receiver and clients run on the same node in clusters that use OVN networking. Clusters that do not use multicast communication are not affected.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      1 * group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="egressips.k8s.ovn.org"}[1h]))
+      or on (_id)
+      0 * group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
