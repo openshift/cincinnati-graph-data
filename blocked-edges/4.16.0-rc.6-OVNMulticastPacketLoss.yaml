@@ -1,5 +1,6 @@
 to: 4.16.0-rc.6
 from: 4[.]15[.].*
+fixedIn: 4.16.0-rc.9
 url: https://issues.redhat.com/browse/SDN-5055
 name: OVNMulticastPacketLoss
 message: Multicast communication fails when multicast receiver and clients run on the same node in clusters that use OVN networking. Clusters that do not use multicast communication are not affected.
