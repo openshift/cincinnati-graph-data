@@ -1,0 +1,8 @@
+to: 4.16.0-rc.2
+from: .*
+url: https://docs.openshift.com/container-platform/4.16/release_notes/ocp-4-16-release-notes.html
+name: PreRelease
+message: |-
+  This is a prerelease version, and you should update to 4.16.0 or later releases, even if that means updating to a newer 4.15 first.
+matchingRules:
+- type: Always
