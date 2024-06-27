@@ -46,6 +46,7 @@ pub async fn run(found_versions: &HashSet<Version>) -> Fallible<Vec<Release>> {
         cache,
         &settings.manifestref_key,
         settings.fetch_concurrency,
+        Some(Vec::new()),
     )
     .await
     .context("failed to fetch all release metadata")?
