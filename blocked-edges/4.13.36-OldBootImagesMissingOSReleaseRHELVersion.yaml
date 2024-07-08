@@ -1,0 +1,12 @@
+to: 4.13.36
+from: 4[.]12[.].*|4[.]13[.][0-6][+].*$
+url: https://issues.redhat.com/browse/MCO-1212
+name: OldBootImagesMissingOSReleaseRHELVersion
+message: Machine boot images from 4.1 and 4.2 are not compatible with some 4.13 and later OpenShift releases, and machines created with them will fail to become nodes.  This risk does not apply if a cluster was installed as version 4.3 or later, or otherwise uses 4.3 or later boot images.
+matchingRules:
+  - type: PromQL
+    promql:
+      promql: |
+        label_replace(group by (version) (cluster_version{_id="",type="initial",version=~"4[.][0-9][.].*"}),"born_by_4_9", "yes, so possibly actually born in 4.2 or earlier", "", "")
+        or
+        label_replace(0 * group by (version) (cluster_version{_id="",type="initial",version!~"4[.][0-9][.].*"}),"born_by_4_9", "no, born in 4.10 or later", "", "")
