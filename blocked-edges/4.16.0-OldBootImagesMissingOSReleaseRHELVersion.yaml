@@ -1,5 +1,5 @@
 to: 4.16.0
-from: 4[.]15[.]*
+from: 4[.]15[.].*
 url: https://issues.redhat.com/browse/MCO-1212
 name: OldBootImagesMissingOSReleaseRHELVersion
 message: Machine boot images from 4.1 and 4.2 are not compatible with some 4.16 and later OpenShift releases, and machines created with them will fail to become nodes.  This risk does not apply if a cluster was installed as version 4.3 or later, or otherwise uses 4.3 or later boot images.
