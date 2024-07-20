@@ -1,5 +1,5 @@
 to: 4.16.2
-from: 4[.]15[.]*
+from: 4[.]15[.].*
 fixedIn: 4.16.3
 url: https://issues.redhat.com/browse/MCO-1212
 name: OldBootImagesMissingOSReleaseRHELVersion
