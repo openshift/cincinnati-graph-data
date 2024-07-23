@@ -1,6 +1,6 @@
 to: 4.15.8
 from: 4[.]14[.].*
-url: https://issues.redhat.com/browse/SDN-5145
+url: https://issues.redhat.com/browse/SDN-5146
 name: OVNIPsecPausedMCPConnectivity
 message: OVN clusters with enabled IPsec with multiple worker MachineConfigPools may lose SDN connectivity during updates when at least one worker MCP is paused.
 matchingRules:
