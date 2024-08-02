@@ -1,0 +1,12 @@
+to: 4.15.22
+from: ^4[.](14[.].*|15[.]([0-9]|1[0-6]))[+].*$
+name: HyperShiftKubeAPIPort443
+url: https://issues.redhat.com/browse/HOSTEDCP-1849
+message: Hosted/HyperShift clusters where HostedCluster spec.networking.apiServer.port is 443 can have trouble with Pods on compute Nodes connecting to the internal Kubernetes API service via the service IP.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group by (_id, invoker) (cluster_installer{_id="",invoker="hypershift"})
+      or
+      0 * group by (_id, invoker) (cluster_installer{_id=""})
