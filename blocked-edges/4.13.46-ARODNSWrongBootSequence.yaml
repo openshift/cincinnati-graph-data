@@ -1,4 +1,4 @@
-to: 4.13.32
+to: 4.13.46
 from: 4[.]12[.].*
 url: https://access.redhat.com/solutions/7074686
 name: ARODNSWrongBootSequence

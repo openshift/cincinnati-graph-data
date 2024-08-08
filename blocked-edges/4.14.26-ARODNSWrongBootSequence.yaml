@@ -1,6 +1,6 @@
 to: 4.14.26
 from: 4[.]13[.].*
-url: https://issues.redhat.com/browse/OCPBUGS-35300
+url: https://access.redhat.com/solutions/7074686
 name: ARODNSWrongBootSequence
 message: |-
   Disconnected ARO clusters or clusters with a UDR 0.0.0.0/0 route definition that are blocking the ARO ACR and quay, are not be able to add or replace nodes after an upgrade
@@ -8,6 +8,6 @@ matchingRules:
 - type: PromQL
   promql:
     promql: |
-        group(cluster_operator_conditions{name="aro"})
-        or
-        0 * group(cluster_operator_conditions)
+      group(cluster_operator_conditions{_id="",name="aro"})
+      or
+      0 * group(cluster_operator_conditions{_id=""})
