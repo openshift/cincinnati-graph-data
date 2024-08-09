@@ -14,7 +14,7 @@ matchingRules:
         label_replace(0 * group by (version) (cluster_version{_id="",type="initial",version!~"4[.]([0-9]|1[0-2])[.].*"}),"born_by_4_12", "no, born in 4.13 or later", "", "")
       ) 
       * on () group_left (name)
-      (
+      topk(1,
         group by (name) (cluster_operator_conditions{_id="",name="aro"})
         or
         0 * topk(1, group by (name) (cluster_operator_conditions{_id=""}))
