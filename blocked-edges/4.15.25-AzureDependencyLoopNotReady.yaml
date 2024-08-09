@@ -1,0 +1,13 @@
+to: 4.15.25
+from: .*
+url: https://issues.redhat.com/browse/MCO-1257
+name: AzureDependencyLoopNotReady
+message: |-
+  On Azure clusters, updated nodes will go to the NotReady state.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group(cluster_infrastructure_provider{_id="",type="Azure"})
+      or
+      0 * group(cluster_infrastructure_provider{_id=""})
