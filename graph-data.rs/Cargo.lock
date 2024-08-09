@@ -597,7 +597,7 @@ dependencies = [
 [[package]]
 name = "cincinnati"
 version = "0.1.0"
-source = "git+https://github.com/openshift/cincinnati?rev=67fe062a9e4b9df11c014b4c7fcfd3d8179b508a#67fe062a9e4b9df11c014b4c7fcfd3d8179b508a"
+source = "git+https://github.com/Davoska/cincinnati?branch=test#f8664e1241d15e8d14bd81940ef4c0f76d98e08b"
 dependencies = [
  "actix-web",
  "async-trait",
@@ -690,7 +690,7 @@ dependencies = [
 [[package]]
 name = "commons"
 version = "0.1.0"
-source = "git+https://github.com/openshift/cincinnati?rev=67fe062a9e4b9df11c014b4c7fcfd3d8179b508a#67fe062a9e4b9df11c014b4c7fcfd3d8179b508a"
+source = "git+https://github.com/Davoska/cincinnati?branch=test#f8664e1241d15e8d14bd81940ef4c0f76d98e08b"
 dependencies = [
  "actix-service",
  "actix-web",
@@ -2227,7 +2227,7 @@ dependencies = [
 [[package]]
 name = "quay"
 version = "0.0.0-dev"
-source = "git+https://github.com/openshift/cincinnati?rev=67fe062a9e4b9df11c014b4c7fcfd3d8179b508a#67fe062a9e4b9df11c014b4c7fcfd3d8179b508a"
+source = "git+https://github.com/Davoska/cincinnati?branch=test#f8664e1241d15e8d14bd81940ef4c0f76d98e08b"
 dependencies = [
  "anyhow",
  "async-stream",
