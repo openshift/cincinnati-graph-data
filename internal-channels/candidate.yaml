@@ -101,6 +101,8 @@ tombstones:
 - 4.15.7  # respun for additional fixes
 # 4.15.26: The RHBA advisory link was attached as opposed to the RHSA. The version was repromoted.
 - 4.15.26
+# 4.12.62: The version needs to be repromoted to include new changes.
+- 4.12.62
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
