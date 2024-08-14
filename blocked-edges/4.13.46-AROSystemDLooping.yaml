@@ -3,7 +3,7 @@ from: .*
 url: https://access.redhat.com/solutions/7082093
 name: AROSystemDLooping
 message: |-
-  ARO clusters created on 4.12.z and below are experiencing a bug where systemd detects a dependency loop. Systemd deletes these dependencies causing kublet and crio to never start on nodes.
+  ARO clusters created on 4.12.z and below are experiencing a bug where systemd detects a dependency loop. Systemd deletes these dependencies causing kubelet and crio to never start on nodes.
 matchingRules:
 - type: PromQL
   promql:
