@@ -2,6 +2,7 @@ to: 4.13.46
 from: .*
 url: https://issues.redhat.com/browse/MCO-1257
 name: AzureSystemDLooping
+fixedIn: 4.13.48
 message: |-
   Azure clusters created on 4.(y<12) or 4.12.(z<54) are experiencing a bug where systemd detects a dependency loop. Systemd deletes these dependencies causing CRI-O and the kublet to never start on nodes.
 matchingRules:
