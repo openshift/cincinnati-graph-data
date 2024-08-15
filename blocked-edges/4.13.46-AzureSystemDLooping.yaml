@@ -1,0 +1,21 @@
+to: 4.13.46
+from: .*
+url: https://issues.redhat.com/browse/MCO-1257
+name: AzureSystemDLooping
+message: |-
+  Azure clusters created on 4.(y<12) or 4.12.(z<54) are experiencing a bug where systemd detects a dependency loop. Systemd deletes these dependencies causing CRI-O and the kublet to never start on nodes.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      (
+        label_replace(group by (version) (cluster_version{_id="",type="initial",version=~"4[.](([0-9]|1[01])[.][0-9]*|12[.]([1-4]?[0-9]|5[0-3]))"}),"born_before_4_12_54", "yes, born in 4.11 or 4.12.53 or earlier", "", "")
+        or on ()
+        label_replace(0 * group by (version) (cluster_version{_id="",type="initial",version!~"4[.](([0-9]|1[01])[.][0-9]*|12[.]([1-4]?[0-9]|5[0-3]))"}),"born_before_4_12_54", "no, born in 4.12.54 or 4.13 or later", "", "")
+      )
+      * on () group_left (type)
+      (
+        group by (type) (cluster_infrastructure_provider{_id="",type="Azure"})
+        or on ()
+        0 * group by (type) (cluster_infrastructure_provider{_id=""})
+      )
