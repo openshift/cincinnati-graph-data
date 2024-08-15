@@ -2,6 +2,7 @@ to: 4.14.34
 from: ^4[.](13[.].*|14[.]([12]?[0-9]|3[0-3]))[+].*$
 url: https://issues.redhat.com/browse/NHE-1171
 name: SRIOVFailedToConfigureVF
+fixedIn: 4.14.35
 message: |-
   On clusters with the SR-IOV Network Operator installed and configured, pods with a secondary interface of SRI-OV VF will fail to create a pod sandbox and thus will not function.
 matchingRules:
