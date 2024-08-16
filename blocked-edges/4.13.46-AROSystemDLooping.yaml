@@ -1,5 +1,6 @@
 to: 4.13.46
 from: .*
+fixedIn: 4.13.48
 url: https://access.redhat.com/solutions/7082093
 name: AROSystemDLooping
 message: |-
