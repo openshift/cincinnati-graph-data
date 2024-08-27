@@ -3,6 +3,7 @@ feeder:
   name: fast-4.4
   delay: PT48H
 versions:
+- 4.2.36
 - 4.3.40
 - 4.3.38
 - 4.3.35
