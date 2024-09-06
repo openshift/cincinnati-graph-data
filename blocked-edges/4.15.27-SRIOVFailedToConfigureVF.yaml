@@ -4,7 +4,7 @@ url: https://issues.redhat.com/browse/NHE-1171
 name: SRIOVFailedToConfigureVF
 fixedIn: 4.15.28
 message: |-
-  On clusters with the SR-IOV Network Operator installed and configured, pods with a secondary interface of SRI-OV VF will fail to create a pod sandbox and thus will not function.
+  OCP Versions 4.14.34, 4.15.25, 4.16.7 and ALL subsequent versions include kernel datastructure changes which are not compatible with older versions of the SR-IOV operator. Please update SR-IOV operator to versions dated 20240826 or newer before updating OCP.
 matchingRules:
 - type: PromQL
   promql:
