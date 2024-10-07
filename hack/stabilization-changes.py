@@ -309,7 +309,8 @@ def get_concerns_about_risk_extensions(version, channel, candidates, update_risk
         return
 
     risks = set()
-    previous_risks = {}
+    previous_risks_fixed_in = {}
+    previous_risks_auto_extend = {}
     for path, risk in sorted(update_risks.items()):
         key = risk.get('name', path)
         if risk['to'] == version:
@@ -317,14 +318,19 @@ def get_concerns_about_risk_extensions(version, channel, candidates, update_risk
         if risk['to'] == previous_version:
             fixed_in = risk.get('fixedIn', None)
             if fixed_in is None or (version != fixed_in and sem_ver_less_than(version, fixed_in)):
-                previous_risks[key] = fixed_in
+                previous_risks_fixed_in[key] = fixed_in
+            auto_extend = risk.get('autoExtend', None)
+            if auto_extend:
+                previous_risks_auto_extend[key] = auto_extend
 
     unfixed = []
-    for key, fixed_in in sorted(previous_risks.items()):
+    for key, fixed_in in sorted(previous_risks_fixed_in.items()):
         if key in risks:
             continue
         if fixed_in:
             unfixed.append('{} affects {} and is not fixed until {}.  Extend the risk to {}.'.format(key, previous_version, fixed_in, version))
+        elif previous_risks_auto_extend.get(key):
+            unfixed.append('{} affects {} and needs to be extended to {} because {}'.format(key, previous_version, version, previous_risks_auto_extend[key]))
         else:
             unfixed.append('{} affects {}.  Either declare a fix version or extend the risk to {}.'.format(key, previous_version, version))
 
