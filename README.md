@@ -113,6 +113,9 @@ Since version 1.1.0, additional properties are available to declare an update co
 * `name` (1.1.0, optional, [string][json-string]), with a CamelCase reason suitable for [a `ClusterOperatorStatusCondition` `reason` property][api-reason].
 * `fixedIn` (1.1.0, optional, [string][json-string]), with the update-target release where the exposure was fixed, either directly, or because that target is newer than the 4.(y-1).z release where the exposure was fixed.
     This feeds risk-extension guards that require either a `fixedIn` declaration or an extension of unfixed risks to later releases to avoid shipping a release that is still exposed to a risk without declaring that risk.
+* `autoExtend` (1.1.0, optional, [string][json-string]), with a URI tracking dropping the risk from new releases.
+    Some risks have "has this been fixed?" deferred to other teams.
+    Setting this property records that deferral, so graph-data adminstrators know when they do not need to perform that assessment themselves with each new 4.y patch release.
 * `message` (1.1.0, optional, [string][json-string]), with a human-oriented message describing the blocking reason, suitable for [a `ClusterOperatorStatusCondition` `message` property][api-message].
 * `matchingRules` (1.1.0, optional, [array][json-array]), defining conditions for deciding which clusters have the update recommended and which do not.
     The array is ordered by decreasing precedence.

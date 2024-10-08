@@ -1,5 +1,6 @@
 to: 4.14.38
 from: 4[.]13[.].*
+autoExtend: https://issues.redhat.com/browse/ARO-9234
 url: https://access.redhat.com/solutions/7074686
 name: ARODNSWrongBootSequence
 message: |-
