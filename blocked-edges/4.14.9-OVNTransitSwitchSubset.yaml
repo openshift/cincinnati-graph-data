@@ -1,0 +1,16 @@
+to: 4.14.9
+from: 4[.]13[.].*
+autoExtend: https://issues.redhat.com/browse/OCPBUGS-42713
+url: https://docs.openshift.com/container-platform/4.14/release_notes/ocp-4-14-release-notes.html#ocp-4-14-networking-OVN-IC-IP-range
+name: OVNTransitSwitchSubset
+message: |-
+  4.13 OVN clusters whose clusterNetwork uses 100.88.0.0/16 may experience network disruption until their internalJoinSubnet or internalTransitSwitchSubnet is moved to a distinct subnet.
+matchingRules:
+- type: PromQL
+  promql:
+    promql:
+      (
+        group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="egressips.k8s.ovn.org"}[1h]))
+        or on ()
+        0 * group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
+      )
