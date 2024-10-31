@@ -1,0 +1,8 @@
+to: 4.17.0-rc.1
+from: 4[.]16[.].*
+url: https://issues.redhat.com/browse/AUTH-550
+name: OAuthServerDownIfSpaceInIDPName
+message: |-
+  The OAuth server may crash-loop if there are two or more identity providers configured on the cluster with type htpasswd, keystone, ldap, or basic-authentication and at least one of their names contains a white space.
+matchingRules:
+- type: Always
