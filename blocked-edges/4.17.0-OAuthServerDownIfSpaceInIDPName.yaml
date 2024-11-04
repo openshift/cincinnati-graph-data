@@ -3,6 +3,10 @@ from: 4[.]16[.].*
 url: https://issues.redhat.com/browse/AUTH-550
 name: OAuthServerDownIfSpaceInIDPName
 message: |-
-  The OAuth server may crash-loop if there are two or more identity providers configured on the cluster with type htpasswd, keystone, ldap, or basic-authentication and at least one of their names contains a white space.
+  The OAuth server may crash-loop if either of the following conditions is met:
+
+  * At least two password-based IDPs have been configured in the OAuth configuration custom resource, and one of them contains a white space in its name. If the "kube:admin" user has not been removed from a cluster, then this already counts as an IDP. Currently, the supported password-based IDPs are HTPasswd, Keystone, LDAP, and BasicAuth.
+
+  * At least one OAuth IDP with a white space in its name has been configured. Currently, the supported OAuth IDPs are OpenID, GitHub, GitLab and Google.
 matchingRules:
 - type: Always
