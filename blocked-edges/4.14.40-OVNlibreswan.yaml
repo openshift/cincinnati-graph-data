@@ -1,0 +1,12 @@
+to: 4.14.40
+from: .*
+url: https://issues.redhat.com/browse/SDN-5477
+name: OVNlibreswan
+message: OVN clusters with IPsec enabled will regress on some libreswan CVEs.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="egressips.k8s.ovn.org"}[1h]))
+      or on ()
+      0 * group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
