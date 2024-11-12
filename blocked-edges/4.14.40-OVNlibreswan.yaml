@@ -7,6 +7,14 @@ matchingRules:
 - type: PromQL
   promql:
     promql: |
-      group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="egressips.k8s.ovn.org"}[1h]))
-      or on ()
+      group by (ipsec) (label_replace(max_over_time(ovnkube_controller_ipsec_enabled{_id=""}[1h]), "ipsec", "enabled (4.14)", "", "") == 1)
+      or on (_id)
+      0 * group by (ipsec) (label_replace(max_over_time(ovnkube_controller_ipsec_enabled{_id=""}[1h]), "ipsec", "disabled (4.14)", "", ""))
+      or on (_id) 
+      group by (ipsec) (label_replace(max_over_time(ovnkube_master_ipsec_enabled{_id=""}[1h]), "ipsec", "enabled (4.13)", "", "") == 1)
+      or on (_id)
+      0 * group by (ipsec) (label_replace(max_over_time(ovnkube_master_ipsec_enabled{_id=""}[1h]), "ipsec", "disabled (4.13)", "", ""))
+      or on (_id)
+      -1 * group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="egressips.k8s.ovn.org"}[1h]))
+      or on (_id)
       0 * group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
