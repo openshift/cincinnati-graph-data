@@ -103,6 +103,8 @@ tombstones:
 - 4.15.26
 # 4.12.62: The version needs to be repromoted to include new changes.
 - 4.12.62
+# 4.16.22: RHBA linked in payload, rather than RHSA. Repromoted as 4.16.23 with updated metadata
+- 4.16.22
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
