@@ -1,5 +1,6 @@
 to: 4.14.40
 from: .*
+fixedIn: 4.14.41
 url: https://issues.redhat.com/browse/SDN-5477
 name: OVNlibreswan
 message: OVN clusters with IPsec enabled will regress on some libreswan CVEs.
