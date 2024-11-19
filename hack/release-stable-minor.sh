@@ -51,7 +51,11 @@ echo "${CHANNELS}" | while read CHANNEL
 do
 	PREVIOUS_MINORS="$((MINOR - 1))"
 	case "${CHANNEL}" in
-		eus) PREVIOUS_MINORS="$((MINOR - 2))|${PREVIOUS_MINORS}"
+		eus) PREVIOUS_MINORS="$((MINOR - 2))|${PREVIOUS_MINORS}" ;;
+		stable) if test "$((MINOR % 2))" -eq 0
+			then
+				PREVIOUS_MINORS="$((MINOR - 2))|${PREVIOUS_MINORS}"
+			fi ;;
 	esac
 
 	FILTER="${MAJOR}[.](${PREVIOUS_MINORS}|${MINOR})[.][0-9].*"
