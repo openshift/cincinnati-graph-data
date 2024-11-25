@@ -16,7 +16,7 @@ regex = "^1.11.1"
 semver = { version = "^0.11", features = [ "serde" ] }
 toml = "^0.8.19"
 lazy_static = "^1.5.0"
-url = "^2.5.3"
+url = "^2.5.4"
 reqwest = { version = "^0.11", features = ["gzip"] }
 futures = "^0.3"
 itertools = "^0.13"
