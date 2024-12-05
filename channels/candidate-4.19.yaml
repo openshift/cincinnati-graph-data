@@ -1,0 +1,12 @@
+feeder:
+  delay: PT0H
+  filter: 4[.](18|19)[.][0-9].*
+  name: candidate
+name: candidate-4.19
+versions:
+- 4.18.0-ec.0
+- 4.18.0-ec.1
+- 4.18.0-ec.2
+- 4.18.0-ec.3
+- 4.18.0-ec.4
+- 4.18.0-rc.0
