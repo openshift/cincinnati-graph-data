@@ -60,9 +60,15 @@ do
 	*) FEEDER="${CHANNEL}";;
 	esac
 
+	PREVIOUS_MINORS="${PREVIOUS_MINOR}"
+	if test "$((MINOR % 2))" -eq 0
+	then
+		PREVIOUS_MINORS="$((MINOR - 2))|${PREVIOUS_MINORS}"
+	fi
+
 	case "${CHANNEL}" in
 	fast)
-		FILTER="${MAJOR}[.](${PREVIOUS_MINOR=}|${MINOR})[.][0-9].*"
+		FILTER="${MAJOR}[.](${PREVIOUS_MINORS}|${MINOR})[.][0-9].*"
 		;;
 	*) FILTER="${MAJOR}[.]${MINOR}[.][0-9].*";;
 	esac
