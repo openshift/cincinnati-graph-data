@@ -1,0 +1,22 @@
+to: 4.17.3
+from: ^4[.]16[.]0.*
+url: https://issues.redhat.com/browse/SDN-5485
+name: OVNLocalnetWithNoSubnets
+message: |-
+  Clusters with localnet topology networks with no subnets defined (configuration typical for OpenShift Virtualization)
+  would fail to update and create new workloads.
+matchingRules:
+  - type: PromQL
+    promql:
+      promql: |
+        (
+          group by (_id, resource) (max_over_time(apiserver_storage_objects{_id="",resource="network-attachment-definitions.k8s.cni.cncf.io"}[1h]) > 0)
+          or on (_id)
+          0 * label_replace(group by (_id) (max_over_time(apiserver_storage_objects{_id=""}[1h])), "resource", "no-network_attachment-definitions", "resource", ".*")
+        )
+        * on (_id) group_left (name)
+        (
+          group by (_id, name) (csv_succeeded{_id="", name=~"kubevirt-hyperconverged-operator[.].*"})
+          or on (_id)
+          0 * label_replace(group by (_id) (csv_succeeded{_id=""}), "name", "not hyperconverged", "name", ".*")
+        )
