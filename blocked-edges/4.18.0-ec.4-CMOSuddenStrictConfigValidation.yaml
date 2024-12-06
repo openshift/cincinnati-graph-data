@@ -1,5 +1,5 @@
 to: 4.18.0-ec.4
-from: ^4[.]18[.]0-ec[0-2]$
+from: ^4[.]18[.]0-ec[.][0-2][+].*$
 url: https://issues.redhat.com/browse/OCPBUGS-42671
 name: CMOSuddenStrictConfigValidation
 message: |-
