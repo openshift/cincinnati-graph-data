@@ -31,6 +31,13 @@ then
 fi
 
 PREVIOUS_MINOR="$((MINOR - 1))"
+PREVIOUS_MINORS="${PREVIOUS_MINOR}"
+if test "$((MINOR % 2))" -eq 0
+then
+	PREVIOUS_MINORS="$((MINOR - 2))|${PREVIOUS_MINORS}"
+fi
+
+FILTER="${MAJOR}[.](${PREVIOUS_MINORS}|${MINOR})[.][0-9].*"
 
 cat <<EOF > "build-suggestions/${MAJOR_MINOR}.yaml"
 default:
@@ -45,7 +52,7 @@ EOF
 cat <<EOF > "channels/candidate-${MAJOR_MINOR}.yaml"
 feeder:
   delay: PT0H
-  filter: ${MAJOR}[.](${PREVIOUS_MINOR}|${MINOR})[.][0-9].*
+  filter: ${FILTER}
   name: candidate
 name: candidate-${MAJOR_MINOR}
 versions: []

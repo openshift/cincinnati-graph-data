@@ -47,18 +47,16 @@ else
 	echo "${MAJOR_MINOR} is not an EUS release, will update stable channel only (there is no eus channel to update)"
 fi
 
+PREVIOUS_MINORS="$((MINOR - 1))"
+if test "$((MINOR % 2))" -eq 0
+then
+	PREVIOUS_MINORS="$((MINOR - 2))|${PREVIOUS_MINORS}"
+fi
+
+FILTER="${MAJOR}[.](${PREVIOUS_MINORS}|${MINOR})[.][0-9].*"
+
 echo "${CHANNELS}" | while read CHANNEL
 do
-	PREVIOUS_MINORS="$((MINOR - 1))"
-	case "${CHANNEL}" in
-		eus) PREVIOUS_MINORS="$((MINOR - 2))|${PREVIOUS_MINORS}" ;;
-		stable) if test "$((MINOR % 2))" -eq 0
-			then
-				PREVIOUS_MINORS="$((MINOR - 2))|${PREVIOUS_MINORS}"
-			fi ;;
-	esac
-
-	FILTER="${MAJOR}[.](${PREVIOUS_MINORS}|${MINOR})[.][0-9].*"
 	sed -i "s/filter: .*/filter: ${FILTER}/" "channels/${CHANNEL}-${MAJOR_MINOR}.yaml"
 done
 
