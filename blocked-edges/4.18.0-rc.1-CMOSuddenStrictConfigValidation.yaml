@@ -1,0 +1,12 @@
+to: 4.18.0-rc.1
+from: ^4[.]18[.]0-ec[.][0-2][+].*$
+url: https://issues.redhat.com/browse/OCPBUGS-42671
+name: CMOSuddenStrictConfigValidation
+message: |-
+    The Cluster Monitoring Operator (CMO) now validates the content of its ConfigMaps more strictly.
+
+    This may result in the operator being marked as `Degraded` and `Unavailable` while updating to a version with strict validation if any of the ConfigMaps contain invalid configurations.
+
+    The error messages should be clear enough to help identify and correct any eventual issues.
+matchingRules:
+- type: Always
