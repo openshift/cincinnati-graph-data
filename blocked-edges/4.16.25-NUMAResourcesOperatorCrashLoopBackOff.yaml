@@ -1,0 +1,13 @@
+to: 4.16.25
+from: ^4[.](15[.].*|16[.](1?[0-9]|2[0-4]))[+].*$
+url: https://issues.redhat.com/browse/COS-3078
+name: NUMAResourcesOperatorCrashLoopBackOff
+message: |-
+  Critical pods in the NUMA Resources Operator will start to CrashLoopBackOff due to new SELinux changes.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group(csv_succeeded{_id="", name=~"numaresources-operator[.].*"})
+      or
+      0 * group(csv_count{_id=""})
