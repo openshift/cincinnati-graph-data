@@ -1,0 +1,9 @@
+to: 4.17.8
+from: ^4[.](16[.](1?[0-9]|2[0-4])|17[.][0-6])[+].*$
+fixedIn: 4.17.9
+url: https://issues.redhat.com/browse/COS-3068
+name: FCoEBootFromSANKernelDriverQedf
+message: |-
+  Nodes in clusters that utilize FCoE boot from SAN on devices that use the qedf kernel driver will fail to boot after updating.
+matchingRules:
+- type: Always
