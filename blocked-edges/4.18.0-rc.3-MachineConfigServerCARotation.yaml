@@ -1,0 +1,8 @@
+to: 4.18.0-rc.3
+from: 4[.]18[.]0-ec[.]4[+].*
+url: https://issues.redhat.com/browse/MCO-1481
+name: MachineConfigServerCARotation
+message: |-
+  4.18.0-ec.4 adjusted machine-config server CA management.  The change was reverted in 4.18.0-rc.0, but clusters running 4.18.0-ec.4 need manual steps to be able to scale new Machines. 
+matchingRules:
+- type: Always
