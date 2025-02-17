@@ -12,6 +12,7 @@ import socket
 import subprocess
 import textwrap
 import time
+import unittest
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -60,6 +61,73 @@ def parse_iso8601_delay(delay):
     return datetime.timedelta(weeks=weeks, days=days, hours=hours)
 
 
+class TestStabilization(unittest.TestCase):
+    def test_sem_ver_prerelease_less_than(self):
+        test_cases = [
+            ('alpha', 'beta', True),
+            ('alpha', 'alpha.1', True),
+            ('alpha.1', 'alpha.2', True),
+            ('ec.2', 'rc.1', True),
+            ('rc.1', 'rc.2', True),
+            ('rc.1', 'rc.10', True),
+            ('rc.2', 'rc.10', True),
+            ('rc.2', 'rc.two', True)
+        ]
+
+        for a, b, expected in test_cases:
+            assert sem_ver_prerelease_less_than(a, b) == expected, f'{a} < {b} should be {expected}'
+
+    def test_sem_ver_less_than(self):
+        test_cases = [
+            ('4.18.1', '4.18.1', False),
+            ('4.18.2', '4.18.1', False),
+            ('4.18.1', '4.18.2', True),
+            ('4.19.1', '4.18.2', False),
+            ('4.19.0-ec.9', '4.19.0-rc.1', True),
+            ('4.19.0-rc.1', '4.19.0-rc.2', True),
+            ('4.19.0-rc.2', '4.19.0-rc.10', True),
+        ]
+
+        for a, b, expected in test_cases:
+            assert sem_ver_less_than(a, b) == expected, f'{a} < {b} should be {expected}'
+
+
+def sem_ver_prerelease_less_than(a, b):
+    """Returns true if a is less than b, per https://semver.org/spec/v2.0.0.html#spec-item-11, assuming both are non-empty prerelease segments"""
+    ids_a = a.split('.')
+    ids_b = b.split('.')
+
+    for id_a, id_b in zip(ids_a, ids_b):
+        id_a_is_int = id_a.isdigit()
+        id_b_is_int = id_b.isdigit()
+
+        # One numeric and one non-numeric -> numeric is lower
+        if id_a_is_int and not id_b_is_int:
+            return True
+        if not id_a_is_int and id_b_is_int:
+            return False
+
+        # Both numeric
+        if id_a_is_int and id_b_is_int:
+            if int(id_a) < int(id_b):
+                return True
+            if int(id_a) > int(id_b):
+                return False
+        # ...or both non-numeric
+        else:
+            if id_a < id_b:
+                return True
+            if id_a > id_b:
+                return False
+
+    if len(ids_a) < len(ids_b):
+        return True
+    if len(ids_a) > len(ids_b):
+        return False
+
+    return False
+
+
 def sem_ver_less_than(a, b):
     """Returns true if a is less than b, per https://semver.org/spec/v2.0.0.html#spec-item-11"""
     a_match = _SEM_VER_REGEXP.match(a)
@@ -96,8 +164,7 @@ def sem_ver_less_than(a, b):
     if not (a_groups['prerelease'] or b_groups['prerelease']):
         return False
 
-    # cheating vs. the SemVer spec.
-    return a_groups['prerelease'] < b_groups['prerelease']
+    return sem_ver_prerelease_less_than(a_groups['prerelease'], b_groups['prerelease'])
 
 
 def stabilization_changes(directories, webhook=None, **kwargs):
