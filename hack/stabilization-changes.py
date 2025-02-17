@@ -71,6 +71,7 @@ class TestStabilization(unittest.TestCase):
             ('rc.1', 'rc.2', True),
             ('rc.1', 'rc.10', True),
             ('rc.2', 'rc.10', True),
+            ('rc.2', 'rc.two', True)
         ]
 
         for a, b, expected in test_cases:
