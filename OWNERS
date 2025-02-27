@@ -6,3 +6,5 @@ approvers:
   - sre-approvers
 reviewers:
   - cincinnati-graph-data-approvers
+emeritus_approvers:
+  - LalatenduMohanty
