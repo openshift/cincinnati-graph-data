@@ -1,0 +1,13 @@
+to: 4.17.16
+from: .*
+name: HostedClusterIsProgressingStuckCondition
+url: https://issues.redhat.com/browse/CNTRLPLANE-256
+message: |-
+  The Hosted Cluster is properly deployed but still incorrectly shows the condition: HostedCluster is deploying, upgrading, or reconfiguring, which is blocking the cluster deployment completion.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group by (_id, invoker) (cluster_installer{_id="",invoker="hypershift"})
+      or
+      0 * group by (_id, invoker) (cluster_installer{_id=""})
