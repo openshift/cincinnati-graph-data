@@ -664,7 +664,7 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
 
     github_object = github.Github(github_token)
     repo = github_object.get_repo(upstream_github_repo)
-    pull = repo.create_pull(title=subject, body=body, head='{}:{}'.format(owner, branch), base=upstream_branch)
+    pull = repo.create_pull(title=subject, body=body, head='{}:{}'.format(owner, branch), base=upstream_branch, maintainer_can_modify=True)
     if labels:
         pull.add_to_labels(*labels)
     return pull
