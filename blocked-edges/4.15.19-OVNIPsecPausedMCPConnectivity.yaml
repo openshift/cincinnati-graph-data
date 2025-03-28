@@ -1,8 +1,8 @@
 to: 4.15.19
 from: 4[.]14[.].*
-url: https://issues.redhat.com/browse/SDN-5146
+url: https://issues.redhat.com/browse/CORENET-5630
 name: OVNIPsecPausedMCPConnectivity
-message: OVN clusters with enabled IPsec with multiple worker MachineConfigPools may lose SDN connectivity during updates when at least one worker MCP is paused.
+message: OVN clusters with enabled IPsec may lose SDN connectivity during updates when a worker MCP is paused.
 matchingRules:
 - type: PromQL
   promql:
@@ -13,8 +13,6 @@ matchingRules:
         0 * group by (ipsec) (label_replace(max_over_time(ovnkube_controller_ipsec_enabled{_id=""}[1h]), "ipsec", "disabled", "", "") == 0)
       ) and on (_id) (
         group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="egressips.k8s.ovn.org"}[1h]))
-        and on (_id)
-        group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="machineconfigpools.machineconfiguration.openshift.io"}[1h] ) > 2)
       )
       or on (_id)
       0 * group(max_over_time(apiserver_storage_objects{_id=""}[1h]))

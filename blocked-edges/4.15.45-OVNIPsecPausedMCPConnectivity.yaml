@@ -1,4 +1,4 @@
-to: 4.15.24
+to: 4.15.45
 from: 4[.]14[.].*
 url: https://issues.redhat.com/browse/CORENET-5630
 name: OVNIPsecPausedMCPConnectivity
