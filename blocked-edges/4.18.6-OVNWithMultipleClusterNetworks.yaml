@@ -1,0 +1,12 @@
+to: 4.18.6
+from: 4[.]17[.].*
+url: https://issues.redhat.com/browse/CORENET-5832
+name: OVNWithMultipleClusterNetworks
+message: |-
+  The cluster upgrade cannot be complete and new pods cannot be created successfully if the cluster network configuration is with:
+
+  * "OVNKubernetes" type, and 
+
+  * multiple IP address pools in the same IP family, e.g., IPv4 or IPv6 in the cluster's network.
+matchingRules:
+- type: Always
