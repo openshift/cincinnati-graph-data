@@ -2,7 +2,6 @@ to: 4.11.31
 from: 4[.]10[.].*
 url: https://issues.redhat.com/browse/MCO-519
 name: AWSOldBootImagesLackAfterburn
-fixedIn: 4.11.33
 message: |-
   4.1 AWS boot images are not compatible with some 4.11 and later, and machines created with them will fail to become nodes.  This risk does not apply if a cluster is not on AWS, was installed as version 4.2 or later, or otherwise uses 4.2 or later boot images.
 matchingRules:
