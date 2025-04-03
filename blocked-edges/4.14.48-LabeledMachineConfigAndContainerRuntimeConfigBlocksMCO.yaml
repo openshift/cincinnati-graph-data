@@ -1,0 +1,7 @@
+to: 4.14.48
+from: .*
+url: https://issues.redhat.com/browse/MCO-1585
+name: LabeledMachineConfigAndContainerRuntimeConfigBlocksMCO
+message: Some clusters with some KubeletConfigs or ContainerRuntimeConfigs will have issues updating MachineConfigPools.
+matchingRules:
+- type: Always

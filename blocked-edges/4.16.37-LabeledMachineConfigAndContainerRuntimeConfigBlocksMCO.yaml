@@ -1,0 +1,9 @@
+to: 4.16.37
+# 4.15 before 4.15.45 OR 4.16.z with z<31
+from: 4[.](15[.](0.*|[1-3][0-9]|4[0-4]|[0-9])|16[.](0.*|[12][0-9]|30|[0-9]))
+fixedIn: 4.16.38
+url: https://issues.redhat.com/browse/MCO-1585
+name: LabeledMachineConfigAndContainerRuntimeConfigBlocksMCO
+message: Some clusters with some KubeletConfigs or ContainerRuntimeConfigs will have issues updating MachineConfigPools.
+matchingRules:
+- type: Always
