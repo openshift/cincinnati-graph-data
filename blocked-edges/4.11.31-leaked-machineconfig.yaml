@@ -2,7 +2,6 @@ to: 4.11.31
 from: .*
 url: https://issues.redhat.com/browse/OCPNODE-1502
 name: LeakedMachineConfigBlocksMCO
-fixedIn: 4.11.33
 message: |-
   Machine Config Operator stalls when encountering orphaned KubeletConfig or ContainerRuntimeConfig resources.
 matchingRules:
