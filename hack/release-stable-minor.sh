@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -e
 
@@ -55,9 +55,10 @@ fi
 
 FILTER="${MAJOR}[.](${PREVIOUS_MINORS}|${MINOR})[.][0-9].*"
 
+SED_CMD=${SED_CMD:-"sed"}
 echo "${CHANNELS}" | while read CHANNEL
 do
-	sed -i "s/filter: .*/filter: ${FILTER}/" "channels/${CHANNEL}-${MAJOR_MINOR}.yaml"
+	"${SED_CMD}" -i "s/filter: .*/filter: ${FILTER}/" "channels/${CHANNEL}-${MAJOR_MINOR}.yaml"
 done
 
 unset GITHUB_TOKEN
