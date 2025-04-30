@@ -1,0 +1,15 @@
+to: 4.18.10
+from: .*
+url: https://issues.redhat.com/browse/CNF-17689
+name: MetallbBgpBfdFrrRpm
+message: |-
+  Clusters using MetalLB BFD capabilities alongside BGP can fail to establish BGP peering, reducing the availability of LoadBalancer services exposed by MetalLB, or even making them unreachable
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      (
+        group by (_id, name) (csv_succeeded{_id="", name=~"metallb-operator[.].*"})
+        or on (_id)
+        0 * label_replace(group by (_id) (csv_succeeded{_id=""}), "name", "metallb operator not installed", "name", ".*")
+      )
