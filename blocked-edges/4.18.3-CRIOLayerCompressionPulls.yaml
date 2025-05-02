@@ -1,0 +1,7 @@
+to: 4.18.3
+from: .*
+url: https://issues.redhat.com/browse/OCPNODE-3074
+name: CRIOLayerCompressionPulls
+message: The CRI-O container runtime may fail to pull images with certain layer compression characteristics
+matchingRules:
+- type: Always
