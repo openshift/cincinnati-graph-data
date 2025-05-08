@@ -1,6 +1,6 @@
 feeder:
   delay: PT0H
-  filter: 4[.](14|15|16)[.][0-9].*
+  filter: 4[.](15|16)[.][0-9].*
   name: stable
 name: stable-4.16
 versions:
