@@ -1,5 +1,5 @@
 to: 4.17.21
-from: .*
+from: 4[.]((16[.][0-9]+)|17[.]([0-9]|10))[+].*
 url: https://issues.redhat.com/browse/OCPNODE-3119
 name: MCOContainerRuntimeConfigStaleFinalizer
 message: Machine Config Operator may enter Degraded state during the update on clusters with a ContainerRuntimeConfig that has a stale finalizer referring to a MachineConfig object that no longer exists. Such clusters will not be able to finish updating without manually cleaning such stale finalizers.
