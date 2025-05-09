@@ -1,0 +1,12 @@
+to: 4.17.16
+from: .*
+url: https://issues.redhat.com/browse/OCPNODE-3119
+name: MCOContainerRuntimeConfigStaleFinalizer
+message: Machine Config Operator may enter Degraded state during the update on clusters with a ContainerRuntimeConfig that has a stale finalizer referring to a MachineConfig object that no longer exists. Such clusters will not be able to finish updating without manually cleaning such stale finalizers.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group(max_over_time(apiserver_storage_objects{resource="containerruntimeconfigs.machineconfiguration.openshift.io"}[1h]) > 0)
+      or
+      0 * group(max_over_time(apiserver_storage_objects[1h]))
