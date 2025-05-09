@@ -1,0 +1,8 @@
+to: 4.18.8
+from: 4[.]17[.].*
+url: https://issues.redhat.com/browse/OCPNODE-3245
+name: KubeletStartFailingFromRestoreconTimeout
+message: |-
+  In some cases, a SELinux restorecon run as a prerequisite of kubelet.service was failing.
+matchingRules:
+- type: Always
