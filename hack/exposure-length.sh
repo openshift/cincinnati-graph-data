@@ -10,13 +10,15 @@
 #
 #  $ hack/exposure-length.sh KeepalivedMulticastSkew DualStackNeedsController
 
+DATE_CMD=${DATE_CMD:-"date"}
+
 calculate_exposure() {
 	RISK="$1"
 	RISK_DECLARED="$(git log -G "^name: ${RISK}\$" --first-parent --date=short --format='%ad' blocked-edges | tail -n1)"
 	FIX_PATH="$(grep -r40 "^name: ${RISK}\$" blocked-edges | sed -n 's/-fixedIn: .*//p' | head -n1)"
 	FIX_DECLARED="$(git log -G "^fixedIn: " --first-parent --date=short --format='%ad' "${FIX_PATH}" | tail -n1)"
-	RISK_DECLARED_SECONDS="$(date --date "${RISK_DECLARED}" '+%s')"
-	FIX_DECLARED_SECONDS="$(date --date "${FIX_DECLARED}" '+%s')"
+	RISK_DECLARED_SECONDS="$(${DATE_CMD} --date "${RISK_DECLARED}" '+%s')"
+	FIX_DECLARED_SECONDS="$(${DATE_CMD} --date "${FIX_DECLARED}" '+%s')"
 	DURATION_SECONDS=$((FIX_DECLARED_SECONDS - RISK_DECLARED_SECONDS))
 	DURATION_DAYS=$((DURATION_SECONDS / 86400))
 	printf '%s - %s (%s days): %s\n' "${RISK_DECLARED}" "${FIX_DECLARED}" "${DURATION_DAYS}" "${RISK}"
