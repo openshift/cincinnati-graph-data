@@ -81,7 +81,7 @@ If both `errata` and `delay` are set, the feeder nodes will be promoted when `de
 To see recommended feeder promotions, run:
 
 ```console
-$ hack/stabilization-change.py
+$ hack/stabilization-changes.py
 ```
 
 ##### Tombstones
