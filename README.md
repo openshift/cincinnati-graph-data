@@ -17,6 +17,26 @@ The [contributing documentation](CONTRIBUTING.md) covers licencing and the usual
 
 [Cincinnati][] is configured to track the master branch, so it will automatically react to updates made to this repository.
 
+### Cincinnati Consumption
+
+Cincinnati consumes [a subset of files](https://github.com/openshift/cincinnati/blob/38e1cc459110fc7b437083f5214e5dd7fbe5cc41/cincinnati/src/plugins/internal/graph_builder/dkrv2_openshift_secondary_metadata_scraper/plugin.rs#L17) in this repo as graph-data (and the rest stays here in this repo for other purposes):
+
+```console
+$ curl -L -o cincinnati-graph-data.tar.gz https://api.openshift.com/api/upgrades_info/graph-data
+$ mkdir cincinnati-graph-data && tar xvzf cincinnati-graph-data.tar.gz -C cincinnati-graph-data/
+$ tree cincinnati-graph-data -L 1
+cincinnati-graph-data
+├── blocked-edges
+├── channels
+├── LICENSE
+├── raw
+└── version
+```
+
+The [LICENSE](LICENSE) defines the terms and conditions about using the data in this repo and [the "raw" directory](raw) contains custom metadata for some old releases. Modern release images bake in all the metadata they need, and should not need additional "raw" entries.
+
+In the following sections, we are going to explain the content of the other folders and files in graph-data.
+
 ### Schema Version
 
 The layout of this repository is versioned via [a `version` file](version), which contains the [Semantic Version][semver] of the schema.
