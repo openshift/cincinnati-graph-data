@@ -12,7 +12,7 @@ MAJOR_MINOR="${1}"
 if test -z "${MAJOR_MINOR}"
 then
 	cat <<-EOF >&2
-		This script creates the necessary files for for a new x.y minor release which includes fast, stable and, when appropriate, EUS channel files with required metadata for automation.
+		This script creates the necessary files for a new x.y minor release which includes fast, stable and, when appropriate, EUS channel files with required metadata for automation.
 		Usage:
 		  ${0} MAJOR_MINOR
 		For example:
