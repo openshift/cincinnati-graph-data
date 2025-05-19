@@ -1,0 +1,16 @@
+to: 4.15.49
+from: ^4[.](14[.].*|15[.]([1-3]?[0-9]|4[0-7]))[+].*$
+
+url: https://issues.redhat.com/browse/OCPCLOUD-2975
+name: NonZonalAzureMachineSetScaling
+message: |-
+  Azure Clusters in non-zonal regions will fail at scaling MachineSets created in earlier versions.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      (
+        group by (type) (cluster_infrastructure_provider{_id="",type="Azure"})
+        or
+        0 * group by (type) (cluster_infrastructure_provider{_id=""})
+      )
