@@ -9,6 +9,12 @@ spec:
     git:
       uri: https://github.com/openshift/cincinnati-graph-data.git
       ref: master
+    dockerfile: |
+      FROM registry.access.redhat.com/ubi8/ubi:8.1
+      WORKDIR /home
+      COPY . graph-data
+      RUN mkdir -p /var/lib/cincinnati/graph-data
+      CMD cp -rp graph-data/* /var/lib/cincinnati/graph-data
   strategy:
     type: Docker
   output:
