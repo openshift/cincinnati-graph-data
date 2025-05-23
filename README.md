@@ -222,14 +222,6 @@ matchingRules:
 
 If the risk applies to multiple target releases, create multiple files with different `to`.
 
-### Signatures
-
-Add release signatures under `signatures/{algorithm}/{digest}/signature-{number}` (1.2.0).
-For example, the [`amd64` 4.12.0 is `sha256:4c5a7e26d707780be6466ddc9591865beb2e3baa5556432d23e8d57966a2dd18`][4.12.0-release] ([errata][4.12.0-errata]), and would have [signatures][4.12.0-signature] stored in `signatures/sha256/4c5a7e26d707780be6466ddc9591865beb2e3baa5556432d23e8d57966a2dd18/signature-1` (optionally with additional signatures as `signature-2`, etc.
-
-[4.12.0-errata]: https://access.redhat.com/errata/RHSA-2022:7399
-[4.12.0-release]: https://mirror.openshift.com/pub/openshift-v4/amd64/clients/ocp/4.12.0/release.txt
-[4.12.0-signature]: https://mirror.openshift.com/pub/openshift-v4/signatures/openshift/release/sha256%3D4c5a7e26d707780be6466ddc9591865beb2e3baa5556432d23e8d57966a2dd18/signature-1
 [api-message]: https://github.com/openshift/api/blob/67c28690af52a69e0b8fa565916fe1b9b7f52f10/config/v1/types_cluster_operator.go#L135-L139
 [api-reason]: https://github.com/openshift/api/blob/67c28690af52a69e0b8fa565916fe1b9b7f52f10/config/v1/types_cluster_operator.go#L131-L133
 [channel-semantics]: https://docs.openshift.com/container-platform/4.3/updating/updating-cluster-between-minor.html#understanding-upgrade-channels_updating-cluster-between-minor
