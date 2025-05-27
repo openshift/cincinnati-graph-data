@@ -635,7 +635,7 @@ dependencies = [
 [[package]]
 name = "cincinnati"
 version = "0.1.0"
-source = "git+https://github.com/hongkailiu/cincinnati?rev=4c7aae63b686738e2be679f88589f4cddf31d91f#4c7aae63b686738e2be679f88589f4cddf31d91f"
+source = "git+https://github.com/openshift/cincinnati?rev=88bb8cb71d7309de4535864627e85dca11712ce5#88bb8cb71d7309de4535864627e85dca11712ce5"
 dependencies = [
  "actix-web",
  "async-trait",
@@ -726,7 +726,7 @@ dependencies = [
 [[package]]
 name = "commons"
 version = "0.1.0"
-source = "git+https://github.com/hongkailiu/cincinnati?rev=4c7aae63b686738e2be679f88589f4cddf31d91f#4c7aae63b686738e2be679f88589f4cddf31d91f"
+source = "git+https://github.com/openshift/cincinnati?rev=88bb8cb71d7309de4535864627e85dca11712ce5#88bb8cb71d7309de4535864627e85dca11712ce5"
 dependencies = [
  "actix-service",
  "actix-web",
@@ -1129,7 +1129,7 @@ dependencies = [
 [[package]]
 name = "dkregistry"
 version = "0.5.1-alpha.0"
-source = "git+https://github.com/hongkailiu/dkregistry-rs.git?rev=11b974e1703987f837dfee1b68e73316c0348dd2#11b974e1703987f837dfee1b68e73316c0348dd2"
+source = "git+https://github.com/camallo/dkregistry-rs.git?rev=89d190c313653afabee66032a4c88efd804f0829#89d190c313653afabee66032a4c88efd804f0829"
 dependencies = [
  "async-stream",
  "base64 0.13.1",
@@ -2895,7 +2895,7 @@ dependencies = [
 [[package]]
 name = "quay"
 version = "0.0.0-dev"
-source = "git+https://github.com/hongkailiu/cincinnati?rev=4c7aae63b686738e2be679f88589f4cddf31d91f#4c7aae63b686738e2be679f88589f4cddf31d91f"
+source = "git+https://github.com/openshift/cincinnati?rev=88bb8cb71d7309de4535864627e85dca11712ce5#88bb8cb71d7309de4535864627e85dca11712ce5"
 dependencies = [
  "anyhow",
  "async-stream",
