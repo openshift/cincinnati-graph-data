@@ -1,0 +1,14 @@
+to: 4.18.12
+from: ^4[.](17[.]([1]?[0-9]|2[0-1])|18[.][0-5])[+].*$
+url: https://issues.redhat.com/browse/MCO-1702
+name: RHELFailedRebootMissingService
+message: RHEL worker nodes will fail to reboot during a node update due to a missing service.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk(1,
+        group by (label_node_openshift_io_os_id) (kube_node_labels{_id="",label_node_openshift_io_os_id="rhel"})
+        or
+        0 * group by (label_node_openshift_io_os_id) (kube_node_labels{_id=""})
+      )
