@@ -3,6 +3,7 @@ from: ^4[.](17[.]([0-9]|1[0-6]))[+].*$
 
 url: https://issues.redhat.com/browse/OCPCLOUD-2975
 name: NonZonalAzureMachineSetScaling
+fixedIn: 4.18.16
 message: |-
   Azure Clusters in non-zonal regions will fail at scaling MachineSets created in earlier versions.
 matchingRules:
