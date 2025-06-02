@@ -105,6 +105,8 @@ tombstones:
 - 4.12.62
 # 4.17.13: Late rejection of an early kernel
 - 4.17.13
+# 4.20.0-ec.1 included a self-reference in its .metadata.previous section
+- 4.20.0-ec.1
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
