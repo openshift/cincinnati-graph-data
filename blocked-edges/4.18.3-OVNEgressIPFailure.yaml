@@ -1,0 +1,13 @@
+to: 4.18.3
+from: 4[.]17[.].*
+url: https://issues.redhat.com/browse/CORENET-6114
+name: OVNEgressIPFailure
+message: |-
+  EgressIP functionality may fail if the cluster has assigned EgressIPs.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group(ovnkube_clustermanager_num_egress_ips{_id=""} > 0)
+      or
+      0 * group(ovnkube_clustermanager_num_egress_ips{_id=""})
