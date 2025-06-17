@@ -93,13 +93,14 @@ while "${DIR}/stabilization-changes.py" && ! git diff-files --exit-code --quiet;
 done
 git restore --staged .
 
+SED_CMD=${SED_CMD:-"sed"}
 # Extract the smallest (we assume it is listed first) version from the stable channel (the GA version) and bump the z_min to that version
 LATEST=$(python -c "import sys, yaml; data = yaml.safe_load(sys.stdin); print(data['versions'][0])" < "channels/stable-${MAJOR_MINOR}.yaml")
 # Use sed instead of doing this in python above to avoid clobbering the nice semantic ordering
-sed -i -e "s|z_min: .*|z_min: ${LATEST}|" "build-suggestions/${MAJOR_MINOR}.yaml"
-sed -i -e "s|minor_min: .*|minor_min: ${LATEST}|" "build-suggestions/${MAJOR}.$((MINOR + 1)).yaml"
+"${SED_CMD}" -i -e "s|z_min: .*|z_min: ${LATEST}|" "build-suggestions/${MAJOR_MINOR}.yaml"
+"${SED_CMD}" -i -e "s|minor_min: .*|minor_min: ${LATEST}|" "build-suggestions/${MAJOR}.$((MINOR + 1)).yaml"
 
-grep "^- ${MAJOR}[.]${MINOR}[.]0-" "channels/candidate-${MAJOR_MINOR}.yaml" | sed 's/^- //' | while read VERSION
+grep "^- ${MAJOR}[.]${MINOR}[.]0-" "channels/candidate-${MAJOR_MINOR}.yaml" | "${SED_CMD}" 's/^- //' | while read VERSION
 do
 	cat <<-EOF > "blocked-edges/${VERSION}-PreRelease.yaml"
 		to: ${VERSION}
