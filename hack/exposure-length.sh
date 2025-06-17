@@ -11,11 +11,12 @@
 #  $ hack/exposure-length.sh KeepalivedMulticastSkew DualStackNeedsController
 
 DATE_CMD=${DATE_CMD:-"date"}
+SED_CMD=${SED_CMD:-"sed"}
 
 calculate_exposure() {
 	RISK="$1"
 	RISK_DECLARED="$(git log -G "^name: ${RISK}\$" --first-parent --date=short --format='%ad' blocked-edges | tail -n1)"
-	FIX_PATH="$(grep -r40 "^name: ${RISK}\$" blocked-edges | sed -n 's/-fixedIn: .*//p' | head -n1)"
+	FIX_PATH="$(grep -r40 "^name: ${RISK}\$" blocked-edges | "${SED_CMD}" -n 's/-fixedIn: .*//p' | head -n1)"
 	FIX_DECLARED="$(git log -G "^fixedIn: " --first-parent --date=short --format='%ad' "${FIX_PATH}" | tail -n1)"
 	RISK_DECLARED_SECONDS="$(${DATE_CMD} --date "${RISK_DECLARED}" '+%s')"
 	FIX_DECLARED_SECONDS="$(${DATE_CMD} --date "${FIX_DECLARED}" '+%s')"
@@ -26,7 +27,7 @@ calculate_exposure() {
 
 if test "$#" -eq 0
 then
-	RISKS="$(grep -h '^name: ' $(grep -rl fixedIn blocked-edges) | sort | uniq | sed 's/name: //')"
+	RISKS="$(grep -h '^name: ' $(grep -rl fixedIn blocked-edges) | sort | uniq | "${SED_CMD}" 's/name: //')"
 	set -- ${RISKS}
 fi
 
