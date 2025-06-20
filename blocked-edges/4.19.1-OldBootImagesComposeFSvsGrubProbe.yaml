@@ -1,0 +1,15 @@
+to: 4.19.1
+from: 4[.]18[.].*
+url: https://issues.redhat.com/browse/COS-3357
+name: OldBootImagesComposeFSvsGrubProbe
+message: |-
+  Upgrade to 4.19 will fail due to a boot image incompatibility issue if a cluster was born in 4.2 or earlier.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk(1,
+        label_replace(group by (version) (cluster_version{_id="",type="initial",version=~"4[.][0-9][.].*"}),"born_by_4_9", "yes, so possibly actually born in 4.2 or earlier", "", "")
+        or
+        label_replace(0 * group by (version) (cluster_version{_id="",type="initial",version!~"4[.][0-9][.].*"}),"born_by_4_9", "no, born in 4.10 or later", "", "")
+      )
