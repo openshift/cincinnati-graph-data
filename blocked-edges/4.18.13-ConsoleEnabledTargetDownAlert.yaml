@@ -1,0 +1,9 @@
+to: 4.18.13
+from: ^4[.](17[.](2[0-8]|[1]?[0-9])|18[.](1[01]|[0-9]))[+].*$
+url: https://issues.redhat.com/browse/CONSOLE-4632
+name: ConsoleEnabledTargetDownAlert
+message: The alert TargetDown is triggered if the capability Console is enabled on the cluster.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: max(cluster_version_capability{name="Console"})
