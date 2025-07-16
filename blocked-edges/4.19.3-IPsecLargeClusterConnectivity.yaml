@@ -1,0 +1,18 @@
+to: 4.19.3
+from: 4[.]18[.].*
+url: https://issues.redhat.com/browse/CORENET-6196
+name: IPsecLargeClusterConnectivity
+message: Large clusters with enabled IPsec might experience intermittent loss of pod-to-pod connectivity. This prevents some pods on certain nodes from reaching services on other nodes, resulting in connection timeouts.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      (
+        group by (ipsec) (label_replace(max_over_time(ovnkube_controller_ipsec_enabled{_id=""}[1h]), "ipsec", "enabled", "", "") == 1)
+        or on (_id)
+        0 * group by (ipsec) (label_replace(max_over_time(ovnkube_controller_ipsec_enabled{_id=""}[1h]), "ipsec", "disabled", "", "") == 0)
+      ) and on (_id) (
+        group by (resource) (max_over_time(apiserver_storage_objects{_id="",resource="nodes"}[1h]) > 120)
+      )
+      or on (_id)
+      0 * group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
