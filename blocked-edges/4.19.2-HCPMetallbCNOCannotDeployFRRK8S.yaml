@@ -1,0 +1,23 @@
+to: 4.19.2
+from: 4.18[.].*
+name: HCPMetallbCNOCannotDeployFRRK8S
+url: https://issues.redhat.com/browse/CNTRLPLANE-1109
+message: |-
+  On Hosted Control Plane (HCP/HyperShift) clusters with installed MetalLB operator, Cluster Network Operator fails to
+  deploy a critical component FRR-k8s when updated. MetalLB will stop working properly and stop advertising services,
+  making them potentially unreachable from outside the cluster.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      (
+      group by (_id, invoker) (cluster_installer{_id="",invoker="hypershift"})
+      or
+      0 * group by (_id, invoker) (cluster_installer{_id=""})
+      )
+      and on (_id) (
+        group by (_id, name) (csv_succeeded{_id="", name=~"metallb-operator[.].*"})
+      )
+      or on (_id) (
+        0 * label_replace(group by (_id) (csv_succeeded{_id=""}), "name", "metallb operator not installed", "name", ".*")
+      )
