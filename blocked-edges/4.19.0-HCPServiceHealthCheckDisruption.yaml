@@ -1,0 +1,22 @@
+to: 4.19.0
+from: 4.18[.].*
+url: https://issues.redhat.com/browse/CNTRLPLANE-1110
+name: HCPServiceHealthCheckDisruption
+message: |-
+  When Hosted Control Plane (HCP/HyperShift) clusters running on AWS update a node pool, the Services of type
+  LoadBalancer may experience temporary availability disruption because health checks are not set up properly to monitor
+  Node readiness state.
+matchingRules:
+  - type: PromQL
+    promql:
+      promql: |
+        (
+          group by (_id, invoker) (cluster_installer{_id="",invoker="hypershift"})
+          or
+          0 * group by (_id, invoker) (cluster_installer{_id=""})
+        )
+        * on (_id) group_left (type) (
+          group by (_id, type) (cluster_infrastructure_provider{_id="",type="AWS"})
+          or
+          0 * group by (_id, type) (cluster_infrastructure_provider{_id=""})
+        )
