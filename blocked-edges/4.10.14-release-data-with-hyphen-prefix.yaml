@@ -3,6 +3,6 @@ from: 4[.]10[.].*
 url: https://access.redhat.com/solutions/6965075
 name: ReleaseDataWithHyphenPrefix
 message: |-
-  Clusters updating out of 4.10.14 may, depending on their past history, fail to initiate the update to any later release.  In order to avoid this trouble, we recommend avoiding updates to this release.  The linked solution includes steps to avoid the issue if you do decide to update to 4.10.14.
+  Clusters updating out of the target release may, depending on their past history, fail to initiate the update to any later release.  In order to avoid this trouble, we recommend avoiding updates to this release.  The linked solution includes steps to avoid the issue if you do decide to update to the target release.
 matchingRules:
 - type: Always
