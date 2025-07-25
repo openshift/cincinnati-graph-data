@@ -1,0 +1,12 @@
+to: 4.19.6
+from: 4.18.*
+url: https://access.redhat.com/solutions/7128495
+name: AROMissingInternalLBSAN
+message: ARO clusters on 4.19 experience issues creating new Machines due to missing the Internal LB SAN in the certificate provisioned by MCO
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group(cluster_operator_conditions{_id="",name="aro"})
+      or
+      0 * group(cluster_operator_conditions{_id=""})
