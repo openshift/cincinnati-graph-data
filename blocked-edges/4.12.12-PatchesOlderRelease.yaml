@@ -4,6 +4,6 @@ fixedIn: 4.12.13
 url: https://access.redhat.com/solutions/7007136
 name: PatchesOlderRelease
 message: |-
-  The 4.12.12 release only resolves an installation issue https://issues.redhat.com//browse/OCPBUGS-11662 , which does not affect already running clusters. 4.12.12 does not include fixes delivered in recent 4.11.z and 4.12.z releases and therefore upgrading from these versions would cause fixed bugs to reappear. Red Hat does not recommend upgrading clusters to 4.12.12 version for this reason.
+  The target release only resolves an installation issue (the https://issues.redhat.com/browse/OCPBUGS-11662 series), which does not affect already running clusters. It does not include fixes delivered in recent patch releases and therefore upgrading from these versions would cause fixed bugs to reappear. Red Hat does not recommend upgrading clusters to the target version for this reason.
 matchingRules:
 - type: Always
