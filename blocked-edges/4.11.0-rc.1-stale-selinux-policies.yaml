@@ -3,6 +3,6 @@ from: 4[.]10[.].*
 url: https://issues.redhat.com/browse/OCPBUGS-595
 name: StaleSELinuxPolicies
 message: |-
-  Custom SELinux policies, such as those installed by OpenShift Virtualization, may result in kubelet issues when updating to 4.11.0-rc.1.
+  Custom SELinux policies, such as those installed by OpenShift Virtualization, may result in kubelet issues when updating to the target release.
 matchingRules:
 - type: Always
