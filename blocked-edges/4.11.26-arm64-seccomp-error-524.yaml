@@ -4,7 +4,7 @@ url:  https://issues.redhat.com/browse/RUN-1668
 fixedIn: 4.11.27
 name: ARM64SecCompError524
 message: |-
-  4.11.26 arm64 nodes may expose container creation to seccomp error 524.
+  The arm64 nodes of the target release may expose container creation to seccomp error 524.
 matchingRules:
 - type: Always
 
