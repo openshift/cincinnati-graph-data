@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 
+import difflib
 import os
 import re
 import util
+
+import yaml
+
 
 # Risk names must be CamelCase to be assignable to condition.Reason
 # https://github.com/openshift/api/blob/8891815aa476232109dccf6c11b8611d209445d9/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/types.go#L1519-L1520C3
@@ -11,9 +15,26 @@ NAME_RE = re.compile(r'^[A-Z][A-Za-z0-9_]*$')
 
 
 def validate_blocked_edges(directory):
+    risks = {}
     for path, data in util.walk_yaml(directory=directory, allowed_extensions=('.yaml',)):
         try:
             validate_blocked_edge(data=data, path=path)
+            if 'name' in data:
+                name = data['name']
+                if name in risks:
+                    # The CVO has API requiring that 'url', 'message', and 'matchingRules' match for all risks with the same 'name'.
+                    # A diverging 'matchingRules' value may not lead to CVO's trouble, but we do not have such a case yet.
+                    keys = set(data.keys())
+                    keys.update(risks[name]['data'].keys())
+                    for key in sorted(keys):
+                        if key in {'from', 'to', 'fixedIn'}:
+                            continue
+                        a = yaml.dump(data.get(key))
+                        b = yaml.dump(risks[name]['data'].get(key))
+                        if a != b:
+                            raise ValueError('risk {} diverges on {}:\n{}'.format(name, key, '\n'.join(difflib.unified_diff(a.split('\n'), b.split('\n'), fromfile=path, tofile=risks[name]['path'], lineterm=''))))
+                else:
+                    risks[name] = {'path': path, 'data': data}
         except Exception as error:
             raise ValueError('invalid blocked edge {}: {}'.format(path, error)) from None
 
