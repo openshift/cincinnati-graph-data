@@ -1,8 +1,8 @@
 to: 4.18.0-rc.2
 from: .*
-url: https://docs.openshift.com/container-platform/4.18/release_notes/ocp-4-18-release-notes.html
+url: https://issues.redhat.com/browse/OTA-1599
 name: PreRelease
 message: |-
-  This is a prerelease version, and you should update to 4.18.1 or later releases, even if that means updating to a newer 4.17 first.
+  This is a pre-release version, and you should update to a release version instead. If it is a minor update, it is suggested to upgrade to the latest patch version first.
 matchingRules:
 - type: Always

@@ -39,7 +39,7 @@ fi
 
 if test "$((MINOR % 2))" -eq 0
 then
-	# 4.even get extended update support: https://access.redhat.com/support/policy/updates/openshift#ocp4_phases
+	# 4.even get extended update support: https://issues.redhat.com/browse/OTA-1599
 	CHANNELS="$(printf '%s\n%s' "${CHANNELS}" eus)"
 fi
 
@@ -105,10 +105,10 @@ do
 	cat <<-EOF > "blocked-edges/${VERSION}-PreRelease.yaml"
 		to: ${VERSION}
 		from: .*
-		url: https://docs.openshift.com/container-platform/${MAJOR_MINOR}/release_notes/ocp-${MAJOR}-${MINOR}-release-notes.html
+		url: https://issues.redhat.com/browse/OTA-1599
 		name: PreRelease
 		message: |-
-		  This is a prerelease version, and you should update to ${LATEST} or later releases, even if that means updating to a newer ${MAJOR}.${PREVIOUS_MINOR} first.
+		  This is a pre-release version, and you should update to a release version instead. If it is a minor update, it is suggested to upgrade to the latest patch version first.
 		matchingRules:
 		- type: Always
 	EOF
