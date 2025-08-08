@@ -1,6 +1,6 @@
 to: 4.19.8
 from: 4[.].*
-url: https://issues.redhat.com/
+url: https://issues.redhat.com/browse/RHEL-108138
 name: RHEL96Kernel331Panic
 message: |-
   After OCP 4.19.8 was tagged Red Hat has become aware of a kernel regression in kernel-5.14.0-570.33.1.el9_6 and as a result 4.19.8 will not ship or be promoted beyond candidate channels. Updates to this version are not recommended. 
