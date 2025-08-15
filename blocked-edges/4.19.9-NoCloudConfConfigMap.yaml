@@ -1,0 +1,20 @@
+to: 4.19.9
+from: 4[.]18[.].*
+url: https://issues.redhat.com/browse/OCPCLOUD-3052
+name: NoCloudConfConfigMap
+message: Upgrade to 4.19 will complete due to an absent cloud-conf ConfigMap in AWS clusters born in 4.13 or earlier.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      bottomk by (_id) (1,
+        0 * group by (_id, namespace, configmap) (kube_configmap_info{_id="",namespace="openshift-cloud-controller-manager",configmap="cloud-conf"})
+        or
+        group by (_id, namespace, configmap) (kube_configmap_info{_id="",namespace="openshift-cloud-controller-manager"})
+      )
+      * on (_id) group_left (type)
+      topk by (_id) (1,
+        group by (_id, type) (cluster_infrastructure_provider{_id="",type="AWS"})
+        or
+        0 * group by (_id, type) (cluster_infrastructure_provider{_id="",type!="AWS"})
+      )
