@@ -6,4 +6,12 @@ message: |
   Degrade machine-config cluster operator blocks the cluster update if a GCP or AWS cluster has machinesets with 
   multiple labels embedded within their "capacity.cluster-autoscaler.kubernetes.io/labels" annotation.
 matchingRules:
-- type: Always
+- type: PromQL
+  promql:
+    promql: |
+      (
+        group by (type) (cluster_infrastructure_provider{_id="",type="AWS|GCP"})
+        or
+        0 * group by (type) (cluster_infrastructure_provider{_id=""})
+      )
+
