@@ -1,5 +1,6 @@
 to: 4.18.21
 from: 4[.]17[.].*
+fixedIn: 4.18.22
 url: https://issues.redhat.com/browse/CORENET-6189
 name: WhereaboutsControllerCreateContainerError
 message: |-
