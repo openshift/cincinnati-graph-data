@@ -1,0 +1,8 @@
+to: 4.18.16
+from: 4[.]17[.].*
+url: https://issues.redhat.com/browse/CORENET-6189
+name: WhereaboutsControllerCreateContainerError
+message: |-
+  The cluster update cannot complete if the cluster uses the the whereabouts shim.
+matchingRules:
+- type: Always
