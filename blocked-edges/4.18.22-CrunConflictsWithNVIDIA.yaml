@@ -1,0 +1,12 @@
+to: 4.18.22
+from: .*
+url: https://issues.redhat.com/browse/RUN-3446
+name: CrunConflictsWithNVIDIA
+message: Some crun 1.23 releases conflict with the NVIDIA GPU Operator over eBPF, causing issues with GPU workloads.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group by (name) (csv_succeeded{_id="", name=~"gpu-operator-certified[.].*"})
+      or on (_id)
+      0 * group(csv_count{_id=""})
