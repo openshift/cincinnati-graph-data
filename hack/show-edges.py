@@ -389,10 +389,16 @@ def assert_path_to_minor(version, edges, blocked, target_major_minor):
 
 if __name__ == '__main__':
     import argparse
+    class HelpFormatter(argparse.RawDescriptionHelpFormatter, argparse.ArgumentDefaultsHelpFormatter):
+        "Do not line-wrap description or epilog. Also include option defaults in the help message."
 
     parser = argparse.ArgumentParser(
-        description='Display edges for a particular channel and commit.',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description='''Display edges for a particular channel and commit.
+                    
+Examples:
+# show the edges from 4.14.51 in channel eus-4.16 with the information loaded from the Cincinnati instance managed by Red Hat in Production
+%(prog)s --cincinnati https://api.openshift.com/api/upgrades_info/graph --root-version 4.14.51 eus-4.16''',
+        formatter_class=HelpFormatter,
     )
     parser.add_argument(
         '--architecture',
