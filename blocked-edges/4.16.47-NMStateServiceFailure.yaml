@@ -1,0 +1,16 @@
+to: 4.16.47
+# 4.16 lower than 4.16.46 and any 4.15
+from: ^4[.](16[.]([0-9]|[1-3][0-9]|4[0-5])|15[.].*)[+].*$
+url: https://issues.redhat.com/browse/CORENET-6419
+name: NMStateServiceFailure
+message: The NMState service can fail on baremetal cluster nodes, causing node scaleups and re-deployment failures.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk by (_id) (1,
+        group by (_id, type) (cluster_infrastructure_provider{_id="",type=~"None|BareMetal"})
+        or
+        0 * group by (_id, type) (cluster_infrastructure_provider{_id="",type!~"None|BareMetal"})
+      )
+
