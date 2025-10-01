@@ -1,0 +1,15 @@
+to: 4.19.13
+from: ^4[.](18[.].*|19[.]([0-9]|1[0-1]))[+].*$
+name: MCNCleanupPodStuckInPendingState
+url: https://issues.redhat.com/browse/MCO-1890
+message: |-
+  Clusters created on 4.11.z and below are experiencing a bug that causes an update to get stuck due to a pod stuck in a pending state because of a node label mismatch.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk(1,
+        label_replace(group by (version) (cluster_version{_id="",type="initial",version=~"4[.]([0-9]|1[0-1])[.].*"}),"born_by_4_11", "yes, born in 4.11 or earlier", "", "")
+        or
+        label_replace(0 * group by (version) (cluster_version{_id="",type="initial",version!~"4[.]([0-9]|1[0-1])[.].*"}),"born_by_4_11", "no, born in 4.12 or later", "", "")
+      )
