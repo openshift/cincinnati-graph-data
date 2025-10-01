@@ -1,0 +1,8 @@
+to: 4.19.13
+from: ^4[.](18[.].*|19[.][0-6])[+].*$
+fixedIn: 4.19.14
+url: https://issues.redhat.com/browse/CONSOLE-4762
+name: ConsoleCrashOnMissingPlugin
+message: If a Console Operator configuration resource references a plugin name for which there is no corresponding ConsolePlugin resource, the Console may crashloop after the cluster is updated to an affected version.
+matchingRules:
+- type: Always
