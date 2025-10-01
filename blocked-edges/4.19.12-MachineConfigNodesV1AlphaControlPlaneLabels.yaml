@@ -1,0 +1,14 @@
+to: 4.19.12
+from: .*
+url: https://issues.redhat.com/browse/MCO-1890
+name: MachineConfigNodesV1AlphaControlPlaneLabels
+message: Standalone clusters born in 4.11 or earlier whose control-plane nodes lack the control-plane role may need that role added to update to the target release.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      0 * group by (role) (kube_node_role{_id="",role="control-plane"})
+      or on ()
+      1 * group by (role) (kube_node_role{_id="",role="master"})
+      or on ()
+      0 * topk(1, count by (role) (kube_node_role{_id=""}))
