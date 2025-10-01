@@ -4,7 +4,6 @@ aliases:
   cincinnati-graph-data-approvers:
     - wking
     - PratikMahajan
-    - petr-muller
     - DavidHurta
     - hongkailiu
   sre-approvers:
