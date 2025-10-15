@@ -1,0 +1,13 @@
+to: 4.19.14
+from: .*
+url: https://issues.redhat.com/browse/MCO-1896
+name: OSUpdateFailureDueToImagePullPolicy
+message: |-
+  Clusters with restrictive image policies may struggle with OS updates when the OS image is already on the local disk. Please update to 4.19.16 or later where this issue is resolved.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      0 * group by (_id, invoker) (cluster_installer{_id="",invoker="hypershift"})
+      or
+      group by (_id, invoker) (cluster_installer{_id=""})
