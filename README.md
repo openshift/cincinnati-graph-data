@@ -200,9 +200,11 @@ matchingRules:
 - type: PromQL
   promql:
     promql:
-      group(sre:telemetry:managed_labels{_id="",sre="true"})
-      or
-      0 * group(cluster_version{_id=""})
+      topk(1,
+        group by (_id, sre) (sre:telemetry:managed_labels{_id=~".*",sre="true"})
+        or
+        0 * group by (_id) (cluster_version{_id=""})
+      )
 ```
 
 to declare that risk only for managed clusters.
@@ -215,9 +217,11 @@ matchingRules:
 - type: PromQL
   promql:
     promql:
-      group(cluster_operator_conditions{_id="",name="aro"})
-      or
-      0 * group(cluster_operator_conditions{_id=""})
+      topk(1,
+        group by (_id, name) (cluster_operator_conditions{_id="",name="aro"})
+        or
+        0 * group by (_id, name) (cluster_operator_conditions{_id=""})
+      )
 ```
 
 If the risk applies to multiple target releases, create multiple files with different `to`.
