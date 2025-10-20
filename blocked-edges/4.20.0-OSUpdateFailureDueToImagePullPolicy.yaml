@@ -3,7 +3,7 @@ from: 4[.]19[.]1[67][+].*
 url: https://issues.redhat.com/browse/MCO-1896
 name: OSUpdateFailureDueToImagePullPolicy
 message: |-
-  Clusters with restrictive image policies may struggle with OS updates when the OS image is already on the local disk. Please update to 4.19.16 or later where this issue is resolved.
+  Clusters with restrictive image policies may struggle with OS updates when the OS image is already on the local disk.
 matchingRules:
 - type: PromQL
   promql:
