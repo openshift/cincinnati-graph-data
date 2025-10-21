@@ -6,7 +6,7 @@ use cincinnati::plugins::internal::dkrv2_openshift_secondary_metadata_scraper::p
 use anyhow::Result as Fallible;
 use anyhow::{format_err, Context};
 
-use futures::stream::{FuturesOrdered, StreamExt};
+use futures::stream::StreamExt;
 use lazy_static::lazy_static;
 use reqwest::{Client, ClientBuilder};
 use semver::Version;
@@ -98,19 +98,24 @@ pub async fn run(releases: &[Release], found_versions: &HashSet<semver::Version>
         .build()
         .context("Building reqwest client")?;
 
+    // Limit the concurrency; otherwise, we can make more requests than the system can handle
+    const SIGNATURE_CHECK_CONCURRENCY: usize = 100;
+
     // Filter scraped images - skip CI images
-    let results: Vec<Fallible<()>> = releases
-        .iter()
-        .filter(|r| is_release_in_versions(found_versions, r))
-        //Attempt to find signatures for filtered releases
-        .map(|r| find_signatures_for_version(&client, &public_keys, r))
-        .collect::<FuturesOrdered<_>>()
-        .collect::<Vec<Fallible<()>>>()
-        .await
-        // Filter to keep errors only
-        .into_iter()
-        .filter(|e| e.is_err())
-        .collect();
+    let results: Vec<Fallible<()>> = futures::stream::iter(
+        releases
+            .iter()
+            .filter(|r| is_release_in_versions(found_versions, r)),
+    )
+    // Attempt to find signatures for filtered releases
+    .map(|r| find_signatures_for_version(&client, &public_keys, r))
+    .buffered(SIGNATURE_CHECK_CONCURRENCY)
+    .collect::<Vec<Fallible<()>>>()
+    .await
+    // Filter to keep errors only
+    .into_iter()
+    .filter(|e| e.is_err())
+    .collect();
     if results.is_empty() {
         Ok(())
     } else {
