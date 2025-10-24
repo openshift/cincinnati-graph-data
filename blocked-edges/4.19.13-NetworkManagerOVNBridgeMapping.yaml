@@ -1,0 +1,24 @@
+to: 4.19.13
+from: ^4[.](18[.][0-9]*|19[.]([0-9]|1[0-2]))[+].*$
+url: https://issues.redhat.com/browse/CORENET-6483
+name: NetworkManagerOVNBridgeMapping
+message: On some clusters, the NetworkManager may delete ovs-ports on RHCOS updates, breaking Kubernetes access to those Nodes and wedging the update into the exposed release.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk by (_id) (1,
+        group by (_id, type) (cluster_infrastructure_provider{_id="",type=~"None|BareMetal|OpenStack|VSphere"})
+        or on (_id)
+        0 * group by (_id, type) (cluster_infrastructure_provider{_id="",type!~"None|BareMetal|OpenStack|VSphere"})
+      )
+      * on (_id) group_left (name)
+      (
+        group by (_id, name) (csv_succeeded{_id="", name=~"kubevirt-hyperconverged-operator[.].*"})
+        or on (_id)
+        group by (_id, name) (kubernetes_nmstate_features_applied{_id="", name="ovn.bridge-mappings"} > 0)
+        or on (_id)
+        0 * label_replace(group by (_id) (csv_succeeded{_id=""} + on (_id) group_left () group by (_id) (kubernetes_nmstate_features_applied{_id=""})), "name", "not hyperconverged", "", "")
+        or on (_id)
+        0 * label_replace(group by (_id) (cluster_infrastructure_provider{_id="",type!~"None|BareMetal|OpenStack|VSphere"}), "name", "not sure about hyperconverged or ovn.bridge-mappings, but the whole platform is safe", "", "")
+      )
