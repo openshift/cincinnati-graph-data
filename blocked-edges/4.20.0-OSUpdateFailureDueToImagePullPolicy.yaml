@@ -1,6 +1,6 @@
 to: 4.20.0
 from: 4[.]19[.]1[67][+].*
-fixedIn: 4.21.1
+fixedIn: 4.20.1
 url: https://issues.redhat.com/browse/MCO-1896
 name: OSUpdateFailureDueToImagePullPolicy
 message: |-
