@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 cincinnati = { git = "https://github.com/openshift/cincinnati", rev = "88bb8cb71d7309de4535864627e85dca11712ce5"}
-actix-http = "^3.11.1"
+actix-http = "^3.11.2"
 actix-service = "=2.0.3"
 tokio = { version = "^1.14", features = [ "fs", "rt-multi-thread" ] }
 serde = "^1.0.228"
