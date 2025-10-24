@@ -99,7 +99,7 @@ pub async fn run(releases: &[Release], found_versions: &HashSet<semver::Version>
         .context("Building reqwest client")?;
 
     // Limit the concurrency; otherwise, we can make more requests than the system can handle
-    const SIGNATURE_CHECK_CONCURRENCY: usize = 100;
+    const SIGNATURE_CHECK_CONCURRENCY: usize = usize::MAX;
 
     // Filter scraped images - skip CI images
     let results: Vec<Fallible<()>> = futures::stream::iter(
