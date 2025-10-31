@@ -1,0 +1,8 @@
+to: 4.16.50
+from: ^4[.](15[.].*|16[.]([1-3]?[0-9]|4[0-6]))[+].*$
+fixedIn: 4.16.51
+name: ContinuousNodeRebootingDueToKernelPanic
+url: https://issues.redhat.com/browse/COS-3700
+message: OCP nodes get rebooted continuously due to kernel panic by loading of third party modules.
+matchingRules:
+- type: Always
