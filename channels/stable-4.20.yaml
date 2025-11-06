@@ -5,3 +5,4 @@ feeder:
 name: stable-4.20
 versions:
 - 4.20.0
+- 4.20.1
