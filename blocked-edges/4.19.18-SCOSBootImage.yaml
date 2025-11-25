@@ -1,0 +1,8 @@
+to: 4.19.18
+from: .*
+fixedIn: 4.19.19
+url: https://issues.redhat.com/browse/COS-3765
+name: SCOSBootImage
+message: The coreos-bootimages ConfigMap in the openshift-machine-config-operator Namespace thrashes between RHCOS and SCOS content.
+matchingRules:
+- type: Always
