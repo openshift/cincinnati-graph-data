@@ -1,5 +1,6 @@
 to: 4.18.29
 from: .*
+fixedIn: 4.18.30
 url: https://issues.redhat.com/browse/RUN-3748
 name: RuncShareProcessNamespace
 message: Some runc 1.2 releases fail to launch containers in some Pods where shareProcessNamespace is explicitly set true.
