@@ -105,6 +105,7 @@ do
 	cat <<-EOF > "blocked-edges/${VERSION}-PreRelease.yaml"
 		to: ${VERSION}
 		from: .*
+		fixedIn: ${LATEST}
 		url: https://issues.redhat.com/browse/OTA-1599
 		name: PreRelease
 		message: |-
