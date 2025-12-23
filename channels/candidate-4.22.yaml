@@ -4,6 +4,7 @@ feeder:
   name: candidate
 name: candidate-4.22
 versions:
+- 4.20.0
 - 4.20.0-ec.0
 - 4.20.0-ec.2
 - 4.20.0-ec.3
