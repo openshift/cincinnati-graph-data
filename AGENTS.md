@@ -1,5 +1,4 @@
-**Note**: This project uses the open AGENTS.md standard. AGENTS.md files are symlinked to CLAUDE.md files in the same directory for interoperability with Claude Code. Any agent instructions or memory features should be saved to AGENTS.md files instead of CLAUDE.md files.
-# CLAUDE.md
+# AGENTS.md
 
 This file provides guidance to AI code assistants when working with code in this repository.
 
@@ -17,12 +16,14 @@ Changes merged to master are automatically consumed by the Cincinnati update ser
 
 - `channels/` - Channel definitions (candidate-X.Y, fast-X.Y, stable-X.Y)
 - `blocked-edges/` - YAML files blocking or warning about specific upgrade paths
+- `graph-data.rs/` - Rust src to test the graph data in this repo
 - `internal-channels/` - Internal channel configurations
 - `build-suggestions/` - Release build suggestions
 - `raw/` - Custom metadata for old releases (modern releases include metadata in images)
 - `hack/` - Python and shell scripts for maintenance and validation
 
 ## Common Commands
+More details on those commands/scripts are available in [hack/README.md](hack/README.md).
 
 ### Validation
 ```bash
@@ -41,7 +42,7 @@ Changes merged to master are automatically consumed by the Cincinnati update ser
 # Show update graph edges
 ./hack/show-edges.py
 
-# List risk declarations with fixedIn
+# List the duration for some or all risks with `fixedIn` available.
 ./hack/exposure-length.sh
 ```
 
@@ -67,7 +68,7 @@ Changes merged to master are automatically consumed by the Cincinnati update ser
 Releases follow a staged promotion path proving stability at each level:
 
 1. `candidate-X.Y` - New releases first appear here
-2. `fast-X.Y` - Promoted after proving stable in candidate
+2. `fast-X.Y` - Promoted after further testing in candidate
 3. `stable-X.Y` - Promoted after delay in fast channel
 
 Channels use **feeder** relationships defined in channel YAML:
@@ -131,15 +132,15 @@ The `version` file contains semantic version of repository schema (currently `1.
 - Major version matches exactly
 - Minor version is less than or equal to understood version
 
-## Skills
+## Commands
 
-This repository has a custom `/propose-risk` skill for creating upgrade risk declarations:
+This repository has a custom `/propose-risk` slash command for creating upgrade risk declarations:
 
 ```bash
 /propose-risk <jira-issue-id>
 ```
 
-The skill fetches the Jira issue, analyzes impact, and proposes complete YAML files for blocked-edges with:
+The command fetches the Jira issue, analyzes impact, and proposes complete YAML files for blocked-edges with:
 - Appropriate `from` regex patterns excluding already-affected versions
 - PromQL queries targeting specific affected configurations
 - Proper `fixedIn` placement (only in last affected patch version)

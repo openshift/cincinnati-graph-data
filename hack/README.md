@@ -3,7 +3,7 @@
 This directory contains scripts that either generate the data maintained by OTA in this repo or use the data to display information about OpenShift update graph.
 
 
-* [exposure-length.sh](exposure-length.sh): It lists risk declaration for some or all risks with `fixedIn` available.
+* [exposure-length.sh](exposure-length.sh): It lists the duration of risk declaration for some or all risks with `fixedIn` available.
 
 * [generate-weekly-report.py](generate-weekly-report.py): It display edges for a particular channel and commit which is useful to edit and publish the internal blog.
 
