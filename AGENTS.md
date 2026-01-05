@@ -1,6 +1,7 @@
+**Note**: This project uses the open AGENTS.md standard. AGENTS.md files are symlinked to CLAUDE.md files in the same directory for interoperability with Claude Code. Any agent instructions or memory features should be saved to AGENTS.md files instead of CLAUDE.md files.
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI code assistants when working with code in this repository.
 
 ## Repository Overview
 
