@@ -134,7 +134,12 @@ The `version` file contains semantic version of repository schema (currently `1.
 
 ## Commands
 
-This repository has a custom `/propose-risk` slash command for creating upgrade risk declarations:
+
+This repository has custom slash commands for common maintenance tasks.
+
+### `/propose-risk`
+
+Creates upgrade risk declarations based on Jira issues:
 
 ```bash
 /propose-risk <jira-issue-id>
@@ -145,6 +150,16 @@ The command fetches the Jira issue, analyzes impact, and proposes complete YAML 
 - PromQL queries targeting specific affected configurations
 - Proper `fixedIn` placement (only in last affected patch version)
 - Unique PascalCase risk names
+
+### `/update-script-docs`
+
+Updates documentation about scripts in the `hack/` folder:
+
+```bash
+/update-script-docs
+```
+
+The command analyzes scripts in the `hack/` directory and updates [hack/README.md](hack/README.md) with current documentation, ensuring script descriptions and usage information stay synchronized with the actual script implementations.
 
 ## Workflow
 
