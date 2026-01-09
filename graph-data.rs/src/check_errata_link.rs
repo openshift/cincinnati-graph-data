@@ -136,6 +136,12 @@ mod tests {
         true; "Known exception"
     )]
     #[test_case(
+        "4.12.84",
+        METADATA_URL_KEY,
+        "https://access.redhat.com/errata/RHBA-2026:317",
+        true; "three digit errata numbers"
+    )]
+    #[test_case(
         "4.9.0",
         "some other non-url key",
         "https://access.redhat.com/errata/RHSA-2019:2594",
