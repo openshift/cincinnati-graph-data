@@ -8,7 +8,7 @@ use std::str::FromStr;
 
 static METADATA_URL_KEY: &str = "url";
 static ERRATA_URL_REGEX_STR: &str =
-    r"https://access.redhat.com/errata/RH[BS]{1}A-[0-9]{4}:[0-9]{4}";
+    r"https://access.redhat.com/errata/RH[BS]{1}A-[0-9]{4}:[0-9]{3}";
 static SKIP_VERSIONS: &[&str] = &["4.6.5", "4.6.6", "4.7.35", "4.8.9", "4.9.2", "0.0.0"];
 // TODO: Declare these in Cincinnati
 static SPECIAL_PRES: &[&str] = &["amd64", "arm64", "ppc64le", "s390x"];
@@ -134,6 +134,12 @@ mod tests {
         "some other non-url key",
         "https://wait.thats.not.redhat.com/doh",
         true; "Known exception"
+    )]
+    #[test_case(
+        "4.12.84",
+        METADATA_URL_KEY,
+        "https://access.redhat.com/errata/RHBA-2026:317",
+        true; "three digit errata numbers"
     )]
     #[test_case(
         "4.9.0",
