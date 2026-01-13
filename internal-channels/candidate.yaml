@@ -108,6 +108,8 @@ tombstones:
 # 4.20.0-ec.1 included a self-reference in its .metadata.previous section
 - 4.20.0-ec.1
 - 4.19.8 # kernel regression in kernel-5.14.0-570.33.1.el9_6
+# 4.20.9 has regressions because of golang bump and is replaced by 4.20.10
+- 4.20.9
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
