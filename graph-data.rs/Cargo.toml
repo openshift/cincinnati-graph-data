@@ -17,7 +17,7 @@ semver = { version = "^0.11", features = [ "serde" ] }
 toml = "^0.9.11"
 lazy_static = "^1.5.0"
 url = "^2.5.8"
-reqwest = { version = "^0.12", features = ["gzip"] }
+reqwest = { version = "^0.13", features = ["gzip"] }
 futures = "^0.3"
 itertools = "^0.14"
 zeroize = "=1.7.0"
