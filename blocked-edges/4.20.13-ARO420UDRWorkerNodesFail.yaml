@@ -1,0 +1,15 @@
+to: 4.20.13
+from: 4[.]19[.].*
+url: https://access.redhat.com/solutions/7133826
+name: ARO420UDRWorkerNodesFail
+message: |-
+  Disconnected ARO clusters or clusters with a UDR 0.0.0.0/0 route definition are not be able to add or replace nodes after an upgrade
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk(1,
+        group by (_id, name) (cluster_operator_conditions{_id="",name="aro"})
+        or
+        0 * group by (_id, name) (cluster_operator_conditions{_id=""})
+      )
