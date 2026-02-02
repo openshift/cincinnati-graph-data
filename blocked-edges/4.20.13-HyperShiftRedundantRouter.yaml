@@ -1,0 +1,12 @@
+to: 4.20.13
+from: ^4[.]19[.]([0-9]|1[0-7])[+].*$
+url: https://issues.redhat.com/browse/CNTRLPLANE-2254
+name: HyperShiftRedundantRouter
+message: "Hosted/HyperShift clusters on bare metal or KubeVirt may fail to complete the update. This affects clusters where the HostedCluster has services (e.g., OAuthServer, Ignition) configured with 'servicePublishingStrategy.type: Route' and a route.hostname that is a subdomain of the management cluster's .apps domain."
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group by (_id, invoker) (cluster_installer{_id="",invoker="hypershift"})
+      or
+      0 * group by (_id, invoker) (cluster_installer{_id=""})
