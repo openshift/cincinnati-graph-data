@@ -1,0 +1,12 @@
+to: 4.21.0
+from: 4[.]20[.]12[+].*
+url: https://issues.redhat.com/browse/OCPNODE-4065
+name: SigstoreSignatureMirroring
+message: 4.21 will require Sigstore signatures on quay.io/openshift-release-dev/ocp-release to be present on any mirrors configured for that repository.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      topk(1, group by (_id, resource) (max_over_time(apiserver_storage_objects{_id="",resource=~"imagedigestmirrorsets[.]config[.]openshift[.]io|imagecontentsourcepolicies[.]operator[.]openshift[.]io"}[1h]) > 0))
+      or on (_id)
+      0 * group by (_id) (max_over_time(apiserver_storage_objects{_id=""}[1h]))
