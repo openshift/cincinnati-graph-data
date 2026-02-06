@@ -1,0 +1,7 @@
+to: 4.21.1
+from: 4[.]20[.].*
+url: https://issues.redhat.com/browse/OCPNODE-4070
+name: ShortNameImageReferences
+message: 4.21 will no longer accept short name image references (with no domain specified), and updating might break any workload Pods that depend on those references.
+matchingRules:
+- type: Always
