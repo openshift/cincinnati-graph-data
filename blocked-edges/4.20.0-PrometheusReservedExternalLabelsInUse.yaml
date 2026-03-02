@@ -1,0 +1,12 @@
+to: 4.20.0
+from: ^4[.]19[.][0-21][+].*$
+url: https://issues.redhat.com/browse/OCPBUGS-67003
+name: PrometheusReservedExternalLabelsInUse
+message: |-
+  The Cluster Monitoring Operator (CMO) now enforces validation of reserved Prometheus external labels.
+
+  This may result in the operator being marked as `Degraded` and `Unavailable` when updating to a version with enforced validation, if reserved labels are in use.
+
+  The error messages should clearly indicate which external labels are invalid and need to be adjusted.
+matchingRules:
+- type: Always
