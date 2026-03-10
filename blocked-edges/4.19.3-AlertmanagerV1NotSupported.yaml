@@ -1,0 +1,10 @@
+to: 4.19.3
+from: ^4[.]18[.]1[6-8][+].*$
+fixedIn: 4.19.4
+url: https://issues.redhat.com/browse/MON-4270
+name: AlertmanagerV1NotSupported
+message: |-
+  Upgrade to OpenShift 4.19 will fail on cluster monitoring operator in case API version v1 of Alertmanager
+  is still specified in the ConfigMaps "cluster-monitoring-config" or "user-workload-monitoring-config".
+matchingRules:
+- type: Always
