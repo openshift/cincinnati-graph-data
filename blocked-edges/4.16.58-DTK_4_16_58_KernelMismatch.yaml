@@ -1,0 +1,14 @@
+to: 4.16.58
+from: .*
+url: https://redhat.atlassian.net/browse/OCPBUGS-78529
+name: DTK_4_16_58_KernelMismatch
+message: |
+  Operators that leverage DTK should avoid 4.16.58 because DTK will fail there
+  due to a kernel version mismatch between DTK and the version within RHCOS.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group by (name) (csv_succeeded{_id="", name=~"(kernel-module-management(?:.hub|)|nvidia-gpu-addon-operator|amd-gpu-operator|operator-for-ai-chips-on-aws|gpu-operator-certified|habana-ai-operator|intel-device-plugins-operator)[.].*"})
+      or on (_id)
+      0 * group(csv_count{_id=""})
