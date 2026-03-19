@@ -35,6 +35,8 @@ cincinnati-graph-data
 
 The [LICENSE](LICENSE) defines the terms and conditions about using the data in this repo and [the "raw" directory](raw) contains custom metadata for some old releases. Modern release images bake in all the metadata they need, and should not need additional "raw" entries.
 
+_Note_ that the `feeder` and `tombstones` properties in "channels" are not consumed directly by Cincinnati. They are used in [the promotion flow](#add-releases-to-channels) to generate `versions` in "channels" and Cincinnati uses those `versions` to create the update graph.
+
 In the following sections, we are going to explain the content of the other folders and files in graph-data.
 
 ### Schema Version
@@ -63,13 +65,15 @@ And LEAVE COMMENTS if you skip a version.
 
 #### Feeder Channels
 
-Channel semantics, as documented [here][channel-semantics], show nodes and edges being promoted to successive channels as they prove their stability.
+Channel semantics, as documented [here][channel-semantics], show nodes and edges being promoted to successive channels, in the order of `candidate -> fast -> stable`, as they prove their stability.
 For example, a 4.2.z release will appear in `candidate-4.2` first.
 Upon proving itself sufficiently stable in the candidate channel, it will be promoted into `fast-4.2`.
 Some time after landing in `fast-4.2`, it will appear in `stable-4.2`.
 
 _Note:_ Once we have phased release rollouts, we will drop the fast/stable distinction from this repository and promote to a unified fast/stable channel with a start time and rollout duration.
 Until then, we are using fast channels to feed stable channels with a delay, just like candidate channels feed fast channels.
+
+##### Feeder
 
 In this repository, the intended promotion flow is reflected by a `feeder` property in the channel declaration, since version 1.0.0.
 For example, for [`channels/fast-4.2.yaml`](channels/fast-4.2.yaml):
@@ -81,9 +85,13 @@ feeder:
   filter: 4\.[0-9]+\.[0-9]+(.*hotfix.*|\+amd64|-s390x)?
 ```
 
-which declares the intention that nodes and edges will be considered for promotion from `candidate-4.2` into `fast-4.2` after the errata becomes public.
-The optional `errata` property (1.0.0) only accepts one value, `public`, and marks a public errata as sufficient, but not necessary, for promoting a feeder node.
-The `filter` value (1.0.0) excludes `4.2.0-rc.5` and other releases, while allowing for `4.2.0-0.hotfix-2020-09-19-234758` and `4.2.10-s390x` and `4.2.14+amd64`.
+where
+
+*  The `name` property (1.0.0) specifies the source of the promotion and thus the target of the promotion is deterministic. It declares the intention that nodes and edges will be considered for promotion from `candidate-4.2` into `fast-4.2` after the errata becomes public.
+
+* The optional `errata` property (1.0.0) only accepts one value, `public`, and marks a public errata as sufficient, but not necessary, for promoting a feeder node.
+
+* The `filter` value (1.0.0) excludes `4.2.0-rc.5` and other releases, while allowing for `4.2.0-0.hotfix-2020-09-19-234758` and `4.2.10-s390x` and `4.2.14+amd64`.
 
 Another example is [`channels/stable-4.2.yaml`](channels/stable-4.2.yaml):
 
