@@ -2,6 +2,7 @@ to: 4.16.58
 from: .*
 url: https://redhat.atlassian.net/browse/OCPBUGS-78529
 name: DTK_4_16_58_KernelMismatch
+fixedIn: 4.16.59
 message: |
   Operators that leverage DTK should avoid 4.16.58 because DTK will fail there
   due to a kernel version mismatch between DTK and the version within RHCOS.
