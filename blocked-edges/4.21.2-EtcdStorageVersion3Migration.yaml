@@ -1,0 +1,7 @@
+to: 4.21.2
+from: 4[.]20[.]([0-9]|1[0-4])[+].*
+url: https://redhat.atlassian.net/browse/CNTRLPLANE-3074
+name: EtcdStorageVersion3Migration
+message: Updating from etcd 3.5.25 or older to 3.6 without passing through 4.5.26 or later can cause the 3.6 etcd to attempt to contact old, non-existent members tracked in v2 storage.
+matchingRules:
+- type: Always
