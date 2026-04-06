@@ -7,6 +7,6 @@ matchingRules:
 - type: PromQL
   promql:
     promql: |
-      group by (_id, name) (csv_succeeded{_id="", name=~"ptp-operator[.]v4[.][0-9]*[.]0-(202[3-5]|20260[1-3])[0-9]*"})
+      group by (_id, name) (csv_succeeded{_id="", name=~"ptp-operator[.]v4[.][0-9]*[.]0-(202[3-5]|20260[1-9])[0-9]*"})
       or on (_id)
       0 * label_replace(group by (_id) (csv_succeeded{_id=""}), "name", "ptp-operator.v4.y.0-20260331... or older not installed", "", "")
