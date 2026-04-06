@@ -1,0 +1,21 @@
+to: 4.22.0
+from: ^4\.21\..*$
+url: https://redhat.atlassian.net/browse/OCPNODE-4383
+name: RuncDeprecatedUpgradeRecommendation
+message: This cluster appears to be using the runc container runtime, which has been deprecated. Runc support may be removed in a future release. Migrate to crun before upgrading. See https://docs.openshift.com/ for migration steps.
+autoExtend: https://redhat.atlassian.net/browse/OCPNODE-4382
+matchingRules:
+- type: PromQL
+  promql:
+    # Note: The ContainerRuntimeConfig check detects ANY ContainerRuntimeConfig object,
+    # not just those configuring runc, as metrics don't expose spec.defaultRuntime.
+    # This may warn clusters using crun with custom configs, but ensures we catch
+    # all potential runc usage.
+    promql: |
+      (
+        group(mcd_update_state{_id="",config=~"00-override-(master|worker)-generated-crio-default-container-runtime"})
+        or on (_id)
+        group(max_over_time(apiserver_storage_objects{_id="",resource="containerruntimeconfigs.machineconfiguration.openshift.io"}[1h]) > 0)
+      )
+      or
+      0 * group(mcd_update_state{_id=""})
