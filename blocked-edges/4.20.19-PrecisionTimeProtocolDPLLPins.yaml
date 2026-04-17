@@ -1,0 +1,12 @@
+to: 4.20.19
+from: .*
+url: https://redhat.atlassian.net/browse/CORENET-6950
+name: PrecisionTimeProtocolDPLLPins
+message: Clusters using older PTP operators may struggle to synchronize system clocks and might not provide time to downstream clients.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group by (_id, name) (csv_succeeded{_id="", name=~"ptp-operator[.]v4[.][0-9]*[.]0-(202[3-5]|20260[1-9])[0-9]*"})
+      or on (_id)
+      0 * label_replace(group by (_id) (csv_succeeded{_id=""}), "name", "ptp-operator.v4.y.0-20260331... or older not installed", "", "")
