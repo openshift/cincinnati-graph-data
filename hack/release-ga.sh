@@ -37,6 +37,9 @@ then
 	exit 1
 fi
 
+REGRESSION_REPORT="https://github.com/openshift-eng/ga-regression-reports/blob/main/openshift/${MAJOR}.${MINOR}-ga-regression-report.md"
+curl -s --fail "${REGRESSION_REPORT}" || (echo "failed to retrieve regression report required for GA: ${REGRESSION_REPORT}" >&2; exit 1)
+
 if test "$((MINOR % 2))" -eq 0
 then
 	# 4.even get extended update support: https://issues.redhat.com/browse/OTA-1599
