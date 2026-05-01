@@ -1,5 +1,6 @@
 to: 4.20.19
 from: .*
+fixedIn: 4.20.20
 url: https://redhat.atlassian.net/browse/CORENET-6950
 name: PrecisionTimeProtocolDPLLPins
 message: Clusters using older PTP operators may struggle to synchronize system clocks and might not provide time to downstream clients.
