@@ -112,6 +112,8 @@ tombstones:
 - 4.20.9
 # 4.14.64 fails updates from 4.14 with "host must be a URL or a host:port pair", https://redhat.atlassian.net/browse/OCPBUGS-84184
 - 4.14.64
+# 4.15.63 contains regressions due to golang CVE-2026-25679
+- 4.15.63
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
@@ -1773,7 +1775,6 @@ versions:
 - 4.19.29
 - 4.21.12
 - 4.16.60
-- 4.15.63
 - 4.22.0-rc.1
 - 4.20.20
 - 4.22.0-rc.2
