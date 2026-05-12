@@ -1,0 +1,7 @@
+to: 4.14.65
+from: 4[.]13[.].*
+url: https://redhat.atlassian.net/browse/OCPBUGS-85381
+name: MultusUpgradeBlocked
+message: Upgrades from 4.13 to 4.14 will result in upgrade deadlocks due to Multus CNI rejecting the KubeConfig with brackets.
+matchingRules:
+- type: Always
