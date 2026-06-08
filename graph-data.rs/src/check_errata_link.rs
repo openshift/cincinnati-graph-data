@@ -8,7 +8,7 @@ use std::str::FromStr;
 
 static METADATA_URL_KEY: &str = "url";
 static ERRATA_URL_REGEX_STR: &str =
-    r"https://access.redhat.com/errata/RH[BS]{1}A-[0-9]{4}:[0-9]{3}";
+    r"https://access.redhat.com/errata/RH[BSE]{1}A-[0-9]{4}:[0-9]{3}";
 static SKIP_VERSIONS: &[&str] = &["4.6.5", "4.6.6", "4.7.35", "4.8.9", "4.9.2", "0.0.0"];
 // TODO: Declare these in Cincinnati
 static SPECIAL_PRES: &[&str] = &["amd64", "arm64", "ppc64le", "s390x"];
@@ -158,6 +158,30 @@ mod tests {
         METADATA_URL_KEY,
         "https://wait.thats.not.redhat.com/doh",
         false; "Mismatching errata URL"
+    )]
+    #[test_case(
+        "4.20.6+arm64",
+        METADATA_URL_KEY,
+        "https://access.redhat.com/errata/RHSA-2025:22257",
+        true; "should accept rhsa advisory type"
+    )]
+    #[test_case(
+        "4.20.8+arm64",
+        METADATA_URL_KEY,
+        "https://access.redhat.com/errata/RHBA-2025:23103",
+        true; "should accept rhba advisory type"
+    )]
+    #[test_case(
+        "4.22.0+arm64",
+        METADATA_URL_KEY,
+        "https://access.redhat.com/errata/RHEA-2026:0449",
+        true; "should accept rhea advisory type"
+    )]
+    #[test_case(
+        "4.99.0+arm64",
+        METADATA_URL_KEY,
+        "https://access.redhat.com/errata/RHZA-2026:0449",
+        false; "should not accept non-existing advisory type"
     )]
     fn test_verify_errata_links(
         version: &str,
