@@ -31,7 +31,7 @@ import util
 logging.basicConfig(format='%(levelname)s: %(message)s')
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
-_ADVISORY_TYPE_REGEXP = re.compile(r'RH[BS]A')
+_ADVISORY_TYPE_REGEXP = re.compile(r'RH[BSE]A')
 _ISO_8601_DELAY_REGEXP = re.compile(r'^P((?P<weeks>\d+)W|((?P<days>\d+)D)?(T(?P<hours>\d+)H)?)$')
 _GIT_BLAME_COMMIT_REGEXP = re.compile(r'^(?P<hash>[0-9a-f]{40}) .*')
 _GIT_BLAME_HEADER_REGEXP = re.compile(r'^(?P<key>[^ \t]+) (?P<value>.*)$')
@@ -603,7 +603,7 @@ def advisory_phrasings(advisory):
     if not match:
         _LOGGER.warning('advisory did not match the advisory type regular expression: {}'.format(advisory))
         return
-    for phrasing in ['RHBA', 'RHSA']:
+    for phrasing in ['RHBA', 'RHSA', 'RHEA']:
         yield '{}{}{}'.format(advisory[:match.start()], phrasing, advisory[match.end():])
 
 
