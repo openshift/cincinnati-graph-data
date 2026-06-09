@@ -1,0 +1,7 @@
+feeder:
+  delay: PT0H
+  filter: 4[.]22[.][0-9].*
+  name: stable
+name: stable-4.22
+versions:
+- 4.22.0
