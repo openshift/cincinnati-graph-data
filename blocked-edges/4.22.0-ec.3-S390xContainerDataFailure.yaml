@@ -1,0 +1,15 @@
+to: 4.22.0-ec.3
+from: ^4[.](21[.].*|22[.]0-ec[.][0-2])[+].*$
+url: https://redhat.atlassian.net/browse/OCPNODE-4579
+name: S390xContainerDataFailure
+message: |
+  On s390x nodes, malformed container data prevents pod autoscaling, eviction, and metrics collection, affecting monitoring dashboards.
+matchingRules:
+  - type: PromQL
+    promql:
+      promql: |
+        topk(1,
+          group by (label_kubernetes_io_arch) (kube_node_labels{_id="",label_kubernetes_io_arch="s390x"})
+          or
+          0 * group by (label_kubernetes_io_arch) (kube_node_labels{_id=""})
+        )
