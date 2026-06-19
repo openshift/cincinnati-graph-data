@@ -1,0 +1,13 @@
+to: 4.20.23
+from: .*
+url: https://redhat.atlassian.net/browse/CONSOLE-5337
+name: ControlPlaneStatusGreyIcon
+message: |
+  Control plane status indicator remains grey and never shows green, even when cluster operators are healthy.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      0 * group by (invoker) (cluster_installer{_id="",invoker="hypershift"})
+      or on ()
+      group by (invoker) (cluster_installer{_id=""})
