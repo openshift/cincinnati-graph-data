@@ -399,7 +399,13 @@ def get_concerns_about_risk_extensions(version, channel, candidates, update_risk
         elif previous_risks_auto_extend.get(key):
             unfixed.append('{} affects {} and needs to be extended to {} because {}'.format(key, previous_version, version, previous_risks_auto_extend[key]))
         else:
-            unfixed.append('{} affects {}.  Either declare a fix version or extend the risk to {}.'.format(key, previous_version, version))
+            unfixed.append(
+                '{risk} affects {prev} and has no fixedIn set.'
+                '  Check the url in the blocked-edges YAML for {risk} to determine if the issue has been fixed.'
+                '  If the issue is fixed in {ver} or earlier, set "fixedIn" in the blocked-edges YAML for {risk} to the version containing the fix.'
+                '  If the issue is NOT yet fixed, copy the existing blocked-edges entry for {risk} and change "to" to {ver} so clusters are still warned when updating to {ver}.'
+                .format(risk=key, prev=previous_version, ver=version)
+            )
 
     if unfixed:
         return ' '.join(unfixed)
