@@ -2,6 +2,7 @@ to: 4.22.5
 from: ^4[.](21[.].*|22[.]0-ec[.][0-2])[+].*$
 url: https://redhat.atlassian.net/browse/OCPNODE-4579
 name: S390xContainerDataFailure
+fixedIn: 4.22.6
 message: |
   On s390x nodes, malformed container data prevents pod autoscaling, eviction, and metrics collection, affecting monitoring dashboards.
 matchingRules:
