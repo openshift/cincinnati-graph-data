@@ -1,0 +1,8 @@
+to: 4.21.2
+from: ^4[.]20[.](1?[0-9]|2[0-4])[+].*$
+url: https://redhat.atlassian.net/browse/OCPBUGS-83862
+name: AutoSizingDisabledMachineConfigOverride
+message: |
+  Clusters upgrading from 4.20.24 or earlier may have auto-sizing-disabled MachineConfigs override KubeletConfig autosizing settings on custom MachineConfigPool nodes, disabling previously enabled autosizing after upgrade. Update to 4.20.25 or later before upgrading to 4.21.
+matchingRules:
+- type: Always
