@@ -670,7 +670,7 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
     subprocess.run(['git', 'commit', '--file', '-', channel_path], check=True, encoding='utf-8', input=message)
 
     if use_app_auth:
-        auth = AppAuth(int(github_app_id), github_app_private_key)
+        auth = AppAuth(github_app_id, github_app_private_key)
         integration = GithubIntegration(auth=auth)
         upstream_owner = upstream_github_repo.split('/')[0]
         repo_name = upstream_github_repo.split('/')[1]
@@ -780,8 +780,9 @@ def main():
         '--github-app-id',
         dest='github_app_id',
         metavar='ID',
+        type=int,
         help='GitHub App ID for authentication. Use with --github-app-private-key-file as an alternative to --github-token.',
-        default=os.environ.get('GITHUB_APP_ID', ''),
+        default=os.environ.get('GITHUB_APP_ID') or None,
     )
     parser.add_argument(
         '--github-app-private-key-file',
@@ -806,11 +807,7 @@ def main():
 
     github_app_private_key = None
     if args.github_app_private_key_file:
-        key_path = args.github_app_private_key_file.strip()
-        if not os.path.exists(key_path):
-            _LOGGER.fatal('GitHub App private key file not found: {}'.format(key_path))
-            raise SystemExit(1)
-        with open(key_path) as f:
+        with open(args.github_app_private_key_file.strip()) as f:
             github_app_private_key = f.read()
 
     next_notification = datetime.datetime.now()
@@ -832,7 +829,7 @@ def main():
             upstream_github_repo=upstream_github_repo,
             push_github_repo=(args.push_github_repo or upstream_github_repo).strip(),
             github_token=args.github_token.strip() or None,
-            github_app_id=args.github_app_id.strip() or None,
+            github_app_id=args.github_app_id,
             github_app_private_key=github_app_private_key,
             labels=args.labels,
             webhook=args.webhook.strip(),
