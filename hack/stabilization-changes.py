@@ -669,22 +669,24 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
 
     subprocess.run(['git', 'commit', '--file', '-', channel_path], check=True, encoding='utf-8', input=message)
 
-    push_token = None
     if use_app_auth:
         auth = AppAuth(int(github_app_id), github_app_private_key)
         integration = GithubIntegration(auth=auth)
         upstream_owner = upstream_github_repo.split('/')[0]
         repo_name = upstream_github_repo.split('/')[1]
         installation = integration.get_repo_installation(upstream_owner, repo_name)
-        github_object = integration.get_github_for_installation(installation_id=installation.id)
-        push_token = integration.get_access_token(installation.id).token
-        push_uri_with_token = 'https://x-access-token:{}@github.com/{}.git'.format(push_token, push_github_repo)
+        access_token = integration.get_access_token(installation.id).token
+        github_object = github.Github(access_token)
+        push_uri_with_token = 'https://x-access-token:{}@github.com/{}.git'.format(access_token, push_github_repo)
     else:
+        access_token = github_token
         github_object = github.Github(github_token)
-        push_token = github_token
         push_uri_with_token = 'https://{}@github.com/{}.git'.format(github_token, push_github_repo)
 
-    subprocess.run(['git', 'push', '-u', push_uri_with_token, branch], check=True)
+    try:
+        subprocess.run(['git', 'push', '-u', push_uri_with_token, branch], check=True)
+    except Exception as exc:
+        raise type(exc)(sanitize(exc, github_token=github_token, push_token=access_token)) from None
 
     push_owner = push_github_repo.split('/')[0]
 
@@ -804,7 +806,11 @@ def main():
 
     github_app_private_key = None
     if args.github_app_private_key_file:
-        with open(args.github_app_private_key_file) as f:
+        key_path = args.github_app_private_key_file.strip()
+        if not os.path.exists(key_path):
+            _LOGGER.fatal('GitHub App private key file not found: {}'.format(key_path))
+            raise SystemExit(1)
+        with open(key_path) as f:
             github_app_private_key = f.read()
 
     next_notification = datetime.datetime.now()
