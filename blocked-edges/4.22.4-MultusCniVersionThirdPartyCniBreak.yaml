@@ -1,0 +1,13 @@
+to: 4.22.4
+from: 4[.](21[.].*|22[.][0-2])[+].*
+url: https://redhat.atlassian.net/browse/CORENET-7361
+name: MultusCniVersionThirdPartyCniBreak
+message: |
+  Clusters using third-party CNI plugins such as Cilium may completely fail after upgrading to this version due to a multus cniVersion incompatibility. Only host-network pods can be created. Clusters using OVN-Kubernetes are not affected. Update to 4.22.6 or later instead.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      0 * group(max_over_time(apiserver_storage_objects{_id="",resource="egressips.k8s.ovn.org"}[1h]))
+      or
+      group(max_over_time(apiserver_storage_objects{_id=""}[1h]))
