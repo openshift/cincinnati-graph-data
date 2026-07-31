@@ -1,0 +1,8 @@
+to: 4.22.3
+from: 4[.](21[.](1?[0-9]|2[0-3]))[+].*
+url: https://redhat.atlassian.net/browse/MON-4619
+name: KubeStateMetricsTimezonePanic
+message: |
+  Clusters with CronJobs using .spec.timeZone may experience kube-state-metrics crash loops due to missing timezone data in the container image, breaking monitoring and potentially stalling upgrades.
+matchingRules:
+- type: Always
