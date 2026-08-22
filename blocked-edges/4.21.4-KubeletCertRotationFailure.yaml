@@ -1,0 +1,9 @@
+to: 4.21.4
+from: 4[.]20[.].*
+url: https://redhat.atlassian.net/browse/OCPNODE-4675
+name: KubeletCertRotationFailure
+fixedIn: 4.21.5
+message: |
+  Upgrades from 4.20 to this release on baremetal clusters may cause kubelet client certificate rotation to fail silently, leaving nodes with expired certificates. Workaround: run 'oc get csr' and approve pending kubelet serving certificate requests. Fix ships in 4.21.5.
+matchingRules:
+- type: Always
