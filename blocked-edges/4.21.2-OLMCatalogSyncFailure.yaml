@@ -1,0 +1,12 @@
+to: 4.21.2
+from: 4[.]20[.].*
+url: https://redhat.atlassian.net/browse/OPRUN-4736
+name: OLMCatalogSyncFailure
+message: >-
+  Upgrades from 4.20 to this release may cause OLM catalog source sync to fail
+  silently, leaving cluster admins unable to install or update operators via
+  OperatorHub until catalog source pods are manually restarted. Workaround: run
+  'oc delete pods -n openshift-marketplace -l olm.catalogSource' to restart
+  catalog source pods. Fix ships in 4.21.4.
+matchingRules:
+  - type: Always
