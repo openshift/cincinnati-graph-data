@@ -1,0 +1,12 @@
+to: 4.21.2
+from: 4[.]20[.].*
+url: https://redhat.atlassian.net/browse/OCPNODE-4703
+name: KubeletCertRotationFailure
+message: |
+  Kubelet server certificate rotation silently fails after upgrading from 4.20.z to this version. Nodes continue operating normally until the original certificate expires (~90 days later), at which point the node transitions to NotReady and drops out of the cluster. This is a regression introduced in 4.21.0.
+
+  As a temporary workaround, an admin can manually approve pending CSRs: oc get csr | grep Pending | awk '{print $1}' | xargs oc adm certificate approve. This must be repeated until the cluster is upgraded to a fixed version.
+
+  Update to 4.21.5 or later instead.
+matchingRules:
+- type: Always
