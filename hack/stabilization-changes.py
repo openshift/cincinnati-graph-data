@@ -19,9 +19,13 @@ import urllib.request
 
 try:
     import github
+    from github import GithubIntegration
+    from github.Auth import AppAuth
 except ModuleNotFoundError as error:
     github_import_error = error
     github = None
+    GithubIntegration = None
+    AppAuth = None
 
 import yaml
 
@@ -627,8 +631,9 @@ def notify(message, webhook=None):
     }).encode('utf-8'))
 
 
-def promote(version, channel_name, channel_path, subject, body, upstream_github_repo, push_github_repo, github_token, upstream_branch, labels=None):
-    if github_token:
+def promote(version, channel_name, channel_path, subject, body, upstream_github_repo, push_github_repo, github_token, upstream_branch, labels=None, github_app_id=None, github_app_private_key=None):
+    use_app_auth = github_app_id and github_app_private_key
+    if github_token or use_app_auth:
         upstream_remote = get_remote(repo=upstream_github_repo)
         subprocess.run(['git', 'fetch', upstream_remote], check=True)
         branch = 'promote-{}-to-{}'.format(version, channel_name)
@@ -655,7 +660,7 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
         yaml.safe_dump(data, f, default_flow_style=False)
     message = '{}\n\n{}\n'.format(subject, textwrap.fill(body, width=76))
 
-    if not github_token:
+    if not github_token and not use_app_auth:
         pull = PullRequest(html_url='data://no-token-so-no-pull')
         return pull
 
@@ -663,23 +668,42 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
         raise github_import_error
 
     subprocess.run(['git', 'commit', '--file', '-', channel_path], check=True, encoding='utf-8', input=message)
-    push_uri_with_token = 'https://{}@github.com/{}.git'.format(github_token, push_github_repo)
-    subprocess.run(['git', 'push', '-u', push_uri_with_token, branch], check=True)
 
-    owner = push_github_repo.split('/')[0]
+    if use_app_auth:
+        auth = AppAuth(github_app_id, github_app_private_key)
+        integration = GithubIntegration(auth=auth)
+        upstream_owner = upstream_github_repo.split('/')[0]
+        repo_name = upstream_github_repo.split('/')[1]
+        installation = integration.get_repo_installation(upstream_owner, repo_name)
+        access_token = integration.get_access_token(installation.id).token
+        github_object = github.Github(access_token)
+        push_uri_with_token = 'https://x-access-token:{}@github.com/{}.git'.format(access_token, push_github_repo)
+    else:
+        access_token = github_token
+        github_object = github.Github(github_token)
+        push_uri_with_token = 'https://{}@github.com/{}.git'.format(github_token, push_github_repo)
 
-    github_object = github.Github(github_token)
+    try:
+        subprocess.run(['git', 'push', '-u', push_uri_with_token, branch], check=True)
+    except Exception as exc:
+        raise type(exc)(sanitize(exc, github_token=github_token, push_token=access_token)) from None
+
+    push_owner = push_github_repo.split('/')[0]
+
     repo = github_object.get_repo(upstream_github_repo)
-    pull = repo.create_pull(title=subject, body=body, head='{}:{}'.format(owner, branch), base=upstream_branch, maintainer_can_modify=True)
+    pull = repo.create_pull(title=subject, body=body, head='{}:{}'.format(push_owner, branch), base=upstream_branch, maintainer_can_modify=True)
     if labels:
         pull.add_to_labels(*labels)
     return pull
 
 
-def sanitize(err, github_token=None):
-    if github_token is None:
-        return err
-    return str(err).replace(github_token, 'REDACTED')
+def sanitize(err, github_token=None, push_token=None):
+    result = str(err)
+    if github_token:
+        result = result.replace(github_token, 'REDACTED')
+    if push_token and push_token != github_token:
+        result = result.replace(push_token, 'REDACTED')
+    return result
 
 
 def semver_sort_key(version):
@@ -753,6 +777,21 @@ def main():
         default=os.environ.get('GITHUB_TOKEN', ''),
     )
     parser.add_argument(
+        '--github-app-id',
+        dest='github_app_id',
+        metavar='ID',
+        type=int,
+        help='GitHub App ID for authentication. Use with --github-app-private-key-file as an alternative to --github-token.',
+        default=os.environ.get('GITHUB_APP_ID') or None,
+    )
+    parser.add_argument(
+        '--github-app-private-key-file',
+        dest='github_app_private_key_file',
+        metavar='PATH',
+        help='Path to the GitHub App private key PEM file. Use with --github-app-id.',
+        default=os.environ.get('GITHUB_APP_PRIVATE_KEY_FILE', ''),
+    )
+    parser.add_argument(
         '--labels',
         nargs='*',
         help='Set these labels on newly created pull request.  For example: "--labels lgtm approved".',
@@ -765,6 +804,11 @@ def main():
     )
 
     args = parser.parse_args()
+
+    github_app_private_key = None
+    if args.github_app_private_key_file:
+        with open(args.github_app_private_key_file.strip()) as f:
+            github_app_private_key = f.read()
 
     next_notification = datetime.datetime.now()
     while True:
@@ -785,6 +829,8 @@ def main():
             upstream_github_repo=upstream_github_repo,
             push_github_repo=(args.push_github_repo or upstream_github_repo).strip(),
             github_token=args.github_token.strip() or None,
+            github_app_id=args.github_app_id,
+            github_app_private_key=github_app_private_key,
             labels=args.labels,
             webhook=args.webhook.strip(),
             waiting_notifications=waiting_notifications,
