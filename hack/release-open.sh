@@ -32,15 +32,6 @@ fi
 
 PREVIOUS_MAJOR="${MAJOR}"
 PREVIOUS_MINOR="$((MINOR - 1))"
-case "${MAJOR_MINOR}" in
-5.0)
-	PREVIOUS_MAJOR=4
-	PREVIOUS_MINOR=22
-	;;
-5.1)
-	echo "Figure out what we want to do for 5.1" >&2
-	exit 1
-esac
 
 if test "${MAJOR}" = "${PREVIOUS_MAJOR}"
 then
@@ -50,13 +41,9 @@ else
 fi
 
 cat <<EOF > "build-suggestions/${MAJOR_MINOR}.yaml"
-default:
-  minor_min: ${PREVIOUS_MAJOR}.${PREVIOUS_MINOR}.0-rc.0
-  minor_max: ${PREVIOUS_MAJOR}.${PREVIOUS_MINOR}.9999
-  minor_block_list: []
-  z_min: ${MAJOR_MINOR}.0-ec.0
-  z_max: ${MAJOR_MINOR}.9999
-  z_block_list: []
+min_versions:
+- ${PREVIOUS_MAJOR}.${PREVIOUS_MINOR}.0-rc.0
+- ${MAJOR}.${MINOR}.0-ec.0
 EOF
 
 cat <<EOF > "channels/candidate-${MAJOR_MINOR}.yaml"
