@@ -1,0 +1,17 @@
+to: 4.22.9
+from: .*
+url: https://redhat.atlassian.net/browse/OTA-2119
+fixedIn: 4.22.10
+name: PortworxKernelModuleBuildFailure
+message: |
+  Clusters running Portworx may have storage unavailable after upgrading to 4.22.9.
+  The RHCOS kernel version shipped with 4.22.9 (5.14.0-687.35.1.el9_8) is not
+  available in RHEL package repositories, preventing Portworx from building its
+  kernel module on upgraded nodes.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group by (_id, name) (csv_succeeded{_id="",name=~"portworx-operator[.]v.*"})
+      or on (_id)
+      0 * label_replace(group by (_id) (csv_succeeded{_id=""}), "name", "portworx-operator not installed", "", "")
