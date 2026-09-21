@@ -6,14 +6,13 @@ aliases:
     - DavidHurta
     - hongkailiu
     - fao89
-  sre-approvers:
-    - bennerv
+  hybrid-platforms-managed-services-approvers:
     - cblecker
     - dustman9000
-    - fahlmant
     - hlipsig
-    - jharrington22
-    - NautiluX
+    - jmelis
+    - joshbranham
     - rogbas
-    - ulrichschlueter
+    - syed
+    - tiwillia
     - wanghaoran1988
