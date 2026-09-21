@@ -1,0 +1,16 @@
+feeder:
+  delay: PT0H
+  filter: (4[.]23|5[.](0|1))[.][0-9].*
+  name: candidate
+name: candidate-5.1
+versions:
+- 5.0.0-ec.0
+- 5.0.0-ec.1
+- 5.0.0-ec.2
+- 5.0.0-ec.3
+- 5.0.0-ec.4
+- 5.0.0-ec.5
+- 5.0.0-ec.6
+- 5.0.0-rc.0
+- 5.0.0-rc.1
+- 5.0.0-rc.2
