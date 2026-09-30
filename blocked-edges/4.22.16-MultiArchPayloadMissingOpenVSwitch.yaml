@@ -1,0 +1,8 @@
+to: 4.22.16
+from: 4[.](21[.].*|22[.]([0-9]|1[0-4]))[+].*
+url: https://redhat.atlassian.net/browse/MCO-2603
+name: MultiArchPayloadMissingOpenVSwitch
+message: |
+  Clusters using the multi-arch release payload will have nodes enter a permanent NotReady state after the node update, because the RHCOS 9.8.20260915-0 image omits the Open vSwitch binaries. Recovery requires an SSH session and an rpm-ostree rebase on every updated node.
+matchingRules:
+- type: Always
