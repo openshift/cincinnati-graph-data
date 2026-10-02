@@ -1,4 +1,4 @@
-to: 4.22.15
+to: 4.22.17
 from: 4[.]21[.].*[+].*
 url: https://redhat.atlassian.net/browse/MCO-2603
 name: MultiArchPayloadMissingOpenVSwitch
