@@ -1,5 +1,5 @@
 to: 4.22.17
-from: 4[.](21[.].*|22[.]([0-9]|1[0-4]))[+].*
+from: 4[.]21[.].*[+].*
 url: https://redhat.atlassian.net/browse/MCO-2603
 name: MultiArchPayloadMissingOpenVSwitch
 message: |
