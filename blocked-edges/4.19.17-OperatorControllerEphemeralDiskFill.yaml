@@ -1,0 +1,22 @@
+to: 4.19.17
+from: ^4[.]18[.](4[5-9]|[5-9][0-9])[+].*$
+url: https://redhat.atlassian.net/browse/OPRUN-4779
+name: OperatorControllerEphemeralDiskFill
+message: |-
+  Clusters running this version of OpenShift with OLMv1 enabled (the default)
+  may experience ephemeral disk exhaustion on control-plane nodes caused by the
+  operator-controller leaking data into an emptyDir volume. This can eventually
+  squeeze etcd and put the Kubernetes API server at risk.
+
+  If caught before the node becomes unresponsive, deleting the operator-controller
+  pod will recover the node:
+    oc -n openshift-operator-controller delete pods -l control-plane=operator-controller-controller-manager
+
+  If the node is unresponsive and has Machine API, the Machine can be replaced.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      0 * group by (invoker) (cluster_installer{_id="",invoker="hypershift"})
+      or on ()
+      group by (invoker) (cluster_installer{_id=""})
