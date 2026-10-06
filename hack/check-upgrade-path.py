@@ -379,8 +379,8 @@ def stitch_cross_minor_path(from_version, to_version, stream, cincinnati, prefer
             final_channel = '{}-{}.{}'.format(stream, cur_major, to_minor)
             try:
                 final_versions, final_adj, final_risks, _ = cache.get(final_channel)
-            except Exception:
-                final_versions, final_adj, final_risks = set(), {}, {}
+            except Exception as exc:  # noqa: BLE001
+                raise ValueError('{}: failed to load ({})'.format(final_channel, exc)) from exc
             filtered = [
                 version for version in candidates
                 if version in final_versions and _can_reach(final_adj, final_risks, version, to_version)
@@ -453,7 +453,7 @@ def _solve_shortest_with_jumps(from_version, to_version, stream, cache, major, f
     def solve(current, next_minor):
         if current == to_version:
             return []
-        cur_major, cur_minor = version_major_minor(current)
+        _, cur_minor = version_major_minor(current)
         if next_minor > to_minor:
             return None
 
@@ -464,8 +464,8 @@ def _solve_shortest_with_jumps(from_version, to_version, stream, cache, major, f
             channel = '{}-{}.{}'.format(stream, major, dest_minor)
             try:
                 versions, adjacency, edge_risks, uri = cache.get(channel)
-            except Exception:
-                continue
+            except Exception as exc:  # noqa: BLE001
+                raise ValueError('{}: failed to load ({})'.format(channel, exc)) from exc
             if current not in versions:
                 continue
 
@@ -487,8 +487,8 @@ def _solve_shortest_with_jumps(from_version, to_version, stream, cache, major, f
                 final_channel = '{}-{}.{}'.format(stream, major, to_minor)
                 try:
                     final_versions, final_adj, final_risks, _ = cache.get(final_channel)
-                except Exception:
-                    final_versions, final_adj, final_risks = set(), {}, {}
+                except Exception as exc:  # noqa: BLE001
+                    raise ValueError('{}: failed to load ({})'.format(final_channel, exc)) from exc
                 filtered = [
                     version for version in candidates
                     if version in final_versions and _can_reach(final_adj, final_risks, version, to_version)
