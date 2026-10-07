@@ -1,0 +1,13 @@
+to: 4.18.54
+from: ^4[.](17[.][0-9]+|18[.]([0-9]|[1-4][0-9]|5[0-3]))[+].*$
+fixedIn: 4.18.56
+url: https://redhat.atlassian.net/browse/OCPNODE-4753
+name: CgroupV1ForcedMigration
+message: >-
+  Clusters running cgroupv1 may experience forced migration to cgroupv2 due to
+  a missing RBAC role in the Machine Config Operator, causing application
+  failures for workloads not yet compatible with cgroupv2. The fix is available
+  in 4.18.56. Remediation for affected versions is documented in
+  https://access.redhat.com/solutions/7147961
+matchingRules:
+- type: Always
