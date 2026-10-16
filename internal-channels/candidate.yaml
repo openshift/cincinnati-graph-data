@@ -116,6 +116,8 @@ tombstones:
 - 4.15.63
 # 4.14.67 failed verify conforma. No exceptions allowed.
 - 4.14.67
+# 4.21.38 is replaced by 4.21.39
+- 4.21.38
 versions:
 - 4.5.0-0.hotfix-2020-08-24-185832
 - 4.5.0-0.hotfix-2020-11-28-021842
