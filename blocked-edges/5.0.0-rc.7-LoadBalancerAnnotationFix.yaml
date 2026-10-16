@@ -1,0 +1,8 @@
+to: 5.0.0-rc.7
+from: 4[.]22[.].*
+url: https://redhat.atlassian.net/browse/CNTRLPLANE-4759
+name: KubeApiserverAnnotationUpdateFailure
+message: |
+  Hosted/HyperShift clusters upgrade would stuck due to failing attempts to update the immutable service.beta.kubernetes.io/aws-load-balancer-type annotation on the kube-apiserver Service.
+matchingRules:
+- type: Always

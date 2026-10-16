@@ -1,8 +1,0 @@
-to: 5.0.0-rc.6
-from: 4[.]22[.].*
-url: https://redhat.atlassian.net/browse/OCPBUGS-125659
-name: LoadBalancerAnnotationFix
-message: |
-  HCP Cluster load balancer type in the annotation was not set correctly
-matchingRules:
-- type: Always
