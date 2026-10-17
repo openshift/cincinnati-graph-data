@@ -1,0 +1,8 @@
+to: 5.0.0-rc.6
+from: 4[.]22[.].*
+url: https://redhat.atlassian.net/browse/CNTRLPLANE-4759
+name: AWSNLBAnnotationAddedUnconditionally
+message: |
+  AWS nlb annotation was added unconditionally on the kube-apiserver service despate the HostedControlPlane manifest definition is route.
+matchingRules:
+- type: Always
