@@ -336,6 +336,55 @@ class TestPromotion(unittest.TestCase):
             title='New subject must not replace the old message', body='New elapsed time',
             head='ota-bot:' + self.branch, base='master', maintainer_can_modify=True)
 
+    def test_failed_pr_creation_removes_new_branch_and_allows_retry(self):
+        self.repo.get_pulls.side_effect = lambda **kwargs: []
+        self.git('push', self.fork, ':refs/heads/' + self.branch)
+        original_error = RuntimeError('PR creation failed')
+        self.repo.create_pull.side_effect = original_error
+        with self.assertRaises(RuntimeError) as failure:
+            self.promote()
+        self.assertIs(failure.exception, original_error)
+        self.assertEqual(self.git('ls-remote', '--heads', self.fork, 'refs/heads/' + self.branch), '')
+        self.repo.create_pull.side_effect = None
+        self.repo.create_pull.return_value.html_url = self.pull.html_url
+        self.assertEqual(self.promote().action, 'created')
+
+    def test_failed_pr_creation_does_not_delete_concurrent_branch_update(self):
+        self.repo.get_pulls.side_effect = lambda **kwargs: []
+        self.git('push', self.fork, ':refs/heads/' + self.branch)
+        original_error = RuntimeError('PR creation failed')
+
+        def fail_creation(**kwargs):
+            self.git('push', '--force', self.fork, self.head + ':refs/heads/' + self.branch)
+            raise original_error
+
+        self.repo.create_pull.side_effect = fail_creation
+        with self.assertLogs(_LOGGER, level='WARNING') as logs, self.assertRaises(RuntimeError) as failure:
+            self.promote()
+        self.assertIs(failure.exception, original_error)
+        self.assertEqual(self.remote_head(), self.head)
+        self.assertIn(self.branch, '\n'.join(logs.output))
+
+    def test_failed_branch_cleanup_preserves_pr_creation_exception(self):
+        self.repo.get_pulls.side_effect = lambda **kwargs: []
+        self.git('push', self.fork, ':refs/heads/' + self.branch)
+        original_error = RuntimeError('PR creation failed')
+        self.repo.create_pull.side_effect = original_error
+        real_git = _git
+
+        def fail_cleanup(*args, **kwargs):
+            if args[0] == 'push' and args[-1] == ':refs/heads/' + self.branch:
+                raise OSError('credential-bearing cleanup diagnostic')
+            return real_git(*args, **kwargs)
+
+        with mock.patch.dict(globals(), _git=fail_cleanup), self.assertLogs(_LOGGER, level='WARNING') as logs:
+            with self.assertRaises(RuntimeError) as failure:
+                self.promote()
+        self.assertIs(failure.exception, original_error)
+        self.assertTrue(self.remote_head())
+        self.assertIn(self.branch, '\n'.join(logs.output))
+        self.assertNotIn('credential-bearing', '\n'.join(logs.output))
+
     def test_missing_or_closed_pr_does_not_recreate_branch(self):
         for closed in ([], [self.pull]):
             self.repo.get_pulls.side_effect = lambda state, **kwargs: closed if state == 'closed' else []
@@ -1168,7 +1217,16 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
     # An empty expected SHA means the branch must still not exist at push time.
     _git('push', '--force-with-lease=refs/heads/{}:'.format(branch), push_uri,
          '{}:refs/heads/{}'.format(commit, branch))
-    pull = repo.create_pull(title=subject, body=body, head=query['head'], base=upstream_branch, maintainer_can_modify=True)
+    try:
+        pull = repo.create_pull(title=subject, body=body, head=query['head'], base=upstream_branch, maintainer_can_modify=True)
+    except Exception:
+        try:
+            _git('push', '--force-with-lease=refs/heads/{}:{}'.format(branch, commit), push_uri,
+                 ':refs/heads/' + branch)
+        except Exception:
+            # Do not expose credential-bearing Git commands or mask the API error.
+            _LOGGER.warning('failed to clean up promotion branch %s after PR creation failed; human review may be required', branch)
+        raise
     if labels:
         pull.add_to_labels(*labels)
     return PullRequest(pull.html_url)
