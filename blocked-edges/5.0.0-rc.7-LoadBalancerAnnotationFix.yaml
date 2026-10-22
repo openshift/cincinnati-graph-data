@@ -1,5 +1,5 @@
 to: 5.0.0-rc.7
-from: 4[.]22[.].*
+from: 4[.]22[.]([0-9]|1[0-6])[+].*
 url: https://redhat.atlassian.net/browse/CNTRLPLANE-4759
 name: KubeApiserverAnnotationUpdateFailure
 message: |
