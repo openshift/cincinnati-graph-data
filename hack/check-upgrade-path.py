@@ -237,9 +237,9 @@ def merge_risks(*risk_maps):
 
 def print_risks(risks_by_name, edges_with_risks):
     if not risks_by_name:
-        print('Associated risks: none on the reported path')
+        print('Associated conditional update risks: none on the reported path')
         return
-    print('Associated risks: {}'.format(len(risks_by_name)))
+    print('Associated conditional update risks: {}'.format(len(risks_by_name)))
     print()
     for name in sorted(risks_by_name):
         risk = risks_by_name[name]
@@ -250,10 +250,10 @@ def print_risks(risks_by_name, edges_with_risks):
             print('  message: {}'.format(message))
     if edges_with_risks:
         print()
-        print('Risky edges on reported path:')
+        print('Conditional edges on reported path:')
         for from_version, to_version, risks in edges_with_risks:
             names = ', '.join(sorted(r.get('name') or '(unnamed)' for r in risks))
-            print('  {} -(risks: {})-> {}'.format(from_version, names, to_version))
+            print('  {} -(conditional: {})-> {}'.format(from_version, names, to_version))
 
 
 def report_single_channel_path(from_version, to_version, channel, versions, adjacency, edge_risks, uri):
@@ -284,7 +284,7 @@ def report_single_channel_path(from_version, to_version, channel, versions, adja
 
     print('Path exists: yes')
     print('Unconditional path: {}'.format('yes' if unconditional else 'no'))
-    label = 'Shortest unconditional path' if unconditional else 'Shortest path (includes conditional/risky edges)'
+    label = 'Shortest unconditional path' if unconditional else 'Shortest path (includes conditional edges)'
     print('{}: {}'.format(label, format_path(path)))
     edges_with_risks, risks_by_name = risks_on_path(path, edge_risks)
     print_risks(risks_by_name, edges_with_risks)
@@ -443,7 +443,7 @@ def report_stitched_path(from_version, to_version, stream, result):
     print()
     print('Segments:')
     for segment in result['segments']:
-        kind = 'unconditional' if segment['unconditional'] else 'conditional/risky'
+        kind = 'unconditional' if segment['unconditional'] else 'conditional'
         print('  [{}] ({}) {}'.format(segment['channel'], kind, format_path(segment['path'])))
         print('    {}'.format(segment['uri']))
     print()
@@ -516,7 +516,7 @@ if __name__ == '__main__':
         """Do not line-wrap description or epilog. Also include option defaults."""
 
     parser = argparse.ArgumentParser(
-        description='''Check whether an upgrade path exists between two versions and report risks.
+        description='''Check whether an upgrade path exists between two versions and report conditional update risks.
 
 Channel is optional. The script uses --stream (default: stable) and discovers
 which stream-X.Y channels are needed. Those channels are printed in the output.

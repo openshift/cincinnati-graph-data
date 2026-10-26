@@ -17,7 +17,7 @@ This directory contains scripts that either generate the data maintained by OTA 
 
 * [show-edges.py](show-edges.py): It shows the edges of OpenShift update graph.
 
-* [check-upgrade-path.py](check-upgrade-path.py): Given a current and target version, it reports whether an upgrade path exists, whether that path is unconditional, and any associated risks with Jira/KCS links. See [check-upgrade-path.py](#check-upgrade-pathpy) below for usage.
+* [check-upgrade-path.py](check-upgrade-path.py): Given a current and target version, it reports whether an upgrade path exists, whether that path is unconditional, and any associated conditional update risks with Jira/KCS links. See [check-upgrade-path.py](#check-upgrade-pathpy) below for usage.
 
 * [stabilization-changes.py](stabilization-changes.py): It promotes releases to both [public](../channels/) and [internal](../internal-channels/) channels and deployed on the `OTA-stage` cluster to generate a pull request like [cincinnati-graph-data#7243](https://github.com/openshift/cincinnati-graph-data/pull/7243).
 
@@ -29,7 +29,7 @@ This directory contains scripts that either generate the data maintained by OTA 
 
 ## check-upgrade-path.py
 
-Checks whether an OpenShift upgrade path exists between two versions and reports associated conditional risks (name, message, and Jira/KCS URL).
+Checks whether an OpenShift upgrade path exists between two versions and reports associated conditional update risks (name, message, and Jira/KCS URL).
 
 Run from the repository root:
 
@@ -59,7 +59,7 @@ A positional `CHANNEL` argument is still accepted for backwards compatibility; t
 ### Behavior
 
 - Loads update edges and conditional risks from Cincinnati.
-- Prefers unconditional edges; falls back to conditional edges and reports risks with URLs.
+- Prefers unconditional edges; falls back to conditional edges and reports conditional update risks with URLs.
 - Same minor: uses `{stream}-{major}.{minor}` automatically and returns one shortest path in that channel.
 - Cross-minor: auto-stitches across discovered `{stream}-X.Y` channels and prints **Channels used**.
 - Each minor lands on the newest z-stream that can still reach the target. If that landing cannot continue, an older landing is tried.
