@@ -6,9 +6,8 @@ which stream-X.Y channels are needed. Intermediate versions come from Cincinnati
 graph search with backtracking so a dead-end landing can fall back to an older
 z-stream that still reaches the target.
 
-Prefer modes:
-- shortest: fewest hops; try farthest channel jumps; earliest tie-break
-- latest: one minor at a time; try newest reachable landings first
+Across minors, each minor lands on the newest z-stream that can still reach
+the target.
 """
 
 import codecs
@@ -22,8 +21,6 @@ import urllib.request
 
 DEFAULT_CINCINNATI = 'https://api.openshift.com/api/upgrades_info/graph'
 DEFAULT_STREAM = 'stable'
-PREFER_SHORTEST = 'shortest'
-PREFER_LATEST = 'latest'
 _CHANNEL_REGEXP = re.compile(
     r'^(?P<stream>.+)-(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)$'
 )
@@ -259,9 +256,8 @@ def print_risks(risks_by_name, edges_with_risks):
             print('  {} -(risks: {})-> {}'.format(from_version, names, to_version))
 
 
-def report_single_channel_path(from_version, to_version, channel, versions, adjacency, edge_risks, uri, prefer):
+def report_single_channel_path(from_version, to_version, channel, versions, adjacency, edge_risks, uri):
     print('Mode: single-channel')
-    print('Prefer: {}'.format(prefer))
     print('Channels used: {}'.format(channel))
     print('Cincinnati: {}'.format(uri))
     print('From: {}'.format(from_version))
@@ -295,19 +291,18 @@ def report_single_channel_path(from_version, to_version, channel, versions, adja
     return 0
 
 
-def _landing_candidates(adjacency, edge_risks, start, target_major, target_minor, prefer):
-    """Ordered landing versions in target minor to try (best first)."""
+def _landing_candidates(adjacency, edge_risks, start, target_major, target_minor):
+    """Newest landing versions in the target minor, unconditional first."""
     uncond = find_reachable_in_minor(
         adjacency, start, target_major, target_minor, skip_edges=set(edge_risks),
     )
     any_reachable = find_reachable_in_minor(
         adjacency, start, target_major, target_minor, skip_edges=None,
     )
-    reverse = prefer == PREFER_LATEST
     ordered = []
-    for version in sorted(uncond, key=version_sort_key, reverse=reverse):
+    for version in sorted(uncond, key=version_sort_key, reverse=True):
         ordered.append(version)
-    for version in sorted(any_reachable - uncond, key=version_sort_key, reverse=reverse):
+    for version in sorted(any_reachable - uncond, key=version_sort_key, reverse=True):
         ordered.append(version)
     return ordered
 
@@ -317,12 +312,12 @@ def _can_reach(adjacency, edge_risks, start, goal):
     return path is not None
 
 
-def stitch_cross_minor_path(from_version, to_version, stream, cincinnati, prefer=PREFER_SHORTEST):
+def stitch_cross_minor_path(from_version, to_version, stream, cincinnati):
     """
     Build a path across minors using stream-X.Y channels discovered automatically.
 
-    Uses backtracking: if the newest/farthest landing cannot continue to the
-    target, older landings in that minor are tried.
+    Each minor lands on the newest z-stream that can still reach the target.
+    If that landing cannot continue, older landings in that minor are tried.
     """
     from_major, from_minor, _, _, _ = parse_version(from_version)
     to_major, to_minor, _, _, _ = parse_version(to_version)
@@ -369,7 +364,7 @@ def stitch_cross_minor_path(from_version, to_version, stream, cincinnati, prefer
             }]
 
         candidates = _landing_candidates(
-            adjacency, edge_risks, current, cur_major, next_minor, prefer,
+            adjacency, edge_risks, current, cur_major, next_minor,
         )
         if not candidates:
             return None
@@ -388,9 +383,6 @@ def stitch_cross_minor_path(from_version, to_version, stream, cincinnati, prefer
             if filtered:
                 candidates = filtered
 
-        # shortest: also try max-jump landings before stepping +1 minor only.
-        # For backtracking simplicity, both modes walk minor-by-minor here;
-        # shortest just prefers earlier z-streams first.
         for landing in candidates:
             path, unconditional = path_to_version(adjacency, edge_risks, current, landing)
             if not path:
@@ -407,15 +399,7 @@ def stitch_cross_minor_path(from_version, to_version, stream, cincinnati, prefer
             return [segment] + rest
         return None
 
-    # shortest: try farthest first by attempting larger first jumps via recursion
-    # that starts at from_minor+1. Optional max-jump: try starting solve with
-    # farther first using a wrapper.
-    if prefer == PREFER_SHORTEST:
-        segments = _solve_shortest_with_jumps(
-            from_version, to_version, stream, cache, from_major, from_minor, to_minor,
-        )
-    else:
-        segments = solve(from_version, from_minor + 1)
+    segments = solve(from_version, from_minor + 1)
 
     if not segments:
         raise ValueError(
@@ -442,81 +426,12 @@ def stitch_cross_minor_path(from_version, to_version, stream, cincinnati, prefer
         'unconditional': all_unconditional,
         'edges_with_risks': all_edges_with_risks,
         'risks_by_name': all_risks,
-        'prefer': prefer,
         'channels': [segment['channel'] for segment in segments],
     }
 
 
-def _solve_shortest_with_jumps(from_version, to_version, stream, cache, major, from_minor, to_minor):
-    """Fewest channel/minor hops with backtracking on dead-end landings."""
-
-    def solve(current, next_minor):
-        if current == to_version:
-            return []
-        _, cur_minor = version_major_minor(current)
-        if next_minor > to_minor:
-            return None
-
-        # Try farthest destination minor first.
-        for dest_minor in range(to_minor, max(next_minor, cur_minor + 1) - 1, -1):
-            if dest_minor <= cur_minor and current != to_version:
-                continue
-            channel = '{}-{}.{}'.format(stream, major, dest_minor)
-            try:
-                versions, adjacency, edge_risks, uri = cache.get(channel)
-            except Exception as exc:  # noqa: BLE001
-                raise ValueError('{}: failed to load ({})'.format(channel, exc)) from exc
-            if current not in versions:
-                continue
-
-            if dest_minor == to_minor:
-                path, unconditional = path_to_version(adjacency, edge_risks, current, to_version)
-                if not path:
-                    continue
-                return [{
-                    'channel': channel,
-                    'uri': uri,
-                    'path': path,
-                    'unconditional': unconditional,
-                }]
-
-            candidates = _landing_candidates(
-                adjacency, edge_risks, current, major, dest_minor, PREFER_SHORTEST,
-            )
-            if dest_minor == to_minor - 1:
-                final_channel = '{}-{}.{}'.format(stream, major, to_minor)
-                try:
-                    final_versions, final_adj, final_risks, _ = cache.get(final_channel)
-                except Exception as exc:  # noqa: BLE001
-                    raise ValueError('{}: failed to load ({})'.format(final_channel, exc)) from exc
-                filtered = [
-                    version for version in candidates
-                    if version in final_versions and _can_reach(final_adj, final_risks, version, to_version)
-                ]
-                if filtered:
-                    candidates = filtered
-
-            for landing in candidates:
-                path, unconditional = path_to_version(adjacency, edge_risks, current, landing)
-                if not path:
-                    continue
-                rest = solve(landing, dest_minor + 1)
-                if rest is None:
-                    continue
-                return [{
-                    'channel': channel,
-                    'uri': uri,
-                    'path': path,
-                    'unconditional': unconditional,
-                }] + rest
-        return None
-
-    return solve(from_version, from_minor + 1)
-
-
 def report_stitched_path(from_version, to_version, stream, result):
     print('Mode: cross-minor (auto-stitch)')
-    print('Prefer: {}'.format(result['prefer']))
     print('Stream: {}'.format(stream))
     print('Channels used: {}'.format(', '.join(result['channels'])))
     print('From: {}'.format(from_version))
@@ -542,11 +457,7 @@ def check_upgrade_path(
     stream=DEFAULT_STREAM,
     channel=None,
     cincinnati=DEFAULT_CINCINNATI,
-    prefer=PREFER_SHORTEST,
 ):
-    if prefer not in (PREFER_SHORTEST, PREFER_LATEST):
-        raise ValueError('invalid prefer mode {!r}'.format(prefer))
-
     parse_version(from_version)
     parse_version(to_version)
     from_major, from_minor = version_major_minor(from_version)
@@ -559,7 +470,7 @@ def check_upgrade_path(
         versions, adjacency, edge_risks, uri = load_cincinnati_graph(cincinnati, channel)
         if from_version in versions and to_version in versions:
             return report_single_channel_path(
-                from_version, to_version, channel, versions, adjacency, edge_risks, uri, prefer,
+                from_version, to_version, channel, versions, adjacency, edge_risks, uri,
             )
 
     if from_major != to_major:
@@ -575,7 +486,7 @@ def check_upgrade_path(
         auto_channel = '{}-{}.{}'.format(stream, to_major, to_minor)
         versions, adjacency, edge_risks, uri = load_cincinnati_graph(cincinnati, auto_channel)
         return report_single_channel_path(
-            from_version, to_version, auto_channel, versions, adjacency, edge_risks, uri, prefer,
+            from_version, to_version, auto_channel, versions, adjacency, edge_risks, uri,
         )
 
     try:
@@ -584,11 +495,9 @@ def check_upgrade_path(
             to_version=to_version,
             stream=stream,
             cincinnati=cincinnati,
-            prefer=prefer,
         )
     except ValueError as exc:
         print('Mode: cross-minor (auto-stitch)')
-        print('Prefer: {}'.format(prefer))
         print('Stream: {}'.format(stream))
         print('From: {}'.format(from_version))
         print('To: {}'.format(to_version))
@@ -611,18 +520,14 @@ if __name__ == '__main__':
 
 Channel is optional. The script uses --stream (default: stable) and discovers
 which stream-X.Y channels are needed. Those channels are printed in the output.
-
-Prefer modes:
-  shortest  fewest hops; may land on an earlier z-stream in each minor
-  latest    one minor at a time; newest reachable z-stream first, with
-            backtracking if that landing cannot reach the target
+Each minor lands on the newest z-stream that can still reach the target.
 
 Examples:
 # Cross-minor, no channel required (discovers channels)
-%(prog)s --prefer latest --from 4.17.52 --to 4.21.22
+%(prog)s --from 4.17.52 --to 4.21.22
 
 # Same check with explicit stream
-%(prog)s --prefer latest --stream stable --from 4.17.52 --to 4.21.22
+%(prog)s --stream stable --from 4.17.52 --to 4.21.22
 
 # Optional channel only forces single-channel mode when both versions are in it
 %(prog)s --from 4.18.20 --to 4.19.20 --channel stable-4.19
@@ -647,12 +552,6 @@ Examples:
         '--stream',
         default=DEFAULT_STREAM,
         help='Channel stream used to discover stream-X.Y graphs.',
-    )
-    parser.add_argument(
-        '--prefer',
-        choices=(PREFER_SHORTEST, PREFER_LATEST),
-        default=PREFER_SHORTEST,
-        help='Path selection policy for cross-minor intermediates.',
     )
     parser.add_argument(
         '--channel',
@@ -689,7 +588,6 @@ Examples:
             stream=stream,
             channel=channel,
             cincinnati=args.cincinnati,
-            prefer=args.prefer,
         ))
     except ValueError as exc:
         print('Error: {}'.format(exc), file=sys.stderr)
