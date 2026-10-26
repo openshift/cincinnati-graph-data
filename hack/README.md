@@ -17,7 +17,7 @@ This directory contains scripts that either generate the data maintained by OTA 
 
 * [show-edges.py](show-edges.py): It shows the edges of OpenShift update graph.
 
-* [check-upgrade-path.py](check-upgrade-path.py): Given a current and target version, it reports whether an upgrade path exists, whether that path is unconditional, and any associated risks with Jira/KCS links. See [check-upgrade-path.py](#check-upgrade-pathpy) below for usage and change details.
+* [check-upgrade-path.py](check-upgrade-path.py): Given a current and target version, it reports whether an upgrade path exists, whether that path is unconditional, and any associated risks with Jira/KCS links. See [check-upgrade-path.py](#check-upgrade-pathpy) below for usage.
 
 * [stabilization-changes.py](stabilization-changes.py): It promotes releases to both [public](../channels/) and [internal](../internal-channels/) channels and deployed on the `OTA-stage` cluster to generate a pull request like [cincinnati-graph-data#7243](https://github.com/openshift/cincinnati-graph-data/pull/7243).
 
@@ -72,12 +72,3 @@ Example (`--from 4.17.52 --to 4.21.22`):
 Channels used: stable-4.18, stable-4.19, stable-4.20, stable-4.21
 Joined path: 4.17.52 -> 4.18.45 -> 4.19.35 -> 4.20.27 -> 4.21.22
 ```
-
-### Changes made
-
-1. Added `hack/check-upgrade-path.py` to answer path-exists / risks / Jira URL for a given `--from` and `--to`.
-2. Added cross-minor auto-stitch so multi-minor upgrades do not require manually choosing intermediate versions.
-3. Cross-minor search lands on the newest reachable z-stream in each minor.
-4. Made channel optional: default `--stream stable` discovers and reports the channels used instead of requiring a caller-supplied channel that may not contain both versions.
-5. Added backtracking so a minor does not fail when the newest landing cannot reach the target; older reachable landings are tried instead.
-6. Output now includes mode, stream, channels used, joined path, per-channel segments, and associated risks with links.
