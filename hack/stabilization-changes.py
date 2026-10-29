@@ -15,7 +15,7 @@ import textwrap
 import time
 import types
 import unittest
-from unittest import mock
+import unittest.mock
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -66,6 +66,26 @@ def parse_iso8601_delay(delay):
 
 
 class TestStabilization(unittest.TestCase):
+    def test_git_captured_diagnostics_are_logged_without_credentials(self):
+        for status in (0, 1):
+            command = '!printf "stdout-test-token"; printf "stderr-test-token" >&2; exit {}'.format(status)
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as directory:
+                with self.assertLogs(_LOGGER, level='DEBUG') as logs:
+                    if status:
+                        with self.assertRaises(subprocess.CalledProcessError):
+                            _git('-c', 'alias.diagnostic=' + command, 'diagnostic', cwd=directory,
+                                 capture_output=True, github_token='test-token')
+                    else:
+                        self.assertEqual(_git('-c', 'alias.diagnostic=' + command, 'diagnostic', cwd=directory,
+                                              capture_output=True, github_token='test-token'), b'stdout-test-token')
+                output = '\n'.join(logs.output)
+                self.assertIn('stdout-REDACTED', output)
+                self.assertIn('stderr-REDACTED', output)
+                self.assertNotIn('test-token', output)
+
+    def test_git_does_not_capture_safe_commands_by_default(self):
+        self.assertIsNone(_git('version'))
+
     def test_add_version_preserves_upstream_content(self):
         original = '# Channel policy\nname: fast-4.13\nfeeder:\n  name: fast\nversions:\n- 4.12.88 # first merge\n- 4.12.90\n# Keep this note\n'
         updated = add_version(original, '4.12.89', 'fast-4.13')
@@ -181,22 +201,22 @@ class TestPromotion(unittest.TestCase):
                                        repo=types.SimpleNamespace(full_name='ota-bot/graph')),
             base=types.SimpleNamespace(ref='master'),
             mergeable=False, mergeable_state='dirty', state='open')
-        self.repo = mock.Mock()
+        self.repo = unittest.mock.Mock()
         self.repo.get_pulls.side_effect = lambda **kwargs: [self.pull] if kwargs['state'] == 'open' else []
-        self.client = mock.Mock()
+        self.client = unittest.mock.Mock()
         self.client.get_repo.return_value = self.repo
         self.client.get_user.return_value.login = 'ota-bot'
-        self.api = mock.patch.dict(globals(), github=types.SimpleNamespace(Github=lambda token: self.client))
+        self.api = unittest.mock.patch.dict(globals(), github=types.SimpleNamespace(Github=lambda token: self.client))
         self.api.start()
         self.addCleanup(self.api.stop)
         self.old_cwd = os.getcwd()
         os.chdir(self.checkout)
         self.addCleanup(os.chdir, self.old_cwd)
-        self.remote = mock.patch.dict(globals(), get_remote=lambda repo: 'upstream')
+        self.remote = unittest.mock.patch.dict(globals(), get_remote=lambda repo: 'upstream')
         self.remote.start()
         self.addCleanup(self.remote.stop)
         # No credentials or network calls: all pushes go to the local bare fork.
-        self.uri = mock.patch.dict(globals(), _push_uri=lambda repo, token: self.fork)
+        self.uri = unittest.mock.patch.dict(globals(), _push_uri=lambda repo, token: self.fork)
         self.uri.start()
         self.addCleanup(self.uri.stop)
         real_run = subprocess.run
@@ -206,7 +226,7 @@ class TestPromotion(unittest.TestCase):
                 raise AssertionError('Tests must not contact GitHub')
             return real_run(command, **kwargs)
 
-        guard = mock.patch.object(subprocess, 'run', side_effect=local_only)
+        guard = unittest.mock.patch.object(subprocess, 'run', side_effect=local_only)
         guard.start()
         self.addCleanup(guard.stop)
 
@@ -294,7 +314,7 @@ class TestPromotion(unittest.TestCase):
                 self.git('push', self.fork, concurrent + ':refs/heads/' + self.branch)
             return real_run(command, **kwargs)
 
-        with mock.patch.object(subprocess, 'run', side_effect=race), self.assertRaisesRegex(ValueError, 'retry next pass') as failure:
+        with unittest.mock.patch.object(subprocess, 'run', side_effect=race), self.assertRaisesRegex(ValueError, 'retry next pass') as failure:
             self.promote()
         self.assertIn(self.pull.html_url, str(failure.exception))
         self.assertEqual(self.remote_head(), concurrent)
@@ -377,7 +397,7 @@ class TestPromotion(unittest.TestCase):
                 raise OSError('credential-bearing cleanup diagnostic')
             return real_git(*args, **kwargs)
 
-        with mock.patch.dict(globals(), _git=fail_cleanup), self.assertLogs(_LOGGER, level='WARNING') as logs:
+        with unittest.mock.patch.dict(globals(), _git=fail_cleanup), self.assertLogs(_LOGGER, level='WARNING') as logs:
             with self.assertRaises(RuntimeError) as failure:
                 self.promote()
         self.assertIs(failure.exception, original_error)
@@ -446,7 +466,7 @@ class TestPromotion(unittest.TestCase):
             self.merge_other_versions(('4.12.90',))
             return commit
 
-        with mock.patch.dict(globals(), _promotion_commit=advance):
+        with unittest.mock.patch.dict(globals(), _promotion_commit=advance):
             self.promote()
         self.pull.head.sha = self.remote_head()
         self.promote()
@@ -462,24 +482,26 @@ class TestPromotion(unittest.TestCase):
         self.assertEqual(self.promote().action, 'waiting')
         self.assertEqual(self.remote_head(), repaired)
 
-    def test_only_creation_and_repair_produce_success_notifications(self):
+    def test_waiting_status_uses_daily_notification_schedule(self):
         kwargs = dict(version='4.12.89', channel={'name': 'fast-4.13'}, channel_path=self.channel_path,
                       delay=datetime.timedelta(0), errata=None, feeder_name='fast',
                       feeder_promotion={'committer-time': datetime.datetime.now() - datetime.timedelta(days=1),
                                         'hash': 'a' * 40, 'summary': 'Original promotion'},
                       candidates={'4.12.89'}, cache={})
-        with mock.patch.dict(globals(), get_concerns_about_risk_extensions=lambda **kw: None,
+        with unittest.mock.patch.dict(globals(), get_concerns_about_risk_extensions=lambda **kw: None,
                              get_concerns_about_updating_out=lambda **kw: None):
             for action in ('waiting', 'already-present', 'repaired', 'created'):
-                with self.subTest(action=action), mock.patch.dict(
-                        globals(), promote=lambda **kw: PullRequest(self.pull.html_url, action)):
-                    notifications = list(stabilize_release(**kwargs))
-                    if action in ('waiting', 'already-present'):
-                        self.assertEqual(notifications, [])
-                    else:
-                        self.assertEqual(len(notifications), 1)
-                        self.assertIn(self.pull.html_url, notifications[0])
-                        self.assertNotIn('FAILED', notifications[0])
+                for waiting_notifications in (False, True):
+                    with self.subTest(action=action, waiting_notifications=waiting_notifications), unittest.mock.patch.dict(
+                            globals(), promote=lambda **kw: PullRequest(self.pull.html_url, action)):
+                        notifications = list(stabilize_release(**kwargs, waiting_notifications=waiting_notifications))
+                        if action in ('waiting', 'already-present') and not waiting_notifications:
+                            self.assertEqual(notifications, [])
+                        else:
+                            self.assertEqual(len(notifications), 1)
+                            self.assertTrue(notifications[0].startswith(action + ' '))
+                            self.assertIn(self.pull.html_url, notifications[0])
+                            self.assertNotIn('FAILED', notifications[0])
 
 
 def sem_ver_prerelease_less_than(a, b):
@@ -670,10 +692,10 @@ def stabilize_release(version, channel, channel_path, delay, errata, feeder_name
             _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel['name'], sanitize(exc, github_token=github_token)))
             yield 'FAILED {}. {} {}'.format(subject, body, sanitize(exc, github_token=github_token))
         else:
-            if pull.action == 'created':
-                yield '{}. {} {}'.format(subject, body, pull.html_url)
-            elif pull.action == 'repaired':
-                yield 'Repaired merge conflicts for {}. {}'.format(subject, pull.html_url)
+            if pull.action in ('created', 'repaired') or waiting_notifications:
+                if pull.action == 'repaired':
+                    body = ''
+                yield '{} {}. {} {}'.format(pull.action, subject, body, pull.html_url)
             else:
                 _LOGGER.info('  {}: {} {}'.format(pull.action, subject, pull.html_url))
     else:
@@ -1091,9 +1113,16 @@ def add_version(content, version, channel_name):
     return updated
 
 
-def _git(*args, **kwargs):
-    # Capture output: authenticated remote URLs must never appear on the console.
-    return subprocess.run(['git'] + list(args), check=True, capture_output=True, **kwargs).stdout
+def _git(*args, capture_output=False, github_token=None, **kwargs):
+    # Capture commands containing credentials or returning data to the caller.
+    process = subprocess.run(['git'] + list(args), capture_output=capture_output, **kwargs)
+    if capture_output:
+        level = logging.ERROR if process.returncode else logging.DEBUG
+        for output in (process.stdout, process.stderr):
+            if output:
+                _LOGGER.log(level, 'git %s: %s', args[0], sanitize(output.decode(errors='replace'), github_token))
+    process.check_returncode()
+    return process.stdout
 
 
 def _push_uri(repo, token):
@@ -1107,33 +1136,33 @@ def _promotion_commit(base, channel_path, content, message, author=None):
         if author:
             env.update(author)
         _git('read-tree', base, env=env)
-        entry = _git('ls-tree', base, '--', channel_path).decode().split()
+        entry = _git('ls-tree', base, '--', channel_path, capture_output=True).decode().split()
         if len(entry) != 4 or entry[:2] != ['100644', 'blob']:
             raise ValueError('unexpected channel file type; human review required')
-        blob = _git('hash-object', '-w', '--stdin', input=content.encode()).decode().strip()
+        blob = _git('hash-object', '-w', '--stdin', input=content.encode(), capture_output=True).decode().strip()
         _git('update-index', '--cacheinfo', entry[0], blob, channel_path, env=env)
-        tree = _git('write-tree', env=env).decode().strip()
-        commit = _git('commit-tree', tree, '-p', base, input=message, env=env).decode().strip()
-        if _git('cat-file', 'commit', commit).split(b'\n\n', 1)[1] != message:
+        tree = _git('write-tree', env=env, capture_output=True).decode().strip()
+        commit = _git('commit-tree', tree, '-p', base, input=message, env=env, capture_output=True).decode().strip()
+        if _git('cat-file', 'commit', commit, capture_output=True).split(b'\n\n', 1)[1] != message:
             raise ValueError('commit message could not be preserved; human review required')
         return commit
 
 
-def _repair_promotion(pull, base, content, version, channel_name, channel_path, push_uri):
+def _repair_promotion(pull, base, content, version, channel_name, channel_path, push_uri, github_token=None):
     failure = '{} requires human review'.format(pull.html_url)
-    _git('fetch', '--no-tags', push_uri, 'refs/heads/' + pull.head.ref)
-    head = _git('rev-parse', 'FETCH_HEAD').decode().strip()
+    _git('fetch', '--no-tags', push_uri, 'refs/heads/' + pull.head.ref, capture_output=True, github_token=github_token)
+    head = _git('rev-parse', 'FETCH_HEAD', capture_output=True).decode().strip()
     if head != pull.head.sha:
         raise ValueError('{}: branch changed during inspection; retry next pass'.format(failure))
-    parents = _git('rev-list', '--parents', '-n', '1', head).decode().split()
-    if len(parents) != 2 or _git('merge-base', base, head).decode().strip() != parents[1]:
+    parents = _git('rev-list', '--parents', '-n', '1', head, capture_output=True).decode().split()
+    if len(parents) != 2 or _git('merge-base', base, head, capture_output=True).decode().strip() != parents[1]:
         raise ValueError('{}: expected one promotion commit'.format(failure))
     parent = parents[1]
-    paths = _git('diff', '--name-only', '--no-renames', parent, head).decode().splitlines()
+    paths = _git('diff', '--name-only', '--no-renames', parent, head, capture_output=True).decode().splitlines()
     if paths != [channel_path]:
         raise ValueError('{}: unexpected changed files'.format(failure))
-    before = _git('show', '{}:{}'.format(parent, channel_path)).decode()
-    after = _git('show', '{}:{}'.format(head, channel_path)).decode()
+    before = _git('show', '{}:{}'.format(parent, channel_path), capture_output=True).decode()
+    after = _git('show', '{}:{}'.format(head, channel_path), capture_output=True).decode()
     data = _load_channel(before, channel_name)
     if version in data['versions']:
         raise ValueError('{}: expected a new version addition'.format(failure))
@@ -1144,14 +1173,14 @@ def _repair_promotion(pull, base, content, version, channel_name, channel_path, 
         expected.append(add_version(before, version, channel_name))
     except ValueError:
         pass
-    if after not in expected or _git('diff', '--summary', parent, head):
+    if after not in expected or _git('diff', '--summary', parent, head, capture_output=True):
         raise ValueError('{}: branch contains unexpected edits'.format(failure))
-    message = _git('cat-file', 'commit', head).split(b'\n\n', 1)[1]
-    name, email, date = _git('show', '-s', '--format=%an%x00%ae%x00%aI', head).decode().rstrip('\n').split('\0')
+    message = _git('cat-file', 'commit', head, capture_output=True).split(b'\n\n', 1)[1]
+    name, email, date = _git('show', '-s', '--format=%an%x00%ae%x00%aI', head, capture_output=True).decode().rstrip('\n').split('\0')
     commit = _promotion_commit(base, channel_path, add_version(content, version, channel_name), message,
                                author={'GIT_AUTHOR_NAME': name, 'GIT_AUTHOR_EMAIL': email, 'GIT_AUTHOR_DATE': date})
     _git('push', '--force-with-lease=refs/heads/{}:{}'.format(pull.head.ref, head), push_uri,
-         '{}:refs/heads/{}'.format(commit, pull.head.ref))
+         '{}:refs/heads/{}'.format(commit, pull.head.ref), capture_output=True, github_token=github_token)
     return PullRequest(pull.html_url, action='repaired')
 
 
@@ -1171,8 +1200,8 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
 
     upstream_remote = get_remote(repo=upstream_github_repo)
     _git('fetch', '--no-tags', upstream_remote, upstream_branch)
-    base = _git('rev-parse', 'FETCH_HEAD').decode().strip()
-    content = _git('show', '{}:{}'.format(base, channel_path)).decode()
+    base = _git('rev-parse', 'FETCH_HEAD', capture_output=True).decode().strip()
+    content = _git('show', '{}:{}'.format(base, channel_path), capture_output=True).decode()
     if version in _load_channel(content, channel_name)['versions']:
         return PullRequest('', action='already-present')
 
@@ -1198,7 +1227,7 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
         if mergeable is not False or mergeable_state != 'dirty':
             return PullRequest(pull.html_url, action='waiting')
         try:
-            return _repair_promotion(pull, base, content, version, channel_name, channel_path, push_uri)
+            return _repair_promotion(pull, base, content, version, channel_name, channel_path, push_uri, github_token=github_token)
         except subprocess.CalledProcessError as exc:
             raise ValueError('{}: repair failed during git {}; the branch may have changed or access may be unavailable; retry next pass'.format(
                 pull.html_url, exc.cmd[1])) from exc
@@ -1210,19 +1239,19 @@ def promote(version, channel_name, channel_path, subject, body, upstream_github_
     closed = next(iter(repo.get_pulls(state='closed', **query)), None)
     if closed:
         raise ValueError('{}: promotion PR is closed; human review required'.format(closed.html_url))
-    if _git('ls-remote', '--heads', push_uri, 'refs/heads/' + branch):
+    if _git('ls-remote', '--heads', push_uri, 'refs/heads/' + branch, capture_output=True, github_token=github_token):
         raise ValueError('branch {} exists without an open PR; human review required'.format(branch))
     message = '{}\n\n{}\n'.format(subject, textwrap.fill(body, width=76)).encode()
     commit = _promotion_commit(base, channel_path, add_version(content, version, channel_name), message)
     # An empty expected SHA means the branch must still not exist at push time.
     _git('push', '--force-with-lease=refs/heads/{}:'.format(branch), push_uri,
-         '{}:refs/heads/{}'.format(commit, branch))
+         '{}:refs/heads/{}'.format(commit, branch), capture_output=True, github_token=github_token)
     try:
         pull = repo.create_pull(title=subject, body=body, head=query['head'], base=upstream_branch, maintainer_can_modify=True)
     except Exception:
         try:
             _git('push', '--force-with-lease=refs/heads/{}:{}'.format(branch, commit), push_uri,
-                 ':refs/heads/' + branch)
+                 ':refs/heads/' + branch, capture_output=True, github_token=github_token)
         except Exception:
             # Do not expose credential-bearing Git commands or mask the API error.
             _LOGGER.warning('failed to clean up promotion branch %s after PR creation failed; human review may be required', branch)
@@ -1278,14 +1307,25 @@ def get_remote(repo):
 def main():
     import argparse
     parser = argparse.ArgumentParser(
-        description='Check for stabilization changes as versions are promoted from feeder channels.',
+        description=(
+            'Check for stabilization changes as versions are promoted from feeder channels. '
+            'With a GitHub token, create promotion PRs or repair confirmed merge conflicts '
+            'in existing PRs opened by the authenticated bot. Repair requires one commit '
+            'containing only the expected channel/version addition; unexpected edits, '
+            'closed PRs, and branches without an open PR require human review. '
+            'Repair preserves upstream content, the original commit message and author, '
+            'and PR metadata, and uses an expected-head lease to protect concurrent edits. '
+            'Clean PRs and PRs with unknown mergeability are left waiting. Creation and '
+            'repair are notified immediately; waiting status is reported on the daily '
+            'notification schedule. Without a token, update local channel YAML only.'
+        ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         '--poll',
         metavar='SECONDS',
         type=int,
-        help='Seconds to wait between stabilization checks.  By default runs a single round of stabilization changes.',
+        help='Seconds to wait after each stabilization pass finishes.  By default runs a single round of stabilization changes.',
         default=None,
     )
     parser.add_argument(
