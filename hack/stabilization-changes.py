@@ -482,7 +482,7 @@ class TestPromotion(unittest.TestCase):
         self.assertEqual(self.promote().action, 'waiting')
         self.assertEqual(self.remote_head(), repaired)
 
-    def test_waiting_status_uses_daily_notification_schedule(self):
+    def test_each_promotion_action_is_notified_on_every_pass(self):
         kwargs = dict(version='4.12.89', channel={'name': 'fast-4.13'}, channel_path=self.channel_path,
                       delay=datetime.timedelta(0), errata=None, feeder_name='fast',
                       feeder_promotion={'committer-time': datetime.datetime.now() - datetime.timedelta(days=1),
@@ -495,13 +495,14 @@ class TestPromotion(unittest.TestCase):
                     with self.subTest(action=action, waiting_notifications=waiting_notifications), unittest.mock.patch.dict(
                             globals(), promote=lambda **kw: PullRequest(self.pull.html_url, action)):
                         notifications = list(stabilize_release(**kwargs, waiting_notifications=waiting_notifications))
-                        if action in ('waiting', 'already-present') and not waiting_notifications:
-                            self.assertEqual(notifications, [])
+                        self.assertEqual(len(notifications), 1)
+                        self.assertTrue(notifications[0].startswith(action + ' '))
+                        self.assertIn(self.pull.html_url, notifications[0])
+                        self.assertNotIn('FAILED', notifications[0])
+                        if action == 'repaired':
+                            self.assertNotIn('It was promoted', notifications[0])
                         else:
-                            self.assertEqual(len(notifications), 1)
-                            self.assertTrue(notifications[0].startswith(action + ' '))
-                            self.assertIn(self.pull.html_url, notifications[0])
-                            self.assertNotIn('FAILED', notifications[0])
+                            self.assertIn('It was promoted', notifications[0])
 
 
 def sem_ver_prerelease_less_than(a, b):
@@ -692,12 +693,9 @@ def stabilize_release(version, channel, channel_path, delay, errata, feeder_name
             _LOGGER.error('  failed to promote {} to {}: {}'.format(version, channel['name'], sanitize(exc, github_token=github_token)))
             yield 'FAILED {}. {} {}'.format(subject, body, sanitize(exc, github_token=github_token))
         else:
-            if pull.action in ('created', 'repaired') or waiting_notifications:
-                if pull.action == 'repaired':
-                    body = ''
-                yield '{} {}. {} {}'.format(pull.action, subject, body, pull.html_url)
-            else:
-                _LOGGER.info('  {}: {} {}'.format(pull.action, subject, pull.html_url))
+            if pull.action == 'repaired':
+                body = ''
+            yield '{} {}. {} {}'.format(pull.action, subject, body, pull.html_url)
     else:
         if concerns:
             concerns.insert(0, '')  # when joined with the whitespace delimiter, this will add leading space to offset from the rest of the message
@@ -1315,9 +1313,10 @@ def main():
             'closed PRs, and branches without an open PR require human review. '
             'Repair preserves upstream content, the original commit message and author, '
             'and PR metadata, and uses an expected-head lease to protect concurrent edits. '
-            'Clean PRs and PRs with unknown mergeability are left waiting. Creation and '
-            'repair are notified immediately; waiting status is reported on the daily '
-            'notification schedule. Without a token, update local channel YAML only.'
+            'Clean PRs and PRs with unknown mergeability are left waiting. Report every '
+            'promotion action on each pass; recommendations for releases still awaiting '
+            'promotion eligibility follow the daily notification schedule. Without a '
+            'token, update local channel YAML only.'
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
