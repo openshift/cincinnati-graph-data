@@ -1,0 +1,14 @@
+to: 4.22.20
+from: 4[.]21[.].*[+].*
+fixedIn: 4.22.21
+url: https://redhat.atlassian.net/browse/MCO-2632
+name: MultiArchPayloadRejectedByImagePolicy
+message: |
+  The cluster upgrade on a standalone multi-arch cluster with custom container policies might be blocked on degraded MachineConfigPools, because the layered OS image is rejected by policy.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      0 * group by (_id, invoker) (cluster_installer{_id="",invoker="hypershift"})
+      or
+      group by (_id, invoker) (cluster_installer{_id=""})
