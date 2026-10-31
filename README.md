@@ -174,6 +174,38 @@ from: ^4\.1\.(18|20)[+].*$
 
 The `[+].*` portion absorbs [the architecture-suffix](#release-names) from the release name that consumers will use for comparisons.
 
+#### Something needs to be in the cluster before an update launches
+
+Sometimes, a minor-level update is risky because something is missing on the current cluster: an [admin-ack](https://github.com/openshift/cluster-version-operator/blob/main/pkg/risk/adminack/adminack.go) guard, whatever a Cluster Operator needs to report [`Upgradeable=True`](https://github.com/openshift/cluster-version-operator/blob/main/pkg/risk/upgradeable/upgradeable.go), or a bug fix.
+
+Here we use "admin-ack" as an example.
+The relevant admin-ack guard exists from 4.21.6.
+An update from `4.21.z` (`z<6`) to any 4.22 release is risky.
+Thus, we require that each 4.21 cluster go through 4.21.6 or later before leaving 4.21 for 4.22.
+To achieve that, we do the following:
+
+* raise `min_versions` to 4.21.6 in [4.22.yaml](./build-suggestions/4.22.yaml).
+    It will remove the update paths from the older 4.21 releases to the future 4.22 releases.
+* declare a risk from `4.21.z` (`z<6`) to the 4.22 releases that already exist.
+    Add `fixedIn: 4.22.n` to it when the next 4.22 release, `4.22.n`, is shipped after the bump.
+
+Note that `fixedIn` has a different meaning here than in its definition above: `4.22.n` is no different from `4.22.(n-1)` as far as the admin-ack guard goes.
+What changed at `4.22.n` is the `previous` list in its primary metadata: ART stopped including the exposed `4.21.z` sources after the `min_versions` bump.
+So the risk ends there because the risky edge no longer exists, not because the exposure was fixed in that release.
+
+This is what [cincinnati-graph-data#8913](https://github.com/openshift/cincinnati-graph-data/pull/8913) did, in part: raise the floor to 4.21.6 to push clusters through a new admin-ack guard that shipped there.
+It did not declare a risk: the next 4.22 release was 4.22.0-ec.4, so the 4.22 releases that already existed were engineering candidates, risky already.
+
+The other two cases on the list behave the same way.
+A Cluster Operator's `Upgradeable=False` happens, for example, when the Cluster-API operator finds a CRD in the update target incompatible with the one in the current cluster (see [OCPCLOUD-3330](https://redhat.atlassian.net/browse/OCPCLOUD-3330)).
+Some bugs, uncommon but possible, make a cluster update unsafe unless the fix is already in the release the update launches from.
+E.g., the fix for [OCPBUGS-117010](https://redhat.atlassian.net/browse/OCPBUGS-117010) in 5.0 is not enough for a smooth update from 4.22 to 5.0; the fix also has to be in 4.22, which is why its 4.22 clone [OCPBUGS-125659](https://redhat.atlassian.net/browse/OCPBUGS-125659) was shipped.
+
+Currently, the Cluster Version Operator is not able to run the code in the target release to check if the requirements there are fulfilled.
+Therefore, the two actions above, raising the floor and declaring a risk, are the standard operating procedure in these situations.
+Being able to set `fixedIn` is a happy side effect of raising `min_versions`: it stops the risk extension, despite the unusual semantics noted above.
+We will move away from this whole shenanigan when Cluster Upgrade Preflight Checks [OCPSTRAT-2843](https://redhat.atlassian.net/browse/OCPSTRAT-2843) are implemented.
+
 #### Risks for managed clusters
 
 If site reliability engineers want to declare a risk for managed clusters updating into a release:
