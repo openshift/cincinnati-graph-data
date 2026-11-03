@@ -1,0 +1,7 @@
+feeder:
+  delay: PT0H
+  filter: 5[.]0[.][0-9].*
+  name: stable
+name: stable-5.0
+versions:
+- 5.0.0
