@@ -1,0 +1,7 @@
+feeder:
+  delay: PT0H
+  filter: '(4[.]22|5[.]0)[.][0-9].*'
+  name: fast
+name: fast-5.0
+versions:
+- 5.0.0
