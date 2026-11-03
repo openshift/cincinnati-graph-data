@@ -429,10 +429,10 @@ def get_concerns_about_updating_out(version, channel, cache=None):
     # work around 4.(y-1) limit for today's candidate-4.y channels by iterating over multiple candidate channels
     release_major, release_minor = (int(x) for x in release_major_minor.split('.'))
     channel_major, channel_minor = (int(x) for x in channel_major_minor.split('.'))
-    if release_major != channel_major:
-        raise ValueError('unclear which candidate channels to pull for update information between {} and {}'.format(release_major_minor, channel_major_minor))
+    if release_major != channel_major and channel_major != 5:
+        raise ValueError('unclear which candidate channels to pull for update information between {} and {} when considering updates from {} in {}'.format(release_major_minor, channel_major_minor, version, channel))
     candidate_minor = channel_minor
-    while candidate_minor > release_minor:
+    while (channel_major, candidate_minor) > (release_major, release_minor):
         cincinnati_uri, cincinnati_data = get_cincinnati_channel(cache=cache, channel='candidate-{}.{}'.format(channel_major, candidate_minor))
         nodes = cincinnati_data.get('nodes', [])
         for edge in cincinnati_data.get('edges', []):
@@ -451,7 +451,11 @@ def get_concerns_about_updating_out(version, channel, cache=None):
                     updates[edge['from']] = set()
                 updates[edge['from']].add(edge['to'])
         cincinnati_uris.append(cincinnati_uri)
-        candidate_minor -= 1
+        if channel_major == 5 and candidate_minor == 0:
+            channel_major = 4  # 4.22 is the minor version before 5.0
+            candidate_minor = 22
+        else:
+            candidate_minor -= 1
 
     reachable = {version}
     while reachable:
