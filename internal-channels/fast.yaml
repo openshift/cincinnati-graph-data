@@ -1,6 +1,6 @@
 feeder:
   errata: public
-  filter: 4\.[0-9]+\.[0-9]+(.*hotfix.*)?
+  filter: '[0-9]*\.[0-9]+\.[0-9]+(.*hotfix.*)?'
   name: candidate
 name: fast
 versions:
