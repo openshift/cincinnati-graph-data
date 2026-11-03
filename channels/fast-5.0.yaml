@@ -4,6 +4,7 @@ feeder:
   name: fast
 name: fast-5.0
 versions:
+- 4.22.17
 - 4.22.18
 - 4.22.21
 - 5.0.0
