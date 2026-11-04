@@ -17,7 +17,9 @@ This directory contains scripts that either generate the data maintained by OTA 
 
 * [show-edges.py](show-edges.py): It shows the edges of OpenShift update graph.
 
-* [stabilization-changes.py](stabilization-changes.py): It promotes releases to both [public](../channels/) and [internal](../internal-channels/) channels and deployed on the `OTA-stage` cluster to generate a pull request like [cincinnati-graph-data#7243](https://github.com/openshift/cincinnati-graph-data/pull/7243).
+* [stabilization-changes.py](stabilization-changes.py): It promotes releases to both [public](../channels/) and [internal](../internal-channels/) channels and deployed on the `OTA-stage` cluster to generate a pull request like [cincinnati-graph-data#7243](https://github.com/openshift/cincinnati-graph-data/pull/7243). When the script changes, run the following commands against the `OTA-stage` cluster to push the change into production:
+    * Launch a new build: `oc -n graph-data-channel-stabilization start-build stabilization-changes`, and
+    * Use the built image: `oc -n graph-data-channel-stabilization patch deployment stabilization-changes --type json -p '[{"op": "add", "path": "/spec/template/spec/containers/0/image", "value": "image-registry.openshift-image-registry.svc:5000/graph-data-channel-stabilization/stabilization-changes@sha256:<digest>"}]'` where the `digest` can be found at the end of the build logs.
 
 * [util.py](util.py): It contains the common functions used by other Python Scripts.
 
