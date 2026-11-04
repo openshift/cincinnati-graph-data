@@ -204,7 +204,7 @@ E.g., a 4.22 cluster exposed to [OCPBUGS-125659](https://redhat.atlassian.net/br
 Currently, the Cluster Version Operator is not able to run the code in the target release to check if the requirements there are fulfilled.
 Therefore, the two actions above, raising the floor and declaring a risk, are the standard operating procedure in these situations.
 Being able to set `fixedIn` is a happy side effect of raising `min_versions`: it stops the risk extension, despite the unusual semantics noted above.
-We will move away from this whole shenanigan when the feature of Cluster Upgrade Preflight Checks [OCPSTRAT-2843](https://redhat.atlassian.net/browse/OCPSTRAT-2843) is implemented.
+Once Cluster Upgrade Preflight Checks [OCPSTRAT-2843](https://redhat.atlassian.net/browse/OCPSTRAT-2843) is implemented, we will be able to add guards to the target release instead of the source release, and will no longer need to raise `min_versions` during a z-stream.
 
 #### Risks for managed clusters
 
