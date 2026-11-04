@@ -17,6 +17,8 @@ This directory contains scripts that either generate the data maintained by OTA 
 
 * [show-edges.py](show-edges.py): It shows the edges of OpenShift update graph.
 
+* [check-upgrade-path.py](check-upgrade-path.py): Given a current and target version, it reports whether an upgrade path exists, whether that path is unconditional, and any associated conditional update risks with Jira/KCS links. See [check-upgrade-path.py](#check-upgrade-pathpy) below for usage.
+
 * [stabilization-changes.py](stabilization-changes.py): It promotes releases to both [public](../channels/) and [internal](../internal-channels/) channels and deployed on the `OTA-stage` cluster to generate a pull request like [cincinnati-graph-data#7243](https://github.com/openshift/cincinnati-graph-data/pull/7243).
 
 * [util.py](util.py): It contains the common functions used by other Python Scripts.
@@ -24,3 +26,49 @@ This directory contains scripts that either generate the data maintained by OTA 
 * [validate-blocked-edges.py](validate-blocked-edges.py): It does basic blocked-edges validation and is executed in CI.
 
 [maintenance]: https://access.redhat.com/support/policy/updates/openshift#maintenancesupport
+
+## check-upgrade-path.py
+
+Checks whether an OpenShift upgrade path exists between two versions and reports associated conditional update risks (name, message, and Jira/KCS URL).
+
+Run from the repository root:
+
+```bash
+# Cross-minor: no channel required; script discovers and prints channels
+./hack/check-upgrade-path.py --from 4.17.52 --to 4.21.22
+
+# Explicit stream (default is stable)
+./hack/check-upgrade-path.py --stream stable --from 4.17.52 --to 4.21.22
+
+# Optional: force single-channel evaluation when both versions are in that channel
+./hack/check-upgrade-path.py --from 4.18.20 --to 4.19.20 --channel stable-4.19
+```
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--from` | required | Current cluster version |
+| `--to` | required | Target cluster version |
+| `--stream` | `stable` | Channel stream used to discover `stream-X.Y` graphs (`stable`, `fast`, `candidate`, `eus`, ...) |
+| `--channel` | unset | Optional. If both versions are present in this channel, evaluate only there |
+| `--cincinnati` | `https://api.openshift.com/api/upgrades_info/graph` | Cincinnati graph endpoint |
+
+A positional `CHANNEL` argument is still accepted for backwards compatibility; the stream is extracted from it when `--stream` is left at the default.
+
+### Behavior
+
+- Loads update edges and conditional risks from Cincinnati.
+- Prefers unconditional edges; falls back to conditional edges and reports conditional update risks with URLs.
+- Same minor: uses `{stream}-{major}.{minor}` automatically and returns one shortest path in that channel.
+- Cross-minor: auto-stitches across discovered `{stream}-X.Y` channels and prints **Channels used**.
+- Each minor lands on the newest z-stream that can still reach the target. If that landing cannot continue, an older landing is tried.
+- Intermediate versions are never hard-coded; they come from graph search.
+- Exit code `0` means a path exists; `1` means no path; `2` means invalid arguments.
+
+Example (`--from 4.17.52 --to 4.21.22`):
+
+```text
+Channels used: stable-4.18, stable-4.19, stable-4.20, stable-4.21
+Joined path: 4.17.52 -> 4.18.45 -> 4.19.35 -> 4.20.27 -> 4.21.22
+```
