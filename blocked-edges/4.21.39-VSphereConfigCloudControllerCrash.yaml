@@ -1,0 +1,13 @@
+to: 4.21.39
+from: ^4[.](20[.]([0-9]|[1-3][0-9]|4[0-2])|21[.]([0-9]|[12][0-9]|3[0-7]))[+].*$
+url: https://redhat.atlassian.net/browse/OCPCLOUD-3745
+name: VSphereConfigCloudControllerCrash
+message: |
+  On vSphere clusters whose Infrastructure spec.platformSpec.vsphere exists but has empty vcenters and failureDomains fields, updating causes cloud-controller-manager to crash, stopping node lifecycle management.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      group(cluster_infrastructure_provider{_id="",type="VSphere"})
+      or
+      0 * group(cluster_infrastructure_provider{_id=""})
