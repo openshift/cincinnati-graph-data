@@ -1,5 +1,6 @@
 to: 4.21.42
 from: ^4[.](20[.]([0-9]|[1-3][0-9]|4[0-2])|21[.]([0-9]|[12][0-9]|3[0-7]))[+].*$
+fixedIn: 4.21.43
 url: https://redhat.atlassian.net/browse/OCPCLOUD-3745
 name: VSphereConfigCloudControllerCrash
 message: |
