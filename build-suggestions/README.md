@@ -17,3 +17,5 @@ min_versions:
 ```
 
 says that 4.21.6 and later and 4.22.0 and later should be included as `previous` update sources in future 4.22.z releases.
+
+See a use case of `min_versions` to [block edges](../README.md#something-needs-to-be-in-the-cluster-before-an-update-launches) where it helps to drop the risk from new releases.

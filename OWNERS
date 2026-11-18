@@ -3,7 +3,7 @@
 
 approvers:
   - cincinnati-graph-data-approvers
-  - sre-approvers
+  - hybrid-platforms-managed-services-approvers
 reviewers:
   - cincinnati-graph-data-approvers
 emeritus_approvers:

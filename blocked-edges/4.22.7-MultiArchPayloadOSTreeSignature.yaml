@@ -1,0 +1,13 @@
+to: 4.22.7
+from: 4[.]21[.].*[+].*
+url: https://redhat.atlassian.net/browse/OCPNODE-4731
+name: MultiArchPayloadOSTreeSignature
+message: |
+  The cluster upgrade on a standalone multi-arch cluster might be blocked on degraded MachineConfigPools. A 4.22 cluster enforces Sigstore signatures by ClusterImagePolicy which requires a recent version Skopeo. If ClusterImagePolicy takes effects before Skopeo is upgraded, the cluster upgrade is blocked.
+matchingRules:
+- type: PromQL
+  promql:
+    promql: |
+      0 * group by (_id, invoker) (cluster_installer{_id="",invoker="hypershift"})
+      or
+      group by (_id, invoker) (cluster_installer{_id=""})

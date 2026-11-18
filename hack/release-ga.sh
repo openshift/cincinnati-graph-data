@@ -97,7 +97,7 @@ SED_CMD=${SED_CMD:-"sed"}
 # Extract the smallest (we assume it is listed first) version from the stable channel (the GA version) and bump the z_min to that version
 LATEST=$(python -c "import sys, yaml; data = yaml.safe_load(sys.stdin); print(data['versions'][0])" < "channels/stable-${MAJOR_MINOR}.yaml")
 # Use sed instead of doing this in python above to avoid clobbering the nice semantic ordering
-"${SED_CMD}" -i -e "s| ${MAJOR}[.]${MINOR}[.]*| ${LATEST}|" $(grep -rl " ${MAJOR}[.]${MINOR}[.]" build-suggestions)
+"${SED_CMD}" -i -e "s| ${MAJOR}[.]${MINOR}[.].*| ${LATEST}|" $(grep -rl " ${MAJOR}[.]${MINOR}[.]" build-suggestions)
 
 grep "^- ${MAJOR}[.]${MINOR}[.]0-" "channels/candidate-${MAJOR_MINOR}.yaml" | "${SED_CMD}" 's/^- //' | while read VERSION
 do
